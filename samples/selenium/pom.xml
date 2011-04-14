@@ -41,7 +41,7 @@
             <phase>integration-test</phase>
             <configuration>
               <buildFiles>
-                <buildFile>${basedir}/assembly.xml</buildFile>
+                <buildFile>${basedir}/itests.xml</buildFile>
               </buildFiles>
             </configuration>
             <goals>

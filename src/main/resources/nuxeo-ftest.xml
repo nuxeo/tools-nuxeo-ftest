@@ -1,21 +1,19 @@
-<project name="selenium-tests"
-         default="integration-test"
+<project name="nuxeo-ftest"
+         default="run-selenium"
          xmlns:nx="urn:nuxeo-build"
          xmlns:artifact="urn:nuxeo-artifact">
   <taskdef resource="org/nuxeo/build/antlib.xml" uri="urn:nuxeo-build" />
   <taskdef resource="org/nuxeo/build/artifact/antlib.xml"
            uri="urn:nuxeo-artifact" />
-  <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+  <taskdef resource="net/sf/antcontrib/antlib.xml" />
 
   <property name="nuxeoURL" value="http://localhost:8080/nuxeo/" />
   <property name="browser" value="chrome" />
   <property name="out.dir" value="${maven.project.build.directory}" />
-  <property name="suites"
-            value="null" />
+  <property name="suites" value="null" />
 
-  <target name="init" unless="init.done">
-    <echo>Init params</echo>
-    <property name="init.done" value="true" />
+  <target name="_init" unless="_init.done">
+    <property name="_init.done" value="true" />
 
     <condition property="osfamily-unix">
       <os family="unix" />
@@ -31,12 +29,14 @@
     </condition>
   </target>
 
-  <target name="integration-test" depends="init">
+  <target name="run-selenium" depends="_init">
     <antcall target="prepare-environment" />
+    <antcall target="prepare-selenium" />
 
     <property name="standard.selenium.args1"
               value="-jar ${out.dir}/selenium-server-${selenium.version}-standalone.jar" />
-    <property name="standard.selenium.args2" value="-log ${out.dir}/selenium-debug.log" />
+    <property name="standard.selenium.args2"
+              value="-log ${out.dir}/selenium-debug.log" />
     <property name="standard.selenium.args3" value="-port 14440" />
     <property name="standard.selenium.args4" value="-timeout 7200" />
     <property name="standard.selenium.args5"
@@ -53,7 +53,6 @@
       <equals arg1="${browser}" arg2="chrome" />
     </condition>
 
-    <antcall target="stop" />
     <antcall target="start" />
 
     <echo>java ${standard.selenium.args1} ${standard.selenium.args2} ${standard.selenium.args3} \
@@ -87,35 +86,41 @@
     </fail>
   </target>
 
+  <target name="prepare-tomcat">
+    <echo>Download Tomcat...</echo>
+    <delete failonerror="false" dir="${nuxeo.home}" />
+    <unzip dest="${nuxeo.home}/">
+      <artifact:resolveFile key="org.nuxeo.ecm.distribution:nuxeo-distribution-tomcat:${nuxeo.distribution.version}:zip"
+                            classifier="nuxeo-dm" />
+      <cutdirsmapper dirs="1" />
+    </unzip>
+  </target>
+  <target name="prepare-jboss">
+    <echo>Download JBoss...</echo>
+    <delete failonerror="false" dir="${nuxeo.home}" />
+    <unzip dest="${nuxeo.home}/">
+      <artifact:resolveFile key="org.nuxeo.ecm.distribution:nuxeo-distribution-jboss:${nuxeo.distribution.version}:zip"
+                            classifier="nuxeo-dm" />
+      <cutdirsmapper dirs="1" />
+    </unzip>
+  </target>
+
   <target name="prepare-environment"
           description="prepare all ressources for test">
     <nx:profile name="tomcat">
-      <echo>Download Tomcat...</echo>
-      <delete failonerror="false" dir="${nuxeo.home}" />
-      <unzip dest="${nuxeo.home}/">
-        <artifact:resolveFile key="org.nuxeo.ecm.distribution:nuxeo-distribution-tomcat:${nuxeo.distribution.version}:zip"
-                              classifier="nuxeo-dm" />
-        <cutdirsmapper dirs="1" />
-      </unzip>
+      <antcall target="prepare-tomcat" />
     </nx:profile>
     <nx:profile name="jboss">
-      <echo>Download JBoss...</echo>
-      <delete failonerror="false" dir="${nuxeo.home}" />
-      <unzip dest="${nuxeo.home}/">
-        <artifact:resolveFile key="org.nuxeo.ecm.distribution:nuxeo-distribution-jboss:${nuxeo.distribution.version}:zip"
-                              classifier="nuxeo-dm" />
-        <cutdirsmapper dirs="1" />
-      </unzip>
+      <antcall target="prepare-jboss" />
     </nx:profile>
+  </target>
+
+  <target name="prepare-selenium"
+          description="prepare Selenium files for tests">
     <copy todir="${out.dir}/">
       <artifact:resolveFile key="org.seleniumhq.selenium:selenium-server"
                             classifier="standalone" />
     </copy>
-    <antcall target="prepare-selenium-files" />
-  </target>
-
-  <target name="prepare-selenium-files"
-          description="prepare Selenium files for tests">
     <echo>Replace local folder in user-extensions.js</echo>
     <path id="data.dir.path">
       <pathelement location="data" />
@@ -150,7 +155,7 @@
              value="${data.dir.path.for.currentos}/" />
   </target>
 
-  <target name="start" depends="start-unix,start-windows" />
+  <target name="start" depends="_init,stop,start-unix,start-windows" />
   <target name="start-unix" if="osfamily-unix">
     <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="*.sh,*ctl" />
     <exec executable="${nuxeo.home}/bin/nuxeoctl" spawn="false">
@@ -164,7 +169,7 @@
     </exec>
   </target>
 
-  <target name="stop" depends="stop-unix,stop-windows" />
+  <target name="stop" depends="_init,stop-unix,stop-windows" />
   <target name="stop-unix" if="osfamily-unix">
     <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="*.sh,*ctl" />
     <exec executable="${nuxeo.home}/bin/nuxeoctl" spawn="false">
@@ -176,6 +181,13 @@
       <arg value="nogui" />
       <arg value="stop" />
     </exec>
+  </target>
+
+  <target name="wizard-on">
+    <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">nuxeo.wizard.done=false</echo>
+  </target>
+  <target name="wizard-off">
+    <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">nuxeo.wizard.done=false</echo>
   </target>
 
 </project>
