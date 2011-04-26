@@ -8,7 +8,7 @@
   <artifactId>nuxeo-ftest</artifactId>
   <name>Nuxeo functional tests</name>
   <description>Nuxeo resources for functional tests</description>
-  <version>1.2-SNAPSHOT</version>
+  <version>1.3-SNAPSHOT</version>
   <packaging>zip</packaging>
 
   <scm>
@@ -230,12 +230,11 @@
       <plugin>
         <groupId>org.nuxeo.build</groupId>
         <artifactId>nuxeo-distribution-tools</artifactId>
+        <version>1.6</version>
         <extensions>true</extensions>
-            <configuration>
-              <buildFiles>
-                <buildFile>${basedir}/src/main/assemble/assembly.xml</buildFile>
-              </buildFiles>
-            </configuration>
+          <configuration>
+            <buildFile>${basedir}/src/main/assemble/assembly.xml</buildFile>
+          </configuration>
       </plugin>
     </plugins>
   </build>
