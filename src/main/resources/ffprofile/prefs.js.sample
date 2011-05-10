@@ -24,3 +24,5 @@ user_pref("browser.sessionstore.interval", 1800000);
 // flag UserAgent as Selenium tester : this is used in Nuxeo
 user_pref("general.useragent.extra.nuxeo", "Nuxeo-Selenium-Tester");
 
+// do not load images
+// user_pref("permissions.default.image", 2);

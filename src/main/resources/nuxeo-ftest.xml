@@ -34,7 +34,7 @@
     <antcall target="prepare-selenium" />
 
     <property name="standard.selenium.args1"
-              value="-jar ${out.dir}/selenium-server-${selenium.version}-standalone.jar" />
+              value="-jar ${out.dir}/selenium-server.jar" />
     <property name="standard.selenium.args2"
               value="-log ${out.dir}/selenium-debug.log" />
     <property name="standard.selenium.args3" value="-port 14440" />
@@ -69,7 +69,9 @@
           <arg line="${standard.selenium.args3}" />
           <arg line="${standard.selenium.args4}" />
           <arg line="${standard.selenium.args5}" />
-          <arg line="${standard.selenium.args6} tests/@{suite}.html ${out.dir}/result-@{suite}.html" />
+          <arg line="${standard.selenium.args6}" />
+          <arg line="tests/@{suite}.html" />
+          <arg line="${out.dir}/result-@{suite}.html" />
           <arg line="${browser.specific.selenium.arg}" />
         </exec>
       </sequential>
@@ -117,7 +119,7 @@
 
   <target name="prepare-selenium"
           description="prepare Selenium files for tests">
-    <copy todir="${out.dir}/">
+    <copy tofile="${out.dir}/selenium-server.jar">
       <artifact:resolveFile key="org.seleniumhq.selenium:selenium-server"
                             classifier="standalone" />
     </copy>
