@@ -89,35 +89,27 @@
   </target>
 
   <target name="prepare-tomcat">
-    <echo>Download Tomcat...</echo>
+    <echo>Prepare Tomcat...</echo>
     <delete failonerror="false" dir="${nuxeo.home}" />
-    <!-- properties that can be overriden -->
-    <property name="prepare-tomcat.groupId" value="org.nuxeo.ecm.distribution" />
-    <property name="prepare-tomcat.artifactId" value="nuxeo-distribution-tomcat" />
-    <property name="prepare-tomcat.version" value="${nuxeo.distribution.version}" />
-    <property name="prepare-tomcat.classifier" value="nuxeo-dm" />
-
-    <unzip dest="${nuxeo.home}/">
-      <artifact:resolveFile key="${prepare-tomcat.groupId}:${prepare-tomcat.artifactId}:${prepare-tomcat.version}:zip"
-                            classifier="${prepare-tomcat.classifier}" />
-      <cutdirsmapper dirs="1" />
-    </unzip>
+    <antcall target="download">
+      <param name="groupId" value="org.nuxeo.ecm.distribution" />
+      <param name="artifactId" value="nuxeo-distribution-tomcat" />
+      <param name="version" value="${nuxeo.distribution.version}" />
+      <param name="classifier" value="nuxeo-dm" />
+    </antcall>
+    <antcall target="unzip-local" />
   </target>
 
   <target name="prepare-jboss">
-    <echo>Download JBoss...</echo>
+    <echo>Prepare JBoss...</echo>
     <delete failonerror="false" dir="${nuxeo.home}" />
-    <!-- properties that can be overriden -->
-    <property name="prepare-jboss.groupId" value="org.nuxeo.ecm.distribution" />
-    <property name="prepare-jboss.artifactId" value="nuxeo-distribution-jboss" />
-    <property name="prepare-jboss.version" value="${nuxeo.distribution.version}" />
-    <property name="prepare-jboss.classifier" value="nuxeo-dm" />
-
-    <unzip dest="${nuxeo.home}/">
-      <artifact:resolveFile key="${prepare-jboss.groupId}:${prepare-jboss.artifactId}:${prepare-jboss.version}:zip"
-                            classifier="${prepare-jboss.classifier}" />
-      <cutdirsmapper dirs="1" />
-    </unzip>
+    <antcall target="download">
+      <param name="groupId" value="org.nuxeo.ecm.distribution" />
+      <param name="artifactId" value="nuxeo-distribution-jboss" />
+      <param name="version" value="${nuxeo.distribution.version}" />
+      <param name="classifier" value="nuxeo-dm" />
+    </antcall>
+    <antcall target="unzip-local" />
   </target>
 
   <target name="prepare-environment"
@@ -128,6 +120,20 @@
     <nx:profile name="jboss">
       <antcall target="prepare-jboss" />
     </nx:profile>
+  </target>
+
+  <target name="download" unless="zip.file">
+    <unzip dest="${nuxeo.home}/">
+      <artifact:resolveFile key="${groupId}:${artifactId}:${version}:zip"
+                            classifier="${classifier}" />
+      <cutdirsmapper dirs="1" />
+    </unzip>
+  </target>
+  <target name="unzip-local" if="zip.file">
+    <echo message="Using local archive ${zip.file}" />
+    <unzip dest="${nuxeo.home}/" src="${zip.file}">
+      <cutdirsmapper dirs="1" />
+    </unzip>
   </target>
 
   <target name="prepare-selenium"
