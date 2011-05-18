@@ -14,7 +14,7 @@
 
   <target name="_init" unless="_init.done">
     <property name="_init.done" value="true" />
-
+    <property environment="env" />
     <condition property="osfamily-unix">
       <os family="unix" />
     </condition>
@@ -98,6 +98,7 @@
       <param name="classifier" value="nuxeo-dm" />
     </antcall>
     <antcall target="unzip-local" />
+    <antcall target="nuxeo-conf" />
   </target>
 
   <target name="prepare-jboss">
@@ -110,6 +111,7 @@
       <param name="classifier" value="nuxeo-dm" />
     </antcall>
     <antcall target="unzip-local" />
+    <antcall target="nuxeo-conf" />
   </target>
 
   <target name="prepare-environment"
@@ -205,10 +207,22 @@
   </target>
 
   <target name="wizard-on">
-    <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">nuxeo.wizard.done=false</echo>
+    <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">nuxeo.wizard.done=false${line.separator}</echo>
   </target>
   <target name="wizard-off">
-    <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">nuxeo.wizard.done=false</echo>
+    <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">nuxeo.wizard.done=false${line.separator}</echo>
+  </target>
+
+  <target name="set-java-home"
+          if="env.NX_JAVA_HOME"
+          description="Set JAVA_HOME in nuxeo.conf with env.NX_JAVA_HOME value, if defined.">
+    <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">JAVA_HOME=${env.NX_JAVA_HOME}${line.separator}</echo>
+    <echo message="Using JAVA_HOME=${env.NX_JAVA_HOME}." />
+  </target>
+
+  <target name="nuxeo-conf"
+          depends="_init,set-java-home"
+          description="Configure nuxeo.conf depending on environment values.">
   </target>
 
 </project>
