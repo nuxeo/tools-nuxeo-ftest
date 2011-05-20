@@ -1,6 +1,4 @@
-<project
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -11,10 +9,15 @@
   <version>1.4-SNAPSHOT</version>
   <packaging>zip</packaging>
 
+  <issueManagement>
+    <system>jira</system>
+    <url>http://jira.nuxeo.org/browse/NXBT</url>
+  </issueManagement>
+
   <scm>
-    <connection>scm:hg:https://hg.nuxeo.org/tools/nuxeo-ftest</connection>
-    <developerConnection>scm:hg:https://hg.nuxeo.org/tools/nuxeo-ftest</developerConnection>
-    <url>https://hg.nuxeo.org/tools/nuxeo-ftest</url>
+    <connection>scm:git:git://github.com/nuxeo/tools-nuxeo-ftest.git</connection>
+    <developerConnection>scm:git:https://github.com/nuxeo/tools-nuxeo-ftest.git</developerConnection>
+    <url>https://github.com/nuxeo/tools-nuxeo-ftest</url>
   </scm>
 
   <organization>
@@ -232,9 +235,9 @@
         <artifactId>nuxeo-distribution-tools</artifactId>
         <version>1.6</version>
         <extensions>true</extensions>
-          <configuration>
-            <buildFile>${basedir}/src/main/assemble/assembly.xml</buildFile>
-          </configuration>
+        <configuration>
+          <buildFile>${basedir}/src/main/assemble/assembly.xml</buildFile>
+        </configuration>
       </plugin>
     </plugins>
   </build>
