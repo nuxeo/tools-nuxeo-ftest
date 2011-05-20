@@ -27,6 +27,11 @@
     <condition property="nuxeo.home" value="${out.dir}/jboss">
       <isset property="maven.profile.jboss" />
     </condition>
+    <condition property="classifier" value="nuxeo-dm">
+      <not>
+        <isset property="classifier" />
+      </not>
+    </condition>
   </target>
 
   <target name="run-selenium" depends="_init">
@@ -88,33 +93,30 @@
     </fail>
   </target>
 
-  <target name="prepare-tomcat">
+  <target name="prepare-tomcat" depends="_init">
     <echo>Prepare Tomcat...</echo>
     <delete failonerror="false" dir="${nuxeo.home}" />
     <antcall target="download">
       <param name="groupId" value="org.nuxeo.ecm.distribution" />
       <param name="artifactId" value="nuxeo-distribution-tomcat" />
-      <param name="version" value="${nuxeo.distribution.version}" />
-      <param name="classifier" value="nuxeo-dm" />
     </antcall>
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
   </target>
 
-  <target name="prepare-jboss">
+  <target name="prepare-jboss" depends="_init">
     <echo>Prepare JBoss...</echo>
     <delete failonerror="false" dir="${nuxeo.home}" />
     <antcall target="download">
       <param name="groupId" value="org.nuxeo.ecm.distribution" />
       <param name="artifactId" value="nuxeo-distribution-jboss" />
-      <param name="version" value="${nuxeo.distribution.version}" />
-      <param name="classifier" value="nuxeo-dm" />
     </antcall>
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
   </target>
 
   <target name="prepare-environment"
+          depends="_init"
           description="prepare all ressources for test">
     <nx:profile name="tomcat">
       <antcall target="prepare-tomcat" />
@@ -126,8 +128,7 @@
 
   <target name="download" unless="zip.file">
     <unzip dest="${nuxeo.home}/">
-      <artifact:resolveFile key="${groupId}:${artifactId}:${version}:zip"
-                            classifier="${classifier}" />
+      <artifact:resolveFile key="${groupId}:${artifactId}::zip:${classifier}" />
       <cutdirsmapper dirs="1" />
     </unzip>
   </target>
@@ -141,8 +142,7 @@
   <target name="prepare-selenium"
           description="prepare Selenium files for tests">
     <copy tofile="${out.dir}/selenium-server.jar">
-      <artifact:resolveFile key="org.seleniumhq.selenium:selenium-server"
-                            classifier="standalone" />
+      <artifact:resolveFile key="org.seleniumhq.selenium:selenium-server:::standalone" />
     </copy>
     <echo>Replace local folder in user-extensions.js</echo>
     <path id="data.dir.path">
@@ -206,7 +206,7 @@
     </exec>
   </target>
 
-  <target name="wizard-on">
+  <target name="wizard-on" depends="_init">
     <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">nuxeo.wizard.done=false${line.separator}</echo>
   </target>
   <target name="wizard-off">
@@ -215,6 +215,7 @@
 
   <target name="set-java-home"
           if="env.NX_JAVA_HOME"
+          depends="_init"
           description="Set JAVA_HOME in nuxeo.conf with env.NX_JAVA_HOME value, if defined.">
     <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">JAVA_HOME=${env.NX_JAVA_HOME}${line.separator}</echo>
     <echo message="Using JAVA_HOME=${env.NX_JAVA_HOME}." />
