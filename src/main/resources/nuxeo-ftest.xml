@@ -142,7 +142,7 @@
   <target name="prepare-selenium"
           description="prepare Selenium files for tests">
     <copy tofile="${out.dir}/selenium-server.jar">
-      <artifact:resolveFile key="org.seleniumhq.selenium:selenium-server:::standalone" />
+      <artifact:resolveFile key="org.seleniumhq.selenium:selenium-server::jar:standalone" />
     </copy>
     <echo>Replace local folder in user-extensions.js</echo>
     <path id="data.dir.path">
