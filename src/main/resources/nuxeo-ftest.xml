@@ -76,7 +76,7 @@
           <arg line="${standard.selenium.args5}" />
           <arg line="${standard.selenium.args6}" />
           <arg line="tests/@{suite}.html" />
-          <arg line="${out.dir}/result-@{suite}.html" />
+          <arg line="${out.dir}/results/result-@{suite}.html" />
           <arg line="${browser.specific.selenium.arg}" />
         </exec>
       </sequential>
