@@ -1,13 +1,11 @@
-<project
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.nuxeo.ecm.distribution</groupId>
     <artifactId>nuxeo-distribution</artifactId>
-    <version>5.4.2-SNAPSHOT</version>
+    <version>5.4.2</version>
   </parent>
 
   <groupId>org.nuxeo.tool</groupId>
@@ -17,15 +15,10 @@
   <name>Utility POM for running Selenium tests</name>
   <description>This POM uses an assembly for running functional tests.</description>
 
-  <properties>
-    <selenium.version>2.0b1</selenium.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-server</artifactId>
-      <version>${selenium.version}</version>
       <classifier>standalone</classifier>
     </dependency>
   </dependencies>

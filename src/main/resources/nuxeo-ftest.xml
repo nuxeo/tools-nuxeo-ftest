@@ -11,6 +11,7 @@
   <property name="browser" value="chrome" />
   <property name="out.dir" value="${maven.project.build.directory}" />
   <property name="suites" value="null" />
+  <property name="classifier" value="nuxeo-dm" />
 
   <target name="_init" unless="_init.done">
     <property name="_init.done" value="true" />
@@ -21,17 +22,33 @@
     <condition property="osfamily-windows">
       <os family="windows" />
     </condition>
-    <condition property="nuxeo.home" value="${out.dir}/tomcat">
-      <isset property="maven.profile.tomcat" />
-    </condition>
+    <!-- Set nuxeo.home to NUXEO_HOME env property if defined,
+    else set to ${out.dir}/jboss if jboss Maven profile is active,
+    else set to ${out.dir}/tomcat -->
     <condition property="nuxeo.home" value="${out.dir}/jboss">
-      <isset property="maven.profile.jboss" />
+      <and>
+        <isset property="maven.profile.jboss" />
+        <not>
+          <isset property="env.NUXEO_HOME" />
+        </not>
+      </and>
     </condition>
-    <condition property="classifier" value="nuxeo-dm">
-      <not>
-        <isset property="classifier" />
-      </not>
+    <condition property="nuxeo.home"
+               value="${env.NUXEO_HOME}"
+               else="${out.dir}/tomcat">
+      <isset property="env.NUXEO_HOME" />
     </condition>
+    <!-- Set nuxeo.conf to NUXEO_CONF env property if defined,
+    else set to ${nuxeo.home}/bin/nuxeo.conf -->
+    <condition property="nuxeo.conf"
+               value="${env.NUXEO_CONF}"
+               else="${nuxeo.home}/bin/nuxeo.conf">
+      <isset property="env.NUXEO_CONF" />
+    </condition>
+  </target>
+
+  <target name="debug" depends="_init">
+    <echoproperties />
   </target>
 
   <target name="run-selenium" depends="_init">
@@ -206,24 +223,42 @@
     </exec>
   </target>
 
-  <target name="wizard-on" depends="_init">
-    <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">nuxeo.wizard.done=false${line.separator}</echo>
+  <target name="wizard-on"
+          depends="_init"
+          description="DEPRECATED: call set-conf instead.">
+    <echo append="true" file="${nuxeo.conf}">nuxeo.wizard.done=false${line.separator}</echo>
   </target>
-  <target name="wizard-off">
-    <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">nuxeo.wizard.done=false${line.separator}</echo>
+  <target name="wizard-off"
+          depends="_init"
+          description="DEPRECATED: call set-conf instead.">
+    <echo append="true" file="${nuxeo.conf}">nuxeo.wizard.done=true${line.separator}</echo>
   </target>
 
   <target name="set-java-home"
           if="env.NX_JAVA_HOME"
           depends="_init"
-          description="Set JAVA_HOME in nuxeo.conf with env.NX_JAVA_HOME value, if defined.">
-    <echo append="true" file="${nuxeo.home}/bin/nuxeo.conf">JAVA_HOME=${env.NX_JAVA_HOME}${line.separator}</echo>
-    <echo message="Using JAVA_HOME=${env.NX_JAVA_HOME}." />
+          description="Set JAVA_HOME in ${nuxeo.conf} with env.NX_JAVA_HOME value, if defined.">
+    <antcall target="set-conf">
+      <param name="name" value="JAVA_HOME" />
+      <param name="value" value="${env.NX_JAVA_HOME}" />
+    </antcall>
+    <echo message="Using JAVA_HOME=${env.NX_JAVA_HOME}" />
   </target>
 
   <target name="nuxeo-conf"
           depends="_init,set-java-home"
-          description="Configure nuxeo.conf depending on environment values.">
+          description="Configure ${nuxeo.conf} depending on environment values.">
+    <!-- activate logs for Selenium tests -->
+    <antcall target="set-conf">
+      <param name="name" value="org.nuxeo.systemlog.token" />
+      <param name="value" value="dolog" />
+    </antcall>
+  </target>
+
+  <target name="set-conf"
+          depends="_init"
+          description="Add property to ${nuxeo.conf} with ${name}=${value}">
+    <echo append="true" file="${nuxeo.conf}">${name}=${value}${line.separator}</echo>
   </target>
 
 </project>
