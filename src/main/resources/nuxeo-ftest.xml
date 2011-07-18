@@ -77,8 +77,13 @@
 
     <antcall target="start" />
 
-    <echo>java ${standard.selenium.args1} ${standard.selenium.args2} ${standard.selenium.args3} \
-      ${standard.selenium.args4} ${standard.selenium.args5} ${standard.selenium.args6} ${browser.specific.selenium.arg}</echo>
+    <mkdir dir="${out.dir}/results" />
+    <echo>java ${standard.selenium.args1} ${standard.selenium.args2} ${standard.selenium.args3}
+      ${standard.selenium.args4} ${standard.selenium.args5} ${standard.selenium.args6}
+      tests/${suite}.html ${out.dir}/results/result-${suite}.html ${browser.specific.selenium.arg}
+      >${out.dir}/selenium.log
+      with ${suite} in ${suites}
+    </echo>
     <for list="${suites}" param="suite">
       <sequential>
         <echo>Suite @{suite}</echo>
