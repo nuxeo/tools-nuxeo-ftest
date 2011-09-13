@@ -45,6 +45,69 @@
                else="${nuxeo.home}/bin/nuxeo.conf">
       <isset property="env.NUXEO_CONF" />
     </condition>
+    <!-- set nuxeo.db.host to DB_HOST env property if defined -->
+    <condition property="nuxeo.db.host"
+               value="${env.DB_HOST}">
+      <isset property="env.DB_HOST" />
+    </condition>
+    <!-- set nuxeo.db.port to DB_PORT env property if defined -->
+    <condition property="nuxeo.db.port"
+               value="${env.DB_PORT}">
+      <isset property="env.DB_PORT" />
+    </condition>
+    <!-- set nuxeo.db.name to DB_NAME env property if defined -->
+    <condition property="nuxeo.db.name"
+               value="${env.DB_NAME}">
+      <isset property="env.DB_NAME" />
+    </condition>
+    <!-- set nuxeo.db.user to DB_USER env property if defined -->
+    <condition property="nuxeo.db.user"
+               value="${env.DB_USER}">
+      <isset property="env.DB_USER" />
+    </condition>
+    <!-- set nuxeo.db.pass to DB_PASS env property if defined -->
+    <condition property="nuxeo.db.pass"
+               value="${env.DB_PASS}">
+      <isset property="env.DB_PASS" />
+    </condition>
+    <!-- set nuxeo.dbsetup.adminname to DB_ADMINNAME env property if defined -->
+    <condition property="nuxeo.dbsetup.adminname"
+               value="${env.DB_ADMINNAME}">
+      <isset property="env.DB_ADMINNAME" />
+    </condition>
+    <!-- set nuxeo.dbsetup.adminuser to DB_ADMINUSER env property if defined -->
+    <condition property="nuxeo.dbsetup.adminuser"
+               value="${env.DB_ADMINUSER}">
+      <isset property="env.DB_ADMINUSER" />
+    </condition>
+    <!-- set nuxeo.dbsetup.adminpass to DB_ADMINPASS env property if defined -->
+    <condition property="nuxeo.dbsetup.adminpass"
+               value="${env.DB_ADMINPASS}">
+      <isset property="env.DB_ADMINPASS" />
+    </condition>
+    <!-- set nuxeo.dbsetup.donuxeoconf to true if we have all the parameters
+     required by nuxeo -->
+    <condition property="nuxeo.dbsetup.donuxeoconf"
+               value="true">
+      <and>
+        <isset property="nuxeo.db.host" />
+        <isset property="nuxeo.db.port" />
+        <isset property="nuxeo.db.name" />
+        <isset property="nuxeo.db.user" />
+        <isset property="nuxeo.db.pass" />
+      </and>
+    </condition>
+    <!-- set nuxeo.dbsetup.dodbconf to true if we have all the parameters
+     required by nuxeo and admin access to the database -->
+    <condition property="nuxeo.dbsetup.dodbconf"
+               value="true">
+      <and>
+        <isset property="nuxeo.dbsetup.donuxeoconf" />
+        <isset property="nuxeo.dbsetup.adminname" />
+        <isset property="nuxeo.dbsetup.adminuser" />
+        <isset property="nuxeo.dbsetup.adminpass" />
+      </and>
+    </condition>
   </target>
 
   <target name="debug" depends="_init">
@@ -137,9 +200,122 @@
     <antcall target="nuxeo-conf" />
   </target>
 
+  <target name="pgsql-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <sql driver="org.postgresql.Driver"
+         url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+         userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
+         autocommit="true">
+      DROP DATABASE IF EXISTS ${nuxeo.db.name};
+      DROP USER IF EXISTS ${nuxeo.db.user};
+    </sql>
+  </target>
+
+  <target name="pgsql-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <sql driver="org.postgresql.Driver"
+         url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.db.adminname}"
+         userid="${nuxeo.db.adminuser}" password="${nuxeo.db.adminpass}"
+         autocommit="true" delimiter="--next--">
+            CREATE OR REPLACE FUNCTION mkplpgsql() RETURNS VOID LANGUAGE SQL AS $$$$
+            CREATE LANGUAGE plpgsql;
+            $$$$;
+            --next--
+            SELECT
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM pg_catalog.pg_language WHERE lanname='plpgsql'
+                ) THEN NULL
+                ELSE mkplpgsql()
+                END;
+            --next--
+            DROP FUNCTION mkplpgsql();
+            --next--
+            CREATE OR REPLACE FUNCTION mktxtint() RETURNS VOID LANGUAGE SQL AS $$$$
+            CREATE FUNCTION pg_catalog.text(integer) RETURNS text STRICT IMMUTABLE LANGUAGE SQL AS 'SELECT textin(int4out($$1));';
+            CREATE CAST (integer AS text) WITH FUNCTION pg_catalog.text(integer) AS IMPLICIT;
+            COMMENT ON FUNCTION pg_catalog.text(integer) IS 'convert integer to text';
+            $$$$;
+            --next--
+            SELECT
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM pg_catalog.pg_proc WHERE proname='text' AND prosrc='SELECT textin(int4out($$1));'
+                ) THEN NULL
+                ELSE mktxtint()
+                END;
+            --next--
+            DROP FUNCTION mktxtint();
+            --next--
+            CREATE OR REPLACE FUNCTION mktxtbigint() RETURNS VOID LANGUAGE SQL AS $$$$
+            CREATE FUNCTION pg_catalog.text(bigint) RETURNS text STRICT IMMUTABLE LANGUAGE SQL AS 'SELECT textin(int8out($$1));';
+            CREATE CAST (bigint AS text) WITH FUNCTION pg_catalog.text(bigint) AS IMPLICIT;
+            COMMENT ON FUNCTION pg_catalog.text(bigint) IS 'convert bigint to text';
+            $$$$;
+            --next--
+            SELECT
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM pg_catalog.pg_proc WHERE proname='text' AND prosrc='SELECT textin(int8out($$1));'
+                ) THEN NULL
+                ELSE mktxtbigint()
+                END;
+            --next--
+            DROP FUNCTION mktxtbigint();
+            --next--
+            CREATE USER ${nuxeo.db.user} WITH PASSWORD '${nuxeo.db.pass}';
+            --next--
+            CREATE DATABASE ${nuxeo.db.name} OWNER ${nuxeo.db.user} ENCODING='UTF-8';
+    </sql>
+  </target>
+
+  <target name="mssql-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <sql driver="net.sourceforge.jtds.jdbc.Driver"
+         url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+         userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
+         autocommit="true">
+      IF EXISTS(SELECT * FROM SYS.DATABASES WHERE NAME='${nuxeo.db.name}')
+         DROP DATABASE ${nuxeo.db.name};
+      IF EXISTS(SELECT * FROM SYS.DATABASE_PRINCIPALS WHERE NAME='${nuxeo.db.user}' AND TYPE_DESC IN ('SQL_USER'))
+         DROP USER ${nuxeo.db.user};
+      IF EXISTS(SELECT * FROM SYS.SERVER_PRINCIPALS WHERE NAME='${nuxeo.db.user}' AND TYPE_DESC IN ('SQL_LOGIN'))
+         DROP LOGIN ${nuxeo.db.user};
+    </sql>
+  </target>
+
+  <target name="mssql-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <sql driver="net.sourceforge.jtds.jdbc.Driver"
+         url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+         userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
+         autocommit="true">
+      CREATE LOGIN ${nuxeo.db.user} WITH PASSWORD='${nuxeo.db.pass}';
+      CREATE USER ${nuxeo.db.user} FROM LOGIN ${nuxeo.db.user};
+      CREATE DATABASE ${nuxeo.db.name};
+      ALTER AUTHORIZATION ON DATABASE::${nuxeo.db.name} TO ${nuxeo.db.user};
+    </sql>
+  </target>
+
+  <target name="prepare-pgsql" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <echo>Prepare PostgreSQL...</echo>
+    <antcall target="pgsql-dbdrop" />
+    <antcall target="pgsql-dbcreate" />
+  </target>
+
+  <target name="prepare-mssql" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <echo>Prepare MSSQL...</echo>
+    <antcall target="mssql-dbdrop" />
+    <antcall target="mssql-dbcreate" />
+  </target>
+
+  <target name="prepare-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <nx:profile name="pgsql">
+      <antcall target="prepare-pgsql" />
+    </nx:profile>
+    <nx:profile name="mssql">
+      <antcall target="prepare-mssql" />
+    </nx:profile>
+    
+  </target>
+
   <target name="prepare-environment"
           depends="_init"
           description="prepare all ressources for test">
+    <antcall target="prepare-db" />
     <nx:profile name="tomcat">
       <antcall target="prepare-tomcat" />
     </nx:profile>
@@ -250,6 +426,41 @@
     <echo message="Using JAVA_HOME=${env.NX_JAVA_HOME}" />
   </target>
 
+  <target name="set-nuxeoconf-db" depends="_init" if="nuxeo.dbsetup.donuxeoconf">
+    <nx:profile name="pgsql">
+      <antcall target="set-conf">
+        <param name="name" value="nuxeo.templates" />
+        <param name="value" value="postgresl" />
+      </antcall>
+    </nx:profile>
+    <nx:profile name="mssql">
+      <antcall target="set-conf">
+        <param name="name" value="nuxeo.templates" />
+        <param name="value" value="mssql" />
+      </antcall>
+    </nx:profile>
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.db.host" />
+      <param name="value" value="${nuxeo.db.host}" />
+    </antcall>
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.db.port" />
+      <param name="value" value="${nuxeo.db.port}" />
+    </antcall>
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.db.name" />
+      <param name="value" value="${nuxeo.db.name}" />
+    </antcall>
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.db.user" />
+      <param name="value" value="${nuxeo.db.user}" />
+    </antcall>
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.db.pass" />
+      <param name="value" value="${nuxeo.db.pass}" />
+    </antcall>
+  </target>
+
   <target name="nuxeo-conf"
           depends="_init,set-java-home"
           description="Configure ${nuxeo.conf} depending on environment values.">
@@ -258,6 +469,7 @@
       <param name="name" value="org.nuxeo.systemlog.token" />
       <param name="value" value="dolog" />
     </antcall>
+    <antcall target="set-nuxeoconf-db" />
   </target>
 
   <target name="set-conf"
