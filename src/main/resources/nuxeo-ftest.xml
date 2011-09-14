@@ -46,45 +46,45 @@
                else="${nuxeo.home}/bin/nuxeo.conf">
       <isset property="env.NUXEO_CONF" />
     </condition>
-    <!-- set nuxeo.db.host to DB_HOST env property if defined -->
+    <!-- set nuxeo.db.host to NX_DB_HOST env property if defined -->
     <condition property="nuxeo.db.host"
-               value="${env.DB_HOST}">
-      <isset property="env.DB_HOST" />
+               value="${env.NX_DB_HOST}">
+      <isset property="env.NX_DB_HOST" />
     </condition>
-    <!-- set nuxeo.db.port to DB_PORT env property if defined -->
+    <!-- set nuxeo.db.port to NX_DB_PORT env property if defined -->
     <condition property="nuxeo.db.port"
-               value="${env.DB_PORT}">
-      <isset property="env.DB_PORT" />
+               value="${env.NX_DB_PORT}">
+      <isset property="env.NX_DB_PORT" />
     </condition>
-    <!-- set nuxeo.db.name to DB_NAME env property if defined -->
+    <!-- set nuxeo.db.name to NX_DB_NAME env property if defined -->
     <condition property="nuxeo.db.name"
-               value="${env.DB_NAME}">
-      <isset property="env.DB_NAME" />
+               value="${env.NX_DB_NAME}">
+      <isset property="env.NX_DB_NAME" />
     </condition>
-    <!-- set nuxeo.db.user to DB_USER env property if defined -->
+    <!-- set nuxeo.db.user to NX_DB_USER env property if defined -->
     <condition property="nuxeo.db.user"
-               value="${env.DB_USER}">
-      <isset property="env.DB_USER" />
+               value="${env.NX_DB_USER}">
+      <isset property="env.NX_DB_USER" />
     </condition>
-    <!-- set nuxeo.db.pass to DB_PASS env property if defined -->
+    <!-- set nuxeo.db.pass to NX_DB_PASS env property if defined -->
     <condition property="nuxeo.db.pass"
-               value="${env.DB_PASS}">
-      <isset property="env.DB_PASS" />
+               value="${env.NX_DB_PASS}">
+      <isset property="env.NX_DB_PASS" />
     </condition>
-    <!-- set nuxeo.dbsetup.adminname to DB_ADMINNAME env property if defined -->
+    <!-- set nuxeo.dbsetup.adminname to NX_DB_ADMINNAME env property if defined -->
     <condition property="nuxeo.dbsetup.adminname"
-               value="${env.DB_ADMINNAME}">
-      <isset property="env.DB_ADMINNAME" />
+               value="${env.NX_DB_ADMINNAME}">
+      <isset property="env.NX_DB_ADMINNAME" />
     </condition>
-    <!-- set nuxeo.dbsetup.adminuser to DB_ADMINUSER env property if defined -->
+    <!-- set nuxeo.dbsetup.adminuser to NX_DB_ADMINUSER env property if defined -->
     <condition property="nuxeo.dbsetup.adminuser"
-               value="${env.DB_ADMINUSER}">
-      <isset property="env.DB_ADMINUSER" />
+               value="${env.NX_DB_ADMINUSER}">
+      <isset property="env.NX_DB_ADMINUSER" />
     </condition>
-    <!-- set nuxeo.dbsetup.adminpass to DB_ADMINPASS env property if defined -->
+    <!-- set nuxeo.dbsetup.adminpass to NX_DB_ADMINPASS env property if defined -->
     <condition property="nuxeo.dbsetup.adminpass"
-               value="${env.DB_ADMINPASS}">
-      <isset property="env.DB_ADMINPASS" />
+               value="${env.NX_DB_ADMINPASS}">
+      <isset property="env.NX_DB_ADMINPASS" />
     </condition>
     <!-- set nuxeo.dbsetup.donuxeoconf to true if we have all the parameters
      required by nuxeo -->
