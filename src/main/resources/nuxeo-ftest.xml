@@ -10,6 +10,7 @@
   <property name="nuxeoURL" value="http://localhost:8080/nuxeo/" />
   <property name="browser" value="chrome" />
   <property name="out.dir" value="${maven.project.build.directory}" />
+  <property name="jdbc.dir" value="${out.dir}/jdbc-libs" />
   <property name="suites" value="null" />
   <property name="classifier" value="nuxeo-dm" />
 
@@ -205,6 +206,12 @@
          url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
          autocommit="true">
+      <classpath>
+        <pathelement path="${classpath}" />
+        <fileset dir="${jdbc.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
       DROP DATABASE IF EXISTS ${nuxeo.db.name};
       DROP USER IF EXISTS ${nuxeo.db.user};
     </sql>
@@ -215,52 +222,58 @@
          url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.db.adminname}"
          userid="${nuxeo.db.adminuser}" password="${nuxeo.db.adminpass}"
          autocommit="true" delimiter="--next--">
-            CREATE OR REPLACE FUNCTION mkplpgsql() RETURNS VOID LANGUAGE SQL AS $$$$
-            CREATE LANGUAGE plpgsql;
-            $$$$;
-            --next--
-            SELECT
-                CASE WHEN EXISTS (
-                    SELECT 1 FROM pg_catalog.pg_language WHERE lanname='plpgsql'
-                ) THEN NULL
-                ELSE mkplpgsql()
-                END;
-            --next--
-            DROP FUNCTION mkplpgsql();
-            --next--
-            CREATE OR REPLACE FUNCTION mktxtint() RETURNS VOID LANGUAGE SQL AS $$$$
-            CREATE FUNCTION pg_catalog.text(integer) RETURNS text STRICT IMMUTABLE LANGUAGE SQL AS 'SELECT textin(int4out($$1));';
-            CREATE CAST (integer AS text) WITH FUNCTION pg_catalog.text(integer) AS IMPLICIT;
-            COMMENT ON FUNCTION pg_catalog.text(integer) IS 'convert integer to text';
-            $$$$;
-            --next--
-            SELECT
-                CASE WHEN EXISTS (
-                    SELECT 1 FROM pg_catalog.pg_proc WHERE proname='text' AND prosrc='SELECT textin(int4out($$1));'
-                ) THEN NULL
-                ELSE mktxtint()
-                END;
-            --next--
-            DROP FUNCTION mktxtint();
-            --next--
-            CREATE OR REPLACE FUNCTION mktxtbigint() RETURNS VOID LANGUAGE SQL AS $$$$
-            CREATE FUNCTION pg_catalog.text(bigint) RETURNS text STRICT IMMUTABLE LANGUAGE SQL AS 'SELECT textin(int8out($$1));';
-            CREATE CAST (bigint AS text) WITH FUNCTION pg_catalog.text(bigint) AS IMPLICIT;
-            COMMENT ON FUNCTION pg_catalog.text(bigint) IS 'convert bigint to text';
-            $$$$;
-            --next--
-            SELECT
-                CASE WHEN EXISTS (
-                    SELECT 1 FROM pg_catalog.pg_proc WHERE proname='text' AND prosrc='SELECT textin(int8out($$1));'
-                ) THEN NULL
-                ELSE mktxtbigint()
-                END;
-            --next--
-            DROP FUNCTION mktxtbigint();
-            --next--
-            CREATE USER ${nuxeo.db.user} WITH PASSWORD '${nuxeo.db.pass}';
-            --next--
-            CREATE DATABASE ${nuxeo.db.name} OWNER ${nuxeo.db.user} ENCODING='UTF-8';
+      <classpath>
+        <pathelement path="${classpath}" />
+        <fileset dir="${jdbc.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
+      CREATE OR REPLACE FUNCTION mkplpgsql() RETURNS VOID LANGUAGE SQL AS $$$$
+      CREATE LANGUAGE plpgsql;
+      $$$$;
+      --next--
+      SELECT
+          CASE WHEN EXISTS (
+              SELECT 1 FROM pg_catalog.pg_language WHERE lanname='plpgsql'
+          ) THEN NULL
+          ELSE mkplpgsql()
+          END;
+      --next--
+      DROP FUNCTION mkplpgsql();
+      --next--
+      CREATE OR REPLACE FUNCTION mktxtint() RETURNS VOID LANGUAGE SQL AS $$$$
+      CREATE FUNCTION pg_catalog.text(integer) RETURNS text STRICT IMMUTABLE LANGUAGE SQL AS 'SELECT textin(int4out($$1));';
+      CREATE CAST (integer AS text) WITH FUNCTION pg_catalog.text(integer) AS IMPLICIT;
+      COMMENT ON FUNCTION pg_catalog.text(integer) IS 'convert integer to text';
+      $$$$;
+      --next--
+      SELECT
+          CASE WHEN EXISTS (
+              SELECT 1 FROM pg_catalog.pg_proc WHERE proname='text' AND prosrc='SELECT textin(int4out($$1));'
+          ) THEN NULL
+          ELSE mktxtint()
+          END;
+      --next--
+      DROP FUNCTION mktxtint();
+      --next--
+      CREATE OR REPLACE FUNCTION mktxtbigint() RETURNS VOID LANGUAGE SQL AS $$$$
+      CREATE FUNCTION pg_catalog.text(bigint) RETURNS text STRICT IMMUTABLE LANGUAGE SQL AS 'SELECT textin(int8out($$1));';
+      CREATE CAST (bigint AS text) WITH FUNCTION pg_catalog.text(bigint) AS IMPLICIT;
+      COMMENT ON FUNCTION pg_catalog.text(bigint) IS 'convert bigint to text';
+      $$$$;
+      --next--
+      SELECT
+          CASE WHEN EXISTS (
+              SELECT 1 FROM pg_catalog.pg_proc WHERE proname='text' AND prosrc='SELECT textin(int8out($$1));'
+          ) THEN NULL
+          ELSE mktxtbigint()
+          END;
+      --next--
+      DROP FUNCTION mktxtbigint();
+      --next--
+      CREATE USER ${nuxeo.db.user} WITH PASSWORD '${nuxeo.db.pass}';
+      --next--
+      CREATE DATABASE ${nuxeo.db.name} OWNER ${nuxeo.db.user} ENCODING='UTF-8';
     </sql>
   </target>
 
@@ -269,6 +282,12 @@
          url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
          autocommit="true">
+      <classpath>
+        <pathelement path="${classpath}" />
+        <fileset dir="${jdbc.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
       IF EXISTS(SELECT * FROM SYS.DATABASES WHERE NAME='${nuxeo.db.name}')
          DROP DATABASE ${nuxeo.db.name};
       IF EXISTS(SELECT * FROM SYS.DATABASE_PRINCIPALS WHERE NAME='${nuxeo.db.user}' AND TYPE_DESC IN ('SQL_USER'))
@@ -283,6 +302,12 @@
          url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
          autocommit="true">
+      <classpath>
+        <pathelement path="${classpath}" />
+        <fileset dir="${jdbc.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
       CREATE LOGIN ${nuxeo.db.user} WITH PASSWORD='${nuxeo.db.pass}';
       CREATE USER ${nuxeo.db.user} FROM LOGIN ${nuxeo.db.user};
       CREATE DATABASE ${nuxeo.db.name};
@@ -292,17 +317,24 @@
 
   <target name="prepare-pgsql" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <echo>Prepare PostgreSQL...</echo>
+    <copy todir="${jdbc.dir}">
+      <artifact:resolveFile key="postgresql:postgresql::jar" />
+    </copy>
     <antcall target="pgsql-dbdrop" />
     <antcall target="pgsql-dbcreate" />
   </target>
 
   <target name="prepare-mssql" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <echo>Prepare MSSQL...</echo>
+    <copy todir="${jdbc.dir}">
+      <artifact:resolveFile key="net.sourceforge.jtds:jtds::jar" />
+    </copy>
     <antcall target="mssql-dbdrop" />
     <antcall target="mssql-dbcreate" />
   </target>
 
   <target name="prepare-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
       <antcall target="prepare-pgsql" />
     </nx:profile>
