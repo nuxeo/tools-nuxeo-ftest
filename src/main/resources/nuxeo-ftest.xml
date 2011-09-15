@@ -360,6 +360,40 @@
     </sql>
   </target>
 
+  <target name="mysql-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <sql driver="com.mysql.jdbc.Driver"
+             url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true">
+      <classpath>
+        <pathelement path="${classpath}" />
+        <fileset dir="${jdbc.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
+      GRANT USAGE on *.* TO ${nuxeo.db.user}@'%';
+      DROP USER ${nuxeo.db.user};
+      DROP DATABASE IF EXISTS ${nuxeo.db.name}
+    </sql>
+  </target>
+
+  <target name="mysql-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <sql driver="com.mysql.jdbc.Driver"
+             url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true">
+      <classpath>
+        <pathelement path="${classpath}" />
+        <fileset dir="${jdbc.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
+      CREATE DATABASE ${nuxeo.db.name};
+      GRANT ALL ON ${nuxeo.db.name}.* TO '${nuxeo.db.user}'@'%' IDENTIFIED BY '${nuxeo.db.pass}';
+      FLUSH PRIVILEGES;
+    </sql>
+  </target>
+
   <target name="setup-pgsql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
       <artifact:resolveFile key="postgresql:postgresql::jar" />
@@ -424,6 +458,22 @@
     <antcall target="oracle-dbdrop" />
   </target>
 
+  <target name="setup-mysql-driver" depends="_init">
+    <copy todir="${jdbc.dir}">
+      <artifact:resolveFile key="mysql:mysql-connector-java::jar" />
+    </copy>
+  </target>
+
+  <target name="prepare-mysql" depends="_init,setup-mysql-driver" if="nuxeo.dbsetup.dodbconf">
+    <echo>Prepare MySQL...</echo>
+    <antcall target="mysql-dbdrop" />
+    <antcall target="mysql-dbcreate" />
+  </target>
+
+  <target name="cleanup-mysql" depends="_init,setup-mysql-driver" if="nuxeo.dbsetup.dodbconf">
+    <antcall target="mysql-dbdrop" />
+  </target>
+
   <target name="prepare-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
@@ -437,6 +487,9 @@
     </nx:profile>
     <nx:profile name="oracle11g">
       <antcall target="prepare-oracle11g" />
+    </nx:profile>
+    <nx:profile name="mysql">
+      <antcall target="prepare-mysql" />
     </nx:profile>
   </target>
 
