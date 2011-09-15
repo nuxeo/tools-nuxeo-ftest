@@ -315,22 +315,113 @@
     </sql>
   </target>
 
-  <target name="prepare-pgsql" depends="_init" if="nuxeo.dbsetup.dodbconf">
-    <echo>Prepare PostgreSQL...</echo>
+  <target name="oracle-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <sql driver="oracle.jdbc.OracleDriver"
+       url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+       userid="${nuxeo.dbsetup.adminuser} as sysdba" password="${nuxeo.dbsetup.adminpass}"
+       autocommit="true" delimiter="--next--">
+      <classpath>
+        <pathelement path="${classpath}" />
+        <fileset dir="${jdbc.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
+      DECLARE
+        num number:=0;
+        drop_stmt VARCHAR2(200);
+      BEGIN
+        SELECT COUNT(*) INTO num FROM dba_users WHERE username = UPPER('${nuxeo.db.user}');
+        IF num &lt;&gt; 0 THEN
+          EXECUTE IMMEDIATE 'DROP USER ${nuxeo.db.user} CASCADE';
+        END IF;
+      EXCEPTION
+        WHEN OTHERS THEN
+          raise_application_error(-20001,'An error was encountered - '||SQLCODE||' -ERROR- '||SQLERRM);
+      END;
+    </sql>
+  </target>
+
+  <target name="oracle-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <sql driver="oracle.jdbc.OracleDriver"
+       url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+       userid="${nuxeo.dbsetup.adminuser} as sysdba" password="${nuxeo.dbsetup.adminpass}"
+       autocommit="true">
+      <classpath>
+        <pathelement path="${classpath}" />
+        <fileset dir="${jdbc.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
+      CREATE USER ${nuxeo.db.user} IDENTIFIED BY ${nuxeo.db.pass};
+      GRANT EXECUTE ON SYS.DBMS_CRYPTO TO ${nuxeo.db.user};
+      GRANT SELECT ON SYS.V_$$SESSION TO ${nuxeo.db.user};
+      GRANT CONNECT TO ${nuxeo.db.user};
+      GRANT RESOURCE TO ${nuxeo.db.user};
+    </sql>
+  </target>
+
+  <target name="setup-pgsql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
       <artifact:resolveFile key="postgresql:postgresql::jar" />
     </copy>
+  </target>
+
+  <target name="prepare-pgsql" depends="_init,setup-pgsql-driver" if="nuxeo.dbsetup.dodbconf">
+    <echo>Prepare PostgreSQL...</echo>
     <antcall target="pgsql-dbdrop" />
     <antcall target="pgsql-dbcreate" />
   </target>
 
-  <target name="prepare-mssql" depends="_init" if="nuxeo.dbsetup.dodbconf">
-    <echo>Prepare MSSQL...</echo>
+  <target name="cleanup-pgsql" depends="_init,setup-pgsql-driver" if="nuxeo.dbsetup.dodbconf">
+    <antcall target="pgsql-dbdrop" />
+  </target>
+
+  <target name="setup-mssql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
       <artifact:resolveFile key="net.sourceforge.jtds:jtds::jar" />
     </copy>
+  </target>
+
+  <target name="prepare-mssql" depends="_init,setup-mssql-driver" if="nuxeo.dbsetup.dodbconf">
+    <echo>Prepare MSSQL...</echo>
     <antcall target="mssql-dbdrop" />
     <antcall target="mssql-dbcreate" />
+  </target>
+
+  <target name="cleanup-mssql" depends="_init,setup-mssql-driver" if="nuxeo.dbsetup.dodbconf">
+    <antcall target="mssql-dbdrop" />
+  </target>
+
+  <target name="setup-oracle10g-driver" depends="_init">
+    <!-- Driver is not available in maven repositories
+         We must have the file locally -->
+    <copy file="/opt/build/jdbc-libs/ojdbc14-10.2.0.5.jar" todir="${jdbc.dir}" />
+  </target>
+
+  <target name="prepare-oracle10g" depends="_init,setup-oracle10g-driver" if="nuxeo.dbsetup.dodbconf">
+    <echo>Prepare Oracle 10g...</echo>
+    <antcall target="oracle-dbdrop" />
+    <antcall target="oracle-dbcreate" />
+  </target>
+
+  <target name="cleanup-oracle10g" depends="_init,setup-oracle10g-driver" if="nuxeo.dbsetup.dodbconf">
+    <antcall target="oracle-dbdrop" />
+  </target>
+
+  <target name="setup-oracle11g-driver" depends="_init">
+    <!-- Driver is not available in maven repositories
+         We must have the file locally -->
+    <copy file="/opt/build/jdbc-libs/ojdbc6-11.2.0.2.jar" todir="${jdbc.dir}" />
+  </target>
+
+  <target name="prepare-oracle11g" depends="_init,setup-oracle11g-driver" if="nuxeo.dbsetup.dodbconf">
+    <echo>Prepare Oracle 10g...</echo>
+    <antcall target="oracle-dbdrop" />
+    <antcall target="oracle-dbcreate" />
+  </target>
+
+  <target name="cleanup-oracle11g" depends="_init,setup-oracle11g-driver" if="nuxeo.dbsetup.dodbconf">
+    <antcall target="oracle-dbdrop" />
   </target>
 
   <target name="prepare-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
@@ -341,7 +432,12 @@
     <nx:profile name="mssql">
       <antcall target="prepare-mssql" />
     </nx:profile>
-    
+    <nx:profile name="oracle10g">
+      <antcall target="prepare-oracle10g" />
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <antcall target="prepare-oracle11g" />
+    </nx:profile>
   </target>
 
   <target name="prepare-environment"
