@@ -62,6 +62,25 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
 
     Default values respectively are `org.nuxeo.ecm.distribution`, `nuxeo-distribution-tomcat` or `nuxeo-distribution-jboss`, `nuxeo-dm`.
 
+### Database parameters
+
+  You can ask the framework to prepare a database to connect to and modify the nuxeo.conf to point to it.
+  The choice of the database engine is done by activating the corresponding profile.
+  Valid choices are: pgsql, mssql, oracle10g, oracle11g, mysql
+
+  The following environment variables are used:
+  * NX\_DB\_HOST : database host
+  * NX\_DB\_PORT : database port
+  * NX\_DB\_ADMINNAME : name of the administrative/default database
+  * NX\_DB\_ADMINUSER : database superuser
+  * NX\_DB\_ADMINPASS : superuser password
+  * NX\_DB\_NAME : name of the database used by nuxeo
+  * NX\_DB\_USER : username used by nuxeo to connect to the database
+  * NX\_DB\_PASS : password used by nuxeo to connect to the database
+
+  If the administrative parameters are missing, the nuxeo.conf will be modified with the correct values,
+  but the build process will not try to create the database nor the user.
+
 ## Creating your own Ant targets or overriding existing ones
 
   As shown in the samples, your customized itests.xml will unzip and import nuxeo-ftest.xml:
@@ -77,12 +96,13 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
 
   * download: download and unzip ${groupId}:${artifactId}::zip:${classifier} from Maven
   * unzip-local: alternative to "download" target. Use a local ZIP archive instead.
-  * prepare-environment, prepare-jboss, prepare-tomcat, prepare-selenium: various targets for preparing the testing environment.
+  * prepare-environment, prepare-db, prepare-jboss, prepare-tomcat, prepare-selenium: various targets for preparing the testing environment.
   * run-selenium: macro target for preparing the environment, starting the server, running the tests, stopping the server.
   Will exit with an error value if a testing suite failed.
   * set-conf: convenience target for adding a property to nuxeo.conf
   * wizard-on, wizard-off: deprecated targets for setting on/off the wizard; prefer use of "set-conf".
   * start, stop: start or stop the server.
+  * cleanup-db: can be used after the tests to remove the user and database that were created for the test.
 
 ## About Nuxeo
 

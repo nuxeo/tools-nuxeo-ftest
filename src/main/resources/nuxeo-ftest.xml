@@ -493,6 +493,25 @@
     </nx:profile>
   </target>
 
+  <target name="cleanup-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
+    <mkdir dir="${jdbc.dir}" />
+    <nx:profile name="pgsql">
+      <antcall target="cleanup-pgsql" />
+    </nx:profile>
+    <nx:profile name="mssql">
+      <antcall target="cleanup-mssql" />
+    </nx:profile>
+    <nx:profile name="oracle10g">
+      <antcall target="cleanup-oracle10g" />
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <antcall target="cleanup-oracle11g" />
+    </nx:profile>
+    <nx:profile name="mysql">
+      <antcall target="cleanup-mysql" />
+    </nx:profile>
+  </target>
+
   <target name="prepare-environment"
           depends="_init"
           description="prepare all ressources for test">
@@ -618,6 +637,24 @@
       <antcall target="set-conf">
         <param name="name" value="nuxeo.templates" />
         <param name="value" value="mssql" />
+      </antcall>
+    </nx:profile>
+    <nx:profile name="oracle10g">
+      <antcall target="set-conf">
+        <param name="name" value="nuxeo.templates" />
+        <param name="value" value="oracle" />
+      </antcall>
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <antcall target="set-conf">
+        <param name="name" value="nuxeo.templates" />
+        <param name="value" value="oracle" />
+      </antcall>
+    </nx:profile>
+    <nx:profile name="mysql">
+      <antcall target="set-conf">
+        <param name="name" value="nuxeo.templates" />
+        <param name="value" value="mysql" />
       </antcall>
     </nx:profile>
     <antcall target="set-conf">
