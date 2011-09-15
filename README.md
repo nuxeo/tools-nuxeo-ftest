@@ -69,6 +69,7 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
   Valid choices are: pgsql, mssql, oracle10g, oracle11g, mysql
 
   The following environment variables are used:
+  
   * NX\_DB\_HOST : database host
   * NX\_DB\_PORT : database port
   * NX\_DB\_ADMINNAME : name of the administrative/default database
