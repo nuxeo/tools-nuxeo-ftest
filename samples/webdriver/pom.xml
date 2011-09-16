@@ -24,11 +24,7 @@
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-server</artifactId>
+      <artifactId>selenium-server-standalone</artifactId>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.distribution</groupId>
@@ -93,7 +89,10 @@
             </goals>
             <configuration>
               <buildFile>${basedir}/itests.xml</buildFile>
-              <target>stop</target>
+              <targets>
+                <target>stop</target>
+                <target>cleanup-environment</target>
+              </targets>
             </configuration>
           </execution>
         </executions>
