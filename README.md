@@ -82,6 +82,8 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
   If the administrative parameters are missing, the nuxeo.conf will be modified with the correct values,
   but the build process will not try to create the database nor the user.
 
+  If the NX\_DB\_NAME, NX\_DB\_USER or NX\_DB\_PASS are not specified, they will be generated randomly.
+
 ## Creating your own Ant targets or overriding existing ones
 
   As shown in the samples, your customized itests.xml will unzip and import nuxeo-ftest.xml:
