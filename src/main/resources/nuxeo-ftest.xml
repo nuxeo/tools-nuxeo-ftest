@@ -307,8 +307,6 @@
       </classpath>
       IF EXISTS(SELECT * FROM SYS.DATABASES WHERE NAME='${nuxeo.db.name}')
          DROP DATABASE ${nuxeo.db.name};
-      IF EXISTS(SELECT * FROM SYS.DATABASE_PRINCIPALS WHERE NAME='${nuxeo.db.user}' AND TYPE_DESC IN ('SQL_USER'))
-         DROP USER ${nuxeo.db.user};
       IF EXISTS(SELECT * FROM SYS.SERVER_PRINCIPALS WHERE NAME='${nuxeo.db.user}' AND TYPE_DESC IN ('SQL_LOGIN'))
          DROP LOGIN ${nuxeo.db.user};
     </sql>
@@ -326,9 +324,12 @@
         </fileset>
       </classpath>
       CREATE LOGIN ${nuxeo.db.user} WITH PASSWORD='${nuxeo.db.pass}';
-      CREATE USER ${nuxeo.db.user} FROM LOGIN ${nuxeo.db.user};
       CREATE DATABASE ${nuxeo.db.name};
-      ALTER AUTHORIZATION ON DATABASE::${nuxeo.db.name} TO ${nuxeo.db.user};
+      ALTER DATABASE ${nuxeo.db.name} SET ALLOW_SNAPSHOT_ISOLATION ON;
+      ALTER DATABASE ${nuxeo.db.name} SET READ_COMMITTED_SNAPSHOT ON;
+      USE ${nuxeo.db.name};
+      CREATE USER ${nuxeo.db.user} FOR LOGIN ${nuxeo.db.user};
+      EXECUTE sp_addrolemember 'db_owner', ${nuxeo.db.user};
     </sql>
   </target>
 
@@ -695,7 +696,7 @@
       <param name="value" value="${nuxeo.db.user}" />
     </antcall>
     <antcall target="set-conf">
-      <param name="name" value="nuxeo.db.pass" />
+      <param name="name" value="nuxeo.db.password" />
       <param name="value" value="${nuxeo.db.pass}" />
     </antcall>
   </target>

@@ -83,6 +83,7 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
   but the build process will not try to create the database nor the user.
 
   If the NX\_DB\_NAME, NX\_DB\_USER or NX\_DB\_PASS are not specified, they will be generated randomly.
+  Caveat: if you execute db-create and db-drop in different passes, the generated values will be different.
 
 ## Creating your own Ant targets or overriding existing ones
 
