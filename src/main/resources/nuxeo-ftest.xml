@@ -14,6 +14,11 @@
   <property name="suites" value="null" />
   <property name="classifier" value="nuxeo-dm" />
 
+    <!-- Oracle drivers are not available in maven repositories
+         We must have the files locally -->
+  <property name="oracle10g.driver.location" value="/opt/build/jdbc-libs/ojdbc14-10.2.0.5.jar" />
+  <property name="oracle11g.driver.location" value="/opt/build/jdbc-libs/ojdbc6-11.2.0.2.jar" />
+
   <target name="_init" unless="_init.done">
     <property name="_init.done" value="true" />
     <property environment="env" />
@@ -205,6 +210,12 @@
     </antcall>
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
+    <nx:profile name="oracle10g">
+      <copy file="${oracle10g.driver.location}" todir="${nuxeo.home}/lib" />
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <copy file="${oracle11g.driver.location}" todir="${nuxeo.home}/lib" />
+    </nx:profile>
   </target>
 
   <target name="prepare-jboss" depends="_init">
@@ -216,6 +227,12 @@
     </antcall>
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
+    <nx:profile name="oracle10g">
+      <copy file="${oracle10g.driver.location}" todir="${nuxeo.home}/server/default/lib" />
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <copy file="${oracle11g.driver.location}" todir="${nuxeo.home}/server/default/lib" />
+    </nx:profile>
   </target>
 
   <target name="pgsql-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
@@ -236,8 +253,8 @@
 
   <target name="pgsql-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <sql driver="org.postgresql.Driver"
-         url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.db.adminname}"
-         userid="${nuxeo.db.adminuser}" password="${nuxeo.db.adminpass}"
+         url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+         userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
          autocommit="true" delimiter="--next--">
       <classpath>
         <pathelement path="${classpath}" />
@@ -445,9 +462,7 @@
   </target>
 
   <target name="setup-oracle10g-driver" depends="_init">
-    <!-- Driver is not available in maven repositories
-         We must have the file locally -->
-    <copy file="/opt/build/jdbc-libs/ojdbc14-10.2.0.5.jar" todir="${jdbc.dir}" />
+    <copy file="${oracle10g.driver.location}" todir="${jdbc.dir}" />
   </target>
 
   <target name="prepare-oracle10g" depends="_init,setup-oracle10g-driver" if="nuxeo.dbsetup.dodbconf">
@@ -461,9 +476,7 @@
   </target>
 
   <target name="setup-oracle11g-driver" depends="_init">
-    <!-- Driver is not available in maven repositories
-         We must have the file locally -->
-    <copy file="/opt/build/jdbc-libs/ojdbc6-11.2.0.2.jar" todir="${jdbc.dir}" />
+    <copy file="${oracle11g.driver.location}" todir="${jdbc.dir}" />
   </target>
 
   <target name="prepare-oracle11g" depends="_init,setup-oracle11g-driver" if="nuxeo.dbsetup.dodbconf">
@@ -652,7 +665,7 @@
     <nx:profile name="pgsql">
       <antcall target="set-conf">
         <param name="name" value="nuxeo.templates" />
-        <param name="value" value="postgresl" />
+        <param name="value" value="postgresql" />
       </antcall>
     </nx:profile>
     <nx:profile name="mssql">

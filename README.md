@@ -82,6 +82,8 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
   If the administrative parameters are missing, the nuxeo.conf will be modified with the correct values,
   but the build process will not try to create the database nor the user.
 
+  For Oracle, the NX\_DB\_ADMINNAME and NX\_DB\_NAME must be identical (the instance SID).
+
   If the NX\_DB\_NAME, NX\_DB\_USER or NX\_DB\_PASS are not specified, they will be generated randomly.
   Caveat: if you execute db-create and db-drop in different passes, the generated values will be different.
 
