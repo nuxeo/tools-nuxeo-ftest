@@ -342,6 +342,7 @@
       </classpath>
       CREATE LOGIN ${nuxeo.db.user} WITH PASSWORD='${nuxeo.db.pass}';
       CREATE DATABASE ${nuxeo.db.name};
+      ALTER DATABASE ${nuxeo.db.name} COLLATE French_CS_AS;
       ALTER DATABASE ${nuxeo.db.name} SET ALLOW_SNAPSHOT_ISOLATION ON;
       ALTER DATABASE ${nuxeo.db.name} SET READ_COMMITTED_SNAPSHOT ON;
       USE ${nuxeo.db.name};
