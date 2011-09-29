@@ -65,6 +65,40 @@
                    input="${randomresult}"
                    regexp="([^\.]*)\.0"
                    select="\1" />
+    <!-- put db profile used into a property for later use -->
+    <nx:profile name="pgsql">
+      <property name="maven.dbprofile" value="PGSQL" />
+    </nx:profile>
+    <nx:profile name="mssql">
+      <property name="maven.dbprofile" value="MSSQL" />
+    </nx:profile>
+    <nx:profile name="oracle10g">
+      <property name="maven.dbprofile" value="ORACLE10G" />
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <property name="maven.dbprofile" value="ORACLE11G" />
+    </nx:profile>
+    <nx:profile name="mysql">
+      <property name="maven.dbprofile" value="MYSQL" />
+    </nx:profile>
+    <!-- if NX_DB_SOMETHING is not defined,
+         try to fallback on NX_${maven.dbprofile}_DB_SOMETHING -->
+    <for list="HOST,PORT,NAME,USER,PASS,ADMINNAME,ADMINUSER,ADMINPASS" param="dbvar">
+      <sequential>
+        <if>
+          <and>
+            <not>
+              <isset property="env.NX_DB_@{dbvar}" />
+            </not>
+            <isset property="env.NX_${maven.dbprofile}_DB_@{dbvar}" />
+          </and>
+          <then>
+            <propertycopy property="env.NX_DB_@{dbvar}" from="env.NX_${maven.dbprofile}_DB_@{dbvar}" silent="false" />
+            <echo>Using NX_${maven.dbprofile}_DB_@{dbvar} fallback for undefined NX_DB_@{dbvar}</echo>
+          </then>
+        </if>
+      </sequential>
+    </for>
     <!-- set nuxeo.db.host to NX_DB_HOST env property if defined -->
     <condition property="nuxeo.db.host"
                value="${env.NX_DB_HOST}">
