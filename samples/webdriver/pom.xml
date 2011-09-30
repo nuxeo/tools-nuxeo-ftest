@@ -51,7 +51,7 @@
               <goal>integration-test</goal>
             </goals>
             <configuration>
-              <argLine>-Dlog4j.configuration=file://${build.directory}/tomcat/lib/log4j.xml
+              <argLine>-Dlog4j.configuration=${file.uri.prefix}${build.directory}/tomcat/lib/log4j.xml
                 -Dnuxeo.log.dir=${build.directory}/tomcat/log</argLine>
             </configuration>
           </execution>
@@ -99,5 +99,45 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>os-notwindows</id>
+      <activation>
+        <os>
+          <family>!windows</family>
+        </os>
+      </activation>
+      <properties>
+        <file.uri.prefix>file://</file.uri.prefix>
+      </properties>
+    </profile>
+    <profile>
+      <id>os-windows</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <file.uri.prefix>file:///</file.uri.prefix>
+      </properties>
+    </profile>
+    <profile>
+      <id>pgsql</id>
+    </profile>
+    <profile>
+      <id>mssql</id>
+    </profile>
+    <profile>
+      <id>oracle10g</id>
+    </profile>
+    <profile>
+      <id>oracle11g</id>
+    </profile>
+    <profile>
+      <id>mysql</id>
+    </profile>
+  </profiles>
 
 </project>

@@ -227,6 +227,7 @@
     </for>
 
     <antcall target="stop" />
+    <antcall target="cleanup-environment" />
 
     <fail status="${seleniumResult}">
       <condition>
