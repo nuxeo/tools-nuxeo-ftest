@@ -167,6 +167,32 @@
         <isset property="nuxeo.dbsetup.adminpass" />
       </and>
     </condition>
+    <!-- fail the build when a db profile is selected but db parameters
+     are missing -->
+    <fail message="${maven.dbprofile} is selected but database parameters are missing">
+      <condition>
+        <and>
+          <isset property="maven.dbprofile" />
+          <not>
+            <isset property="nuxeo.dbsetup.donuxeoconf" />
+          </not>
+        </and>
+      </condition>
+    </fail>
+    <!-- give a warning when a db profile is selected but db administration
+     parameters are missing -->
+    <if>
+      <and>
+        <isset property="maven.dbprofile" />
+        <not>
+          <isset property="nuxeo.dbsetup.dodbconf" />
+        </not>
+      </and>
+      <then>
+        <echo>WARNING: Profile ${maven.dbprofile} is selected but database
+         administration parameters are missing</echo>
+      </then>
+    </if>
   </target>
 
   <target name="debug" depends="_init">
