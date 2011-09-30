@@ -14,10 +14,12 @@
   <property name="suites" value="null" />
   <property name="classifier" value="nuxeo-dm" />
 
-    <!-- Oracle drivers are not available in maven repositories
-         We must have the files locally -->
-  <property name="oracle10g.driver.location" value="/opt/build/jdbc-libs/ojdbc14-10.2.0.5.jar" />
-  <property name="oracle11g.driver.location" value="/opt/build/jdbc-libs/ojdbc6-11.2.0.2.jar" />
+    <!-- Oracle drivers are not available in maven repositories.
+         We must have them accessible on a private URL.-->
+  <property name="oracle10g.driver.location" value="http://mavenpriv.in.nuxeo.com/nexus/service/local/artifact/maven/redirect?r=releases&amp;g=com.oracle&amp;a=ojdbc14&amp;v=10.2.0.5&amp;e=jar" />
+  <property name="oracle10g.driver.filename" value="ojdbc14-10.2.0.5.jar" />
+  <property name="oracle11g.driver.location" value="http://mavenpriv.in.nuxeo.com/nexus/service/local/artifact/maven/redirect?r=releases&amp;g=com.oracle&amp;a=ojdbc6&amp;v=11.2.0.2&amp;e=jar" />
+  <property name="oracle11g.driver.filename" value="ojdbc6-11.2.0.2.jar" />
 
   <target name="_init" unless="_init.done">
     <property name="_init.done" value="true" />
@@ -245,10 +247,10 @@
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
     <nx:profile name="oracle10g">
-      <copy file="${oracle10g.driver.location}" todir="${nuxeo.home}/lib" />
+      <get src="${oracle10g.driver.location}" dest="${nuxeo.home}/lib/${oracle10g.driver.filename}"/>
     </nx:profile>
     <nx:profile name="oracle11g">
-      <copy file="${oracle11g.driver.location}" todir="${nuxeo.home}/lib" />
+      <get src="${oracle11g.driver.location}" dest="${nuxeo.home}/lib/${oracle11g.driver.filename}"/>
     </nx:profile>
   </target>
 
@@ -262,10 +264,10 @@
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
     <nx:profile name="oracle10g">
-      <copy file="${oracle10g.driver.location}" todir="${nuxeo.home}/server/default/lib" />
+      <get src="${oracle10g.driver.location}" dest="${nuxeo.home}/server/default/lib/${oracle10g.driver.filename}"/>
     </nx:profile>
     <nx:profile name="oracle11g">
-      <copy file="${oracle11g.driver.location}" todir="${nuxeo.home}/server/default/lib" />
+      <get src="${oracle11g.driver.location}" dest="${nuxeo.home}/server/default/lib/${oracle11g.driver.filename}"/>
     </nx:profile>
   </target>
 
@@ -497,7 +499,7 @@
   </target>
 
   <target name="setup-oracle10g-driver" depends="_init">
-    <copy file="${oracle10g.driver.location}" todir="${jdbc.dir}" />
+    <get src="${oracle10g.driver.location}" dest="${jdbc.dir}/${oracle10g.driver.filename}"/>
   </target>
 
   <target name="prepare-oracle10g" depends="_init,setup-oracle10g-driver" if="nuxeo.dbsetup.dodbconf">
@@ -511,7 +513,7 @@
   </target>
 
   <target name="setup-oracle11g-driver" depends="_init">
-    <copy file="${oracle11g.driver.location}" todir="${jdbc.dir}" />
+    <get src="${oracle11g.driver.location}" dest="${jdbc.dir}/${oracle11g.driver.filename}"/>
   </target>
 
   <target name="prepare-oracle11g" depends="_init,setup-oracle11g-driver" if="nuxeo.dbsetup.dodbconf">
