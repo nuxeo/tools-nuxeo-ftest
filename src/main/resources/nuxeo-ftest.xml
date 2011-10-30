@@ -209,7 +209,6 @@
   </target>
 
   <target name="run-selenium" depends="_init">
-    <antcall target="prepare-environment" />
     <antcall target="prepare-selenium" />
 
     <property name="standard.selenium.args1"
@@ -231,8 +230,6 @@
                value="-firefoxProfileTemplate ${out.dir}/ffprofile">
       <equals arg1="${browser}" arg2="chrome" />
     </condition>
-
-    <antcall target="start" />
 
     <mkdir dir="${out.dir}/results" />
     <echo>java ${standard.selenium.args1} ${standard.selenium.args2} ${standard.selenium.args3}
@@ -261,9 +258,6 @@
       </sequential>
     </for>
 
-    <antcall target="stop" />
-    <antcall target="cleanup-environment" />
-
     <fail status="${seleniumResult}">
       <condition>
         <not>
@@ -277,10 +271,14 @@
     <exec executable="fl-monitor-ctl" failonerror="false">
       <arg value="${monitorConf}" />
       <arg value="${action}" />
+      <env key="REPORT" value="${out.dir}/report" />
+      <env key="LOG_HOME" value="${out.dir}/log" />
     </exec>
     <exec executable="fl-credential-ctl" failonerror="false">
       <arg value="${credentialsConf}" />
       <arg value="${action}" />
+      <env key="REPORT" value="${out.dir}/report" />
+      <env key="LOG_HOME" value="${out.dir}/log" />
     </exec>
   </target>
 
@@ -296,6 +294,14 @@
     </exec>
     <math result="tmperr" operation="+" operand1="${errors}" operand2="${exitCode}" datatype="int" />
     <var name="errors" value="${tmperr}" />
+    <if>
+      <not>
+        <equals arg1="${exitCode}" arg2="0" />
+      </not>
+      <then>
+        <var name="errmsg" value="${errmsg} ${suite}," />
+      </then>
+    </if>
   </target>
 
   <target name="fl-run-tests">
@@ -312,18 +318,24 @@
         </exec>
         <math result="tmperr" operation="+" operand1="${errors}" operand2="${exitCode}" datatype="int" />
         <var name="errors" value="${tmperr}" />
+        <if>
+          <not>
+            <equals arg1="${exitCode}" arg2="0" />
+          </not>
+          <then>
+            <var name="errmsg" value="${errmsg} ${suite}[@{test}]," />
+          </then>
+        </if>
       </sequential>
     </for>
   </target>
 
   <target name="run-funkload-tests">
-    <!-- Setup & start Nuxeo -->
-    <antcall target="prepare-environment" />
-    <antcall target="start" />
     <!-- Run FunLoad tests -->
     <mkdir dir="${out.dir}/report" />
     <mkdir dir="${out.dir}/log" />
     <var name="errors" value="0" />
+    <var name="errmsg" value="Tests in error: " />
     <antcall target="funkload-ctl-daemons">
       <param name="action" value="start" />
     </antcall>
@@ -345,13 +357,13 @@
             <equals arg1="${fltests}" arg2="" />
           </not>
           <then>
-            <antcallback target="fl-run-tests" return="errors">
+            <antcallback target="fl-run-tests" return="errors,errmsg">
               <param name="suite" value="${flsuite}" />
               <param name="tests" value="${fltests}" />
             </antcallback>
           </then>
           <else>
-            <antcallback target="fl-run-suite" return="errors">
+            <antcallback target="fl-run-suite" return="errors,errmsg">
               <param name="suite" value="${flsuite}" />
             </antcallback>
           </else>
@@ -362,11 +374,13 @@
     <antcall target="funkload-ctl-daemons">
       <param name="action" value="stop" />
     </antcall>
-    <!-- Stop Nuxeo & cleanup -->
-    <antcall target="stop" />
-    <antcall target="cleanup-environment" />
     <!-- Set exit status -->
-    <fail status="${errors}">
+    <propertyregex property="errormessage" override="true"
+                   input="${errmsg}"
+                   regexp="(.*),"
+                   select="\1"
+                   defaultValue="${errmsg}" />
+    <fail status="${errors}" message="${errormessage}">
       <condition>
         <not>
           <equals arg1="${errors}" arg2="0" />
@@ -384,6 +398,7 @@
     </antcall>
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
+    <antcall target="fix-max-waits" />
     <nx:profile name="oracle10g">
       <get src="${oracle10g.driver.location}" dest="${nuxeo.home}/lib/${oracle10g.driver.filename}"/>
     </nx:profile>
@@ -401,6 +416,7 @@
     </antcall>
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
+    <antcall target="fix-max-waits" />
     <nx:profile name="oracle10g">
       <get src="${oracle10g.driver.location}" dest="${nuxeo.home}/server/default/lib/${oracle10g.driver.filename}"/>
     </nx:profile>
@@ -834,6 +850,18 @@
       <param name="value" value="${env.NX_JAVA_HOME}" />
     </antcall>
     <echo message="Using JAVA_HOME=${env.NX_JAVA_HOME}" />
+  </target>
+
+  <target name="fix-max-waits" depends="_init"
+          description="Increase default time to wait for server to stop">
+    <antcall target="set-conf">
+      <param name="name" value="launcher.start.max.wait" />
+      <param name="value" value="300" />
+    </antcall>
+    <antcall target="set-conf">
+      <param name="name" value="launcher.stop.max.wait" />
+      <param name="value" value="300" />
+    </antcall>
   </target>
 
   <target name="set-nuxeoconf-db" depends="_init" if="nuxeo.dbsetup.donuxeoconf">
