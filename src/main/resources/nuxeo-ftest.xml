@@ -208,6 +208,34 @@
     <echoproperties />
   </target>
 
+  <target name="selenium-run-suite">
+    <echo>Suite: ${suite}</echo>
+    <exec executable="java"
+          output="${out.dir}/selenium.log"
+          resultproperty="exitCode"
+          failonerror="false">
+      <arg line="${standard.selenium.args1}" />
+      <arg line="${standard.selenium.args2}" />
+      <arg line="${standard.selenium.args3}" />
+      <arg line="${standard.selenium.args4}" />
+      <arg line="${standard.selenium.args5}" />
+      <arg line="${standard.selenium.args6}" />
+      <arg line="tests/${suite}.html" />
+      <arg line="${out.dir}/results/result-${suite}.html" />
+      <arg line="${browser.specific.selenium.arg}" />
+    </exec>
+    <math result="tmperr" operation="+" operand1="${errors}" operand2="${exitCode}" datatype="int" />
+    <var name="errors" value="${tmperr}" />
+    <if>
+      <not>
+        <equals arg1="${exitCode}" arg2="0" />
+      </not>
+      <then>
+        <var name="errmsg" value="${errmsg} ${suite}," />
+      </then>
+    </if>
+  </target>
+
   <target name="run-selenium" depends="_init">
     <antcall target="prepare-selenium" />
 
@@ -238,30 +266,26 @@
       >${out.dir}/selenium.log
       with ${suite} in ${suites}
     </echo>
+    <var name="errors" value="0" />
+    <var name="errmsg" value="Suites in error: " />
     <for list="${suites}" param="suite">
       <sequential>
-        <echo>Suite @{suite}</echo>
-        <exec executable="java"
-              output="${out.dir}/selenium.log"
-              resultproperty="seleniumResult"
-              failonerror="false">
-          <arg line="${standard.selenium.args1}" />
-          <arg line="${standard.selenium.args2}" />
-          <arg line="${standard.selenium.args3}" />
-          <arg line="${standard.selenium.args4}" />
-          <arg line="${standard.selenium.args5}" />
-          <arg line="${standard.selenium.args6}" />
-          <arg line="tests/@{suite}.html" />
-          <arg line="${out.dir}/results/result-@{suite}.html" />
-          <arg line="${browser.specific.selenium.arg}" />
-        </exec>
+        <antcallback target="selenium-run-suite" return="errors,errmsg">
+          <param name="suite" value="@{suite}" />
+        </antcallback>
       </sequential>
     </for>
 
-    <fail status="${seleniumResult}">
+    <propertyregex property="errormessage" override="true"
+                   input="${errmsg}"
+                   regexp="(.*),"
+                   select="\1"
+                   defaultValue="${errmsg}" />
+
+    <fail status="${errors}" message="${errormessage}">
       <condition>
         <not>
-          <equals arg1="${seleniumResult}" arg2="0" />
+          <equals arg1="${error}" arg2="0" />
         </not>
       </condition>
     </fail>
