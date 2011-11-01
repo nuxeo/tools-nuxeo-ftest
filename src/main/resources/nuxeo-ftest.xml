@@ -285,7 +285,7 @@
     <fail status="${errors}" message="${errormessage}">
       <condition>
         <not>
-          <equals arg1="${error}" arg2="0" />
+          <equals arg1="${errors}" arg2="0" />
         </not>
       </condition>
     </fail>
