@@ -695,7 +695,7 @@
   </target>
 
   <target name="prepare-oracle11g" depends="_init,setup-oracle11g-driver" if="nuxeo.dbsetup.dodbconf">
-    <echo>Prepare Oracle 10g...</echo>
+    <echo>Prepare Oracle 11g...</echo>
     <antcall target="oracle-dbdrop" />
     <antcall target="oracle-dbcreate" />
   </target>
