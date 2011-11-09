@@ -62,6 +62,12 @@
                else="${nuxeo.home}/bin/nuxeo.conf">
       <isset property="env.NUXEO_CONF" />
     </condition>
+    <!-- set nxserver dir for tomcat or jboss dir -->
+    <condition property="nuxeo.nxserver"
+               value="${nuxeo.home}/server/default/deploy"
+               else="${nuxeo.home}/nxserver">
+      <isset property="maven.profile.jboss" />
+    </condition>
     <!-- Generate random id. It will be used
     when NX_DB_NAME, NX_DB_USER or NX_DB_PASS are not specified -->
     <math result="randomresult">
