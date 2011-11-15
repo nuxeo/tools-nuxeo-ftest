@@ -835,12 +835,12 @@
   <target name="start" depends="_init,stop,start-unix,start-windows" />
   <target name="start-unix" if="osfamily-unix">
     <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="*.sh,*ctl" />
-    <exec executable="${nuxeo.home}/bin/nuxeoctl" spawn="false">
+    <exec executable="${nuxeo.home}/bin/nuxeoctl" spawn="false" failonerror="true">
       <arg value="start" />
     </exec>
   </target>
   <target name="start-windows" if="osfamily-windows">
-    <exec executable="${nuxeo.home}/bin/nuxeoctl.bat" spawn="false">
+    <exec executable="${nuxeo.home}/bin/nuxeoctl.bat" spawn="false" failonerror="true">
       <arg value="nogui" />
       <arg value="start" />
     </exec>
