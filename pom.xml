@@ -233,7 +233,7 @@
       <plugin>
         <groupId>org.nuxeo.build</groupId>
         <artifactId>nuxeo-distribution-tools</artifactId>
-        <version>1.11-SNAPSHOT</version>
+        <version>1.6</version>
         <extensions>true</extensions>
         <configuration>
           <buildFile>${basedir}/src/main/assemble/assembly.xml</buildFile>

@@ -24,9 +24,7 @@
   <property name="credentialsConf" value="credential.conf" />
 
     <!-- Oracle drivers are not available in maven repositories.
-         We must have them accessible on a private URL.
-         Also update the setup-oracle-X-driver targets if you change versions here
-    -->
+         We must have them accessible on a private URL.-->
   <property name="oracle10g.driver.location" value="http://mavenpriv.in.nuxeo.com/nexus/service/local/artifact/maven/redirect?r=releases&amp;g=com.oracle&amp;a=ojdbc14&amp;v=10.2.0.5&amp;e=jar" />
   <property name="oracle10g.driver.filename" value="ojdbc14-10.2.0.5.jar" />
   <property name="oracle11g.driver.location" value="http://mavenpriv.in.nuxeo.com/nexus/service/local/artifact/maven/redirect?r=releases&amp;g=com.oracle&amp;a=ojdbc6&amp;v=11.2.0.2&amp;e=jar" />
@@ -686,16 +684,6 @@
 
   <target name="setup-oracle10g-driver" depends="_init">
     <get src="${oracle10g.driver.location}" dest="${jdbc.dir}/${oracle10g.driver.filename}"/>
-    <!-- install in local repository -->
-    <exec executable="mvn">
-      <arg value="install:install-file" />
-      <arg value="-Dfile=${jdbc.dir}/${oracle10g.driver.filename}" />
-      <arg value="-DgroupId=com.oracle" />
-      <arg value="-DartifactId=ojdbc4" />
-      <arg value="-Dversion=10.2.0.5" />
-      <arg value="-Dpackaging=jar" />
-      <arg value="-N" />
-    </exec>
   </target>
 
   <target name="prepare-oracle10g" depends="_init,setup-oracle10g-driver" if="nuxeo.dbsetup.dodbconf">
@@ -710,16 +698,6 @@
 
   <target name="setup-oracle11g-driver" depends="_init">
     <get src="${oracle11g.driver.location}" dest="${jdbc.dir}/${oracle11g.driver.filename}"/>
-    <!-- install in local repository -->
-    <exec executable="mvn">
-      <arg value="install:install-file" />
-      <arg value="-Dfile=${jdbc.dir}/${oracle11g.driver.filename}" />
-      <arg value="-DgroupId=com.oracle" />
-      <arg value="-DartifactId=ojdbc6" />
-      <arg value="-Dversion=11.2.0.2" />
-      <arg value="-Dpackaging=jar" />
-      <arg value="-N" />
-    </exec>
   </target>
 
   <target name="prepare-oracle11g" depends="_init,setup-oracle11g-driver" if="nuxeo.dbsetup.dodbconf">
