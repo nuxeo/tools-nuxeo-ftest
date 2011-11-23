@@ -871,6 +871,14 @@
     <echo append="true" file="${nuxeo.conf}">nuxeo.wizard.done=true${line.separator}</echo>
   </target>
 
+  <target name="check-set-wizard" if="nuxeo.wizard.done" depends="_init">
+    <echo message="Setting nuxeo.wizard.done=${nuxeo.wizard.done}" />
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.wizard.done" />
+      <param name="value" value="${nuxeo.wizard.done}" />
+    </antcall>
+  </target>
+
   <target name="set-java-home"
           if="env.NX_JAVA_HOME"
           depends="_init"
@@ -948,7 +956,7 @@
   </target>
 
   <target name="nuxeo-conf"
-          depends="_init,set-java-home"
+          depends="_init,set-java-home,check-set-wizard"
           description="Configure ${nuxeo.conf} depending on environment values.">
     <!-- activate logs for Selenium tests -->
     <antcall target="set-conf">
