@@ -23,12 +23,10 @@
   <property name="monitorConf" value="monitor.conf" />
   <property name="credentialsConf" value="credential.conf" />
 
-    <!-- Oracle drivers are not available in maven repositories.
-         We must have them accessible on a private URL.-->
-  <property name="oracle10g.driver.location" value="http://mavenpriv.in.nuxeo.com/nexus/service/local/artifact/maven/redirect?r=releases&amp;g=com.oracle&amp;a=ojdbc14&amp;v=10.2.0.5&amp;e=jar" />
-  <property name="oracle10g.driver.filename" value="ojdbc14-10.2.0.5.jar" />
-  <property name="oracle11g.driver.location" value="http://mavenpriv.in.nuxeo.com/nexus/service/local/artifact/maven/redirect?r=releases&amp;g=com.oracle&amp;a=ojdbc6&amp;v=11.2.0.2&amp;e=jar" />
-  <property name="oracle11g.driver.filename" value="ojdbc6-11.2.0.2.jar" />
+    <!-- Oracle drivers are not available in public maven repositories.
+         They need to be available in a local/private repository -->
+  <property name="oracle10g.driver.version" value="10.2.0.5" />
+  <property name="oracle11g.driver.version" value="11.2.0.2" />
 
   <target name="_init" unless="_init.done">
     <property name="_init.done" value="true" />
@@ -430,10 +428,14 @@
     <antcall target="nuxeo-conf" />
     <antcall target="fix-max-waits" />
     <nx:profile name="oracle10g">
-      <get src="${oracle10g.driver.location}" dest="${nuxeo.home}/lib/${oracle10g.driver.filename}"/>
+      <copy todir="${nuxeo.home}/lib/">
+        <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
+      </copy>
     </nx:profile>
     <nx:profile name="oracle11g">
-      <get src="${oracle11g.driver.location}" dest="${nuxeo.home}/lib/${oracle11g.driver.filename}"/>
+      <copy todir="${nuxeo.home}/lib/">
+        <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
+      </copy>
     </nx:profile>
   </target>
 
@@ -448,10 +450,14 @@
     <antcall target="nuxeo-conf" />
     <antcall target="fix-max-waits" />
     <nx:profile name="oracle10g">
-      <get src="${oracle10g.driver.location}" dest="${nuxeo.home}/server/default/lib/${oracle10g.driver.filename}"/>
+      <copy todir="${nuxeo.home}/server/default/lib">
+        <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
+      </copy>
     </nx:profile>
     <nx:profile name="oracle11g">
-      <get src="${oracle11g.driver.location}" dest="${nuxeo.home}/server/default/lib/${oracle11g.driver.filename}"/>
+      <copy todir="${nuxeo.home}/server/default/lib">
+        <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
+      </copy>
     </nx:profile>
   </target>
 
@@ -683,7 +689,9 @@
   </target>
 
   <target name="setup-oracle10g-driver" depends="_init">
-    <get src="${oracle10g.driver.location}" dest="${jdbc.dir}/${oracle10g.driver.filename}"/>
+    <copy todir="${jdbc.dir}">
+      <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
+    </copy>
   </target>
 
   <target name="prepare-oracle10g" depends="_init,setup-oracle10g-driver" if="nuxeo.dbsetup.dodbconf">
@@ -697,7 +705,9 @@
   </target>
 
   <target name="setup-oracle11g-driver" depends="_init">
-    <get src="${oracle11g.driver.location}" dest="${jdbc.dir}/${oracle11g.driver.filename}"/>
+    <copy todir="${jdbc.dir}">
+      <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
+    </copy>
   </target>
 
   <target name="prepare-oracle11g" depends="_init,setup-oracle11g-driver" if="nuxeo.dbsetup.dodbconf">
