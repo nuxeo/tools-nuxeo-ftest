@@ -12,8 +12,6 @@
   <property name="out.dir" value="${maven.project.build.directory}" />
   <property name="jdbc.dir" value="${out.dir}/jdbc-libs" />
   <property name="suites" value="null" />
-  <property name="classifier" value="nuxeo-cap" />
-  <property name="wizard.preset" value="nuxeo-dm" />
 
   <!-- FunkLoad support -->
   <propertyregex property="nuxeoURLNoEndingSlash"
@@ -421,6 +419,8 @@
   <target name="prepare-tomcat" depends="_init">
     <echo>Prepare Tomcat...</echo>
     <delete failonerror="false" dir="${nuxeo.home}" />
+    <property name="classifier" value="nuxeo-cap" />
+    <property name="wizard.preset" value="nuxeo-dm" />
     <antcall target="download">
       <param name="groupId" value="org.nuxeo.ecm.distribution" />
       <param name="artifactId" value="nuxeo-distribution-tomcat" />
@@ -444,7 +444,7 @@
   <target name="prepare-jboss" depends="_init">
     <echo>Prepare JBoss...</echo>
     <delete failonerror="false" dir="${nuxeo.home}" />
-    <!-- Only Nuxeo DM until we have wizard on JBoss -->
+    <!-- Only Nuxeo DM on JBoss for now -->
     <property name="classifier" value="nuxeo-dm" />
     <antcall target="download">
       <param name="groupId" value="org.nuxeo.ecm.distribution" />
@@ -986,7 +986,7 @@
     <echo append="true" file="${nuxeo.conf}">${name}=${value}${line.separator}</echo>
   </target>
 
-  <target name="activate-wizard-preset" depends="_init"
+  <target name="activate-wizard-preset" depends="_init" if="wizard.preset"
           description="Activate the configured wizard preset.">
     <if>
       <equals arg1="${wizard.preset}" arg2="nuxeo-dm" />
