@@ -994,6 +994,9 @@
         <copy file="${nuxeo.nxserver}/data/installAfterRestart-DM.log"
           tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
           overwrite="true" />
+        <echo append="true" file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties">
+preset=nuxeo-dm
+        </echo>
       </then>
       <elseif>
         <equals arg1="${wizard.preset}" arg2="nuxeo-dam" />
@@ -1001,6 +1004,9 @@
           <copy file="${nuxeo.nxserver}/data/installAfterRestart-DAM.log"
             tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
             overwrite="true" />
+          <echo append="true" file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties">
+preset=nuxeo-dam
+          </echo>
         </then>
       </elseif>
       <elseif>
@@ -1009,6 +1015,9 @@
           <copy file="${nuxeo.nxserver}/data/installAfterRestart-CMF.log"
             tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
             overwrite="true" />
+          <echo append="true" file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties">
+preset=nuxeo-cmf
+          </echo>
         </then>
       </elseif>
       <elseif>
@@ -1017,6 +1026,9 @@
           <copy file="${nuxeo.nxserver}/data/installAfterRestart-SC.log"
             tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
             overwrite="true" />
+          <echo append="true" file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties">
+preset=nuxeo-sc
+          </echo>
         </then>
       </elseif>
     </if>
