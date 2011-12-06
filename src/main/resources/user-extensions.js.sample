@@ -109,9 +109,10 @@ Selenium.prototype.doWaitForJSQueries = function(timeout) {
  * Function that waits for opensocial gadgets to be loaded.
  * Assumes frame name starts with "open-social" and will display a div with id
  * "content".
- * Accepts a mandatory element id with content to check, and timeout.
+ * Accepts one or more mandatory element id(s), separated by ',', 
+ * with content to check, and timeout.
  */
-Selenium.prototype.doWaitForOpensocialGadgetsToLoad = function(mandatoryElementId, timeout) {
+Selenium.prototype.doWaitForOpensocialGadgetsToLoad = function(mandatoryElementIds, timeout) {
   var framesLoadedPredicate = function () {
     var testWindow = selenium.browserbot.getCurrentWindow();
     if (testWindow.wrappedJSObject) {
@@ -136,10 +137,14 @@ Selenium.prototype.doWaitForOpensocialGadgetsToLoad = function(mandatoryElementI
           }
           // wait for frame to be loaded
           var loaded = false;
-          if (testFrame.document.getElementById(mandatoryElementId)) {
-            var content = this.getText(testFrame.document.getElementById(mandatoryElementId));
-            if (content) {
-              loaded = true;
+          var mandatoryElementIdList = mandatoryElementIds.split(",");
+          for(var j=0; j < mandatoryElementIdList.length ; j++){
+            if (testFrame.document.getElementById(mandatoryElementIdList[j])) {
+              var content = this.getText(testFrame.document.getElementById(mandatoryElementIdList[j]));
+              if (content) {
+                loaded = true;
+                break;
+              }
             }
           }
           if (!loaded) {
@@ -147,7 +152,7 @@ Selenium.prototype.doWaitForOpensocialGadgetsToLoad = function(mandatoryElementI
             selenium.browserbot.selectWindow();
             return false;
           }
-          LOG.info("Loaded frame: " + testWindow.frames[i].name);
+          LOG.debug("Loaded frame: " + testWindow.frames[i].name);
           // go back to original window to iterate over frames
           selenium.browserbot.selectWindow();
         }
