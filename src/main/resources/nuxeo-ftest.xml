@@ -986,52 +986,43 @@
     <echo append="true" file="${nuxeo.conf}">${name}=${value}${line.separator}</echo>
   </target>
 
-  <target name="activate-wizard-preset" depends="_init" if="wizard.preset"
+  <target name="activate-wizard-preset"
+          depends="_init"
+          if="wizard.preset"
           description="Activate the configured wizard preset.">
     <if>
       <equals arg1="${wizard.preset}" arg2="nuxeo-dm" />
       <then>
         <copy file="${nuxeo.nxserver}/data/installAfterRestart-DM.log"
-          tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
-          overwrite="true" />
-        <echo append="true" file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties">
-preset=nuxeo-dm
-        </echo>
+              tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+              overwrite="true" />
       </then>
       <elseif>
         <equals arg1="${wizard.preset}" arg2="nuxeo-dam" />
         <then>
           <copy file="${nuxeo.nxserver}/data/installAfterRestart-DAM.log"
-            tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
-            overwrite="true" />
-          <echo append="true" file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties">
-preset=nuxeo-dam
-          </echo>
+                tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+                overwrite="true" />
         </then>
       </elseif>
       <elseif>
         <equals arg1="${wizard.preset}" arg2="nuxeo-cmf" />
         <then>
           <copy file="${nuxeo.nxserver}/data/installAfterRestart-CMF.log"
-            tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
-            overwrite="true" />
-          <echo append="true" file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties">
-preset=nuxeo-cmf
-          </echo>
+                tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+                overwrite="true" />
         </then>
       </elseif>
       <elseif>
         <equals arg1="${wizard.preset}" arg2="nuxeo-sc" />
         <then>
           <copy file="${nuxeo.nxserver}/data/installAfterRestart-SC.log"
-            tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
-            overwrite="true" />
-          <echo append="true" file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties">
-preset=nuxeo-sc
-          </echo>
+                tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+                overwrite="true" />
         </then>
       </elseif>
     </if>
+    <echo file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties" message="preset=${wizard.preset}" />
   </target>
 
 </project>
