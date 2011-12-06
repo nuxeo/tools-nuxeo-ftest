@@ -12,7 +12,8 @@
   <property name="out.dir" value="${maven.project.build.directory}" />
   <property name="jdbc.dir" value="${out.dir}/jdbc-libs" />
   <property name="suites" value="null" />
-  <property name="classifier" value="nuxeo-dm" />
+  <property name="classifier" value="nuxeo-cap" />
+  <property name="wizard.preset" value="nuxeo-dm" />
 
   <!-- FunkLoad support -->
   <propertyregex property="nuxeoURLNoEndingSlash"
@@ -427,6 +428,7 @@
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
     <antcall target="fix-max-waits" />
+    <antcall target="activate-wizard-preset" />
     <nx:profile name="oracle10g">
       <copy todir="${nuxeo.home}/lib/">
         <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
@@ -442,6 +444,8 @@
   <target name="prepare-jboss" depends="_init">
     <echo>Prepare JBoss...</echo>
     <delete failonerror="false" dir="${nuxeo.home}" />
+    <!-- Only Nuxeo DM until we have wizard on JBoss -->
+    <property name="classifier" value="nuxeo-dm" />
     <antcall target="download">
       <param name="groupId" value="org.nuxeo.ecm.distribution" />
       <param name="artifactId" value="nuxeo-distribution-jboss" />
@@ -980,6 +984,42 @@
           depends="_init"
           description="Add property to ${nuxeo.conf} with ${name}=${value}">
     <echo append="true" file="${nuxeo.conf}">${name}=${value}${line.separator}</echo>
+  </target>
+
+  <target name="activate-wizard-preset" depends="_init"
+          description="Activate the configured wizard preset.">
+    <if>
+      <equals arg1="${wizard.preset}" arg2="nuxeo-dm" />
+      <then>
+        <copy file="${nuxeo.nxserver}/data/installAfterRestart-DM.log"
+          tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+          overwrite="true" />
+      </then>
+      <elseif>
+        <equals arg1="${wizard.preset}" arg2="nuxeo-dam" />
+        <then>
+          <copy file="${nuxeo.nxserver}/data/installAfterRestart-DAM.log"
+            tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+            overwrite="true" />
+        </then>
+      </elseif>
+      <elseif>
+        <equals arg1="${wizard.preset}" arg2="nuxeo-cmf" />
+        <then>
+          <copy file="${nuxeo.nxserver}/data/installAfterRestart-CMF.log"
+            tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+            overwrite="true" />
+        </then>
+      </elseif>
+      <elseif>
+        <equals arg1="${wizard.preset}" arg2="nuxeo-sc" />
+        <then>
+          <copy file="${nuxeo.nxserver}/data/installAfterRestart-SC.log"
+            tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+            overwrite="true" />
+        </then>
+      </elseif>
+    </if>
   </target>
 
 </project>
