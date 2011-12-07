@@ -22,7 +22,7 @@
   <property name="monitorConf" value="monitor.conf" />
   <property name="credentialsConf" value="credential.conf" />
 
-    <!-- Oracle drivers are not available in public maven repositories.
+  <!-- Oracle drivers are not available in public maven repositories.
          They need to be available in a local/private repository -->
   <property name="oracle10g.driver.version" value="10.2.0.5" />
   <property name="oracle11g.driver.version" value="11.2.0.2" />
@@ -52,6 +52,12 @@
                else="${out.dir}/tomcat">
       <isset property="env.NUXEO_HOME" />
     </condition>
+    <condition property="no.download">
+      <or>
+        <isset property="zip.file" />
+        <isset property="env.NUXEO_HOME" />
+      </or>
+    </condition>
     <!-- Set nuxeo.conf to NUXEO_CONF env property if defined,
     else set to ${nuxeo.home}/bin/nuxeo.conf -->
     <condition property="nuxeo.conf"
@@ -70,8 +76,8 @@
     <math result="randomresult">
       <op op="rint">
         <op op="*">
-          <num value="999999"/>
-          <op op="random"/>
+          <num value="999999" />
+          <op op="random" />
         </op>
       </op>
     </math>
@@ -97,7 +103,8 @@
     </nx:profile>
     <!-- if NX_DB_SOMETHING is not defined,
          try to fallback on NX_${maven.dbprofile}_DB_SOMETHING -->
-    <for list="HOST,PORT,NAME,USER,PASS,ADMINNAME,ADMINUSER,ADMINPASS" param="dbvar">
+    <for list="HOST,PORT,NAME,USER,PASS,ADMINNAME,ADMINUSER,ADMINPASS"
+         param="dbvar">
       <sequential>
         <if>
           <and>
@@ -107,20 +114,20 @@
             <isset property="env.NX_${maven.dbprofile}_DB_@{dbvar}" />
           </and>
           <then>
-            <propertycopy property="env.NX_DB_@{dbvar}" from="env.NX_${maven.dbprofile}_DB_@{dbvar}" silent="false" />
+            <propertycopy property="env.NX_DB_@{dbvar}"
+                          from="env.NX_${maven.dbprofile}_DB_@{dbvar}"
+                          silent="false" />
             <echo>Using NX_${maven.dbprofile}_DB_@{dbvar} fallback for undefined NX_DB_@{dbvar}</echo>
           </then>
         </if>
       </sequential>
     </for>
     <!-- set nuxeo.db.host to NX_DB_HOST env property if defined -->
-    <condition property="nuxeo.db.host"
-               value="${env.NX_DB_HOST}">
+    <condition property="nuxeo.db.host" value="${env.NX_DB_HOST}">
       <isset property="env.NX_DB_HOST" />
     </condition>
     <!-- set nuxeo.db.port to NX_DB_PORT env property if defined -->
-    <condition property="nuxeo.db.port"
-               value="${env.NX_DB_PORT}">
+    <condition property="nuxeo.db.port" value="${env.NX_DB_PORT}">
       <isset property="env.NX_DB_PORT" />
     </condition>
     <!-- set nuxeo.db.name to NX_DB_NAME env property if defined -->
@@ -158,8 +165,7 @@
     </condition>
     <!-- set nuxeo.dbsetup.donuxeoconf to true if we have all the parameters
      required by nuxeo -->
-    <condition property="nuxeo.dbsetup.donuxeoconf"
-               value="true">
+    <condition property="nuxeo.dbsetup.donuxeoconf" value="true">
       <and>
         <isset property="nuxeo.db.host" />
         <isset property="nuxeo.db.port" />
@@ -170,8 +176,7 @@
     </condition>
     <!-- set nuxeo.dbsetup.dodbconf to true if we have all the parameters
      required by nuxeo and admin access to the database -->
-    <condition property="nuxeo.dbsetup.dodbconf"
-               value="true">
+    <condition property="nuxeo.dbsetup.dodbconf" value="true">
       <and>
         <isset property="nuxeo.dbsetup.donuxeoconf" />
         <isset property="nuxeo.dbsetup.adminname" />
@@ -227,7 +232,11 @@
       <arg line="${out.dir}/results/result-${suite}.html" />
       <arg line="${browser.specific.selenium.arg}" />
     </exec>
-    <math result="tmperr" operation="+" operand1="${errors}" operand2="${exitCode}" datatype="int" />
+    <math result="tmperr"
+          operation="+"
+          operand1="${errors}"
+          operand2="${exitCode}"
+          datatype="int" />
     <var name="errors" value="${tmperr}" />
     <if>
       <not>
@@ -279,7 +288,8 @@
       </sequential>
     </for>
 
-    <propertyregex property="errormessage" override="true"
+    <propertyregex property="errormessage"
+                   override="true"
                    input="${errmsg}"
                    regexp="(.*),"
                    select="\1"
@@ -319,7 +329,11 @@
       <env key="REPORT" value="${out.dir}/report" />
       <env key="LOG_HOME" value="${out.dir}/log" />
     </exec>
-    <math result="tmperr" operation="+" operand1="${errors}" operand2="${exitCode}" datatype="int" />
+    <math result="tmperr"
+          operation="+"
+          operand1="${errors}"
+          operand2="${exitCode}"
+          datatype="int" />
     <var name="errors" value="${tmperr}" />
     <if>
       <not>
@@ -343,7 +357,11 @@
           <env key="REPORT" value="${out.dir}/report" />
           <env key="LOG_HOME" value="${out.dir}/log" />
         </exec>
-        <math result="tmperr" operation="+" operand1="${errors}" operand2="${exitCode}" datatype="int" />
+        <math result="tmperr"
+              operation="+"
+              operand1="${errors}"
+              operand2="${exitCode}"
+              datatype="int" />
         <var name="errors" value="${tmperr}" />
         <if>
           <not>
@@ -370,11 +388,13 @@
     <for list="${funkload-tests}" param="funkload-test" trim="true">
       <sequential>
         <echo>Handling list element: @{funkload-test}</echo>
-        <propertyregex property="flsuite" override="true"
+        <propertyregex property="flsuite"
+                       override="true"
                        input="@{funkload-test}"
                        regexp="([^\[]+).*"
                        select="\1" />
-        <propertyregex property="fltests" override="true"
+        <propertyregex property="fltests"
+                       override="true"
                        input="@{funkload-test}"
                        regexp=".+\[(.*)\]"
                        select="\1"
@@ -402,7 +422,8 @@
       <param name="action" value="stop" />
     </antcall>
     <!-- Set exit status -->
-    <propertyregex property="errormessage" override="true"
+    <propertyregex property="errormessage"
+                   override="true"
                    input="${errmsg}"
                    regexp="(.*),"
                    select="\1"
@@ -418,7 +439,6 @@
 
   <target name="prepare-tomcat" depends="_init">
     <echo>Prepare Tomcat...</echo>
-    <delete failonerror="false" dir="${nuxeo.home}" />
     <property name="classifier" value="nuxeo-cap" />
     <property name="wizard.preset" value="nuxeo-dm" />
     <antcall target="download">
@@ -443,7 +463,6 @@
 
   <target name="prepare-jboss" depends="_init">
     <echo>Prepare JBoss...</echo>
-    <delete failonerror="false" dir="${nuxeo.home}" />
     <!-- Only Nuxeo DM on JBoss for now -->
     <property name="classifier" value="nuxeo-dm" />
     <antcall target="download">
@@ -468,7 +487,8 @@
   <target name="pgsql-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <sql driver="org.postgresql.Driver"
          url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-         userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
+         userid="${nuxeo.dbsetup.adminuser}"
+         password="${nuxeo.dbsetup.adminpass}"
          autocommit="true">
       <classpath>
         <pathelement path="${classpath}" />
@@ -484,8 +504,10 @@
   <target name="pgsql-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <sql driver="org.postgresql.Driver"
          url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-         userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
-         autocommit="true" delimiter="--next--">
+         userid="${nuxeo.dbsetup.adminuser}"
+         password="${nuxeo.dbsetup.adminpass}"
+         autocommit="true"
+         delimiter="--next--">
       <classpath>
         <pathelement path="${classpath}" />
         <fileset dir="${jdbc.dir}">
@@ -544,7 +566,8 @@
   <target name="mssql-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <sql driver="net.sourceforge.jtds.jdbc.Driver"
          url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-         userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
+         userid="${nuxeo.dbsetup.adminuser}"
+         password="${nuxeo.dbsetup.adminpass}"
          autocommit="true">
       <classpath>
         <pathelement path="${classpath}" />
@@ -562,7 +585,8 @@
   <target name="mssql-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <sql driver="net.sourceforge.jtds.jdbc.Driver"
          url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-         userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
+         userid="${nuxeo.dbsetup.adminuser}"
+         password="${nuxeo.dbsetup.adminpass}"
          autocommit="true">
       <classpath>
         <pathelement path="${classpath}" />
@@ -583,9 +607,11 @@
 
   <target name="oracle-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <sql driver="oracle.jdbc.OracleDriver"
-       url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-       userid="${nuxeo.dbsetup.adminuser} as sysdba" password="${nuxeo.dbsetup.adminpass}"
-       autocommit="true" delimiter="--next--">
+         url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+         userid="${nuxeo.dbsetup.adminuser} as sysdba"
+         password="${nuxeo.dbsetup.adminpass}"
+         autocommit="true"
+         delimiter="--next--">
       <classpath>
         <pathelement path="${classpath}" />
         <fileset dir="${jdbc.dir}">
@@ -609,9 +635,10 @@
 
   <target name="oracle-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <sql driver="oracle.jdbc.OracleDriver"
-       url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-       userid="${nuxeo.dbsetup.adminuser} as sysdba" password="${nuxeo.dbsetup.adminpass}"
-       autocommit="true">
+         url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+         userid="${nuxeo.dbsetup.adminuser} as sysdba"
+         password="${nuxeo.dbsetup.adminpass}"
+         autocommit="true">
       <classpath>
         <pathelement path="${classpath}" />
         <fileset dir="${jdbc.dir}">
@@ -628,9 +655,10 @@
 
   <target name="mysql-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <sql driver="com.mysql.jdbc.Driver"
-             url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-             userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
-             autocommit="true">
+         url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+         userid="${nuxeo.dbsetup.adminuser}"
+         password="${nuxeo.dbsetup.adminpass}"
+         autocommit="true">
       <classpath>
         <pathelement path="${classpath}" />
         <fileset dir="${jdbc.dir}">
@@ -645,9 +673,10 @@
 
   <target name="mysql-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <sql driver="com.mysql.jdbc.Driver"
-             url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-             userid="${nuxeo.dbsetup.adminuser}" password="${nuxeo.dbsetup.adminpass}"
-             autocommit="true">
+         url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+         userid="${nuxeo.dbsetup.adminuser}"
+         password="${nuxeo.dbsetup.adminpass}"
+         autocommit="true">
       <classpath>
         <pathelement path="${classpath}" />
         <fileset dir="${jdbc.dir}">
@@ -666,13 +695,17 @@
     </copy>
   </target>
 
-  <target name="prepare-pgsql" depends="_init,setup-pgsql-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="prepare-pgsql"
+          depends="_init,setup-pgsql-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <echo>Prepare PostgreSQL...</echo>
     <antcall target="pgsql-dbdrop" />
     <antcall target="pgsql-dbcreate" />
   </target>
 
-  <target name="cleanup-pgsql" depends="_init,setup-pgsql-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="cleanup-pgsql"
+          depends="_init,setup-pgsql-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <antcall target="pgsql-dbdrop" />
   </target>
 
@@ -682,13 +715,17 @@
     </copy>
   </target>
 
-  <target name="prepare-mssql" depends="_init,setup-mssql-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="prepare-mssql"
+          depends="_init,setup-mssql-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <echo>Prepare MSSQL...</echo>
     <antcall target="mssql-dbdrop" />
     <antcall target="mssql-dbcreate" />
   </target>
 
-  <target name="cleanup-mssql" depends="_init,setup-mssql-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="cleanup-mssql"
+          depends="_init,setup-mssql-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <antcall target="mssql-dbdrop" />
   </target>
 
@@ -698,13 +735,17 @@
     </copy>
   </target>
 
-  <target name="prepare-oracle10g" depends="_init,setup-oracle10g-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="prepare-oracle10g"
+          depends="_init,setup-oracle10g-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <echo>Prepare Oracle 10g...</echo>
     <antcall target="oracle-dbdrop" />
     <antcall target="oracle-dbcreate" />
   </target>
 
-  <target name="cleanup-oracle10g" depends="_init,setup-oracle10g-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="cleanup-oracle10g"
+          depends="_init,setup-oracle10g-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <antcall target="oracle-dbdrop" />
   </target>
 
@@ -714,13 +755,17 @@
     </copy>
   </target>
 
-  <target name="prepare-oracle11g" depends="_init,setup-oracle11g-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="prepare-oracle11g"
+          depends="_init,setup-oracle11g-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <echo>Prepare Oracle 11g...</echo>
     <antcall target="oracle-dbdrop" />
     <antcall target="oracle-dbcreate" />
   </target>
 
-  <target name="cleanup-oracle11g" depends="_init,setup-oracle11g-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="cleanup-oracle11g"
+          depends="_init,setup-oracle11g-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <antcall target="oracle-dbdrop" />
   </target>
 
@@ -730,13 +775,17 @@
     </copy>
   </target>
 
-  <target name="prepare-mysql" depends="_init,setup-mysql-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="prepare-mysql"
+          depends="_init,setup-mysql-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <echo>Prepare MySQL...</echo>
     <antcall target="mysql-dbdrop" />
     <antcall target="mysql-dbcreate" />
   </target>
 
-  <target name="cleanup-mysql" depends="_init,setup-mysql-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="cleanup-mysql"
+          depends="_init,setup-mysql-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <antcall target="mysql-dbdrop" />
   </target>
 
@@ -794,7 +843,8 @@
     <antcall target="cleanup-db" />
   </target>
 
-  <target name="download" unless="zip.file">
+  <target name="download" unless="no.download">
+    <delete failonerror="false" dir="${nuxeo.home}" />
     <unzip dest="${nuxeo.home}/">
       <artifact:resolveFile key="${groupId}:${artifactId}::zip:${classifier}" />
       <cutdirsmapper dirs="1" />
@@ -802,6 +852,7 @@
   </target>
   <target name="unzip-local" if="zip.file">
     <echo message="Using local archive ${zip.file}" />
+    <delete failonerror="false" dir="${nuxeo.home}" />
     <unzip dest="${nuxeo.home}/" src="${zip.file}">
       <cutdirsmapper dirs="1" />
     </unzip>
@@ -849,12 +900,16 @@
   <target name="start" depends="_init,stop,start-unix,start-windows" />
   <target name="start-unix" if="osfamily-unix">
     <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="*.sh,*ctl" />
-    <exec executable="${nuxeo.home}/bin/nuxeoctl" spawn="false" failonerror="true">
+    <exec executable="${nuxeo.home}/bin/nuxeoctl"
+          spawn="false"
+          failonerror="true">
       <arg value="start" />
     </exec>
   </target>
   <target name="start-windows" if="osfamily-windows">
-    <exec executable="${nuxeo.home}/bin/nuxeoctl.bat" spawn="false" failonerror="true">
+    <exec executable="${nuxeo.home}/bin/nuxeoctl.bat"
+          spawn="false"
+          failonerror="true">
       <arg value="nogui" />
       <arg value="start" />
     </exec>
@@ -904,7 +959,8 @@
     <echo message="Using JAVA_HOME=${env.NX_JAVA_HOME}" />
   </target>
 
-  <target name="fix-max-waits" depends="_init"
+  <target name="fix-max-waits"
+          depends="_init"
           description="Increase default time to wait for server to stop">
     <antcall target="set-conf">
       <param name="name" value="launcher.start.max.wait" />
@@ -916,7 +972,9 @@
     </antcall>
   </target>
 
-  <target name="set-nuxeoconf-db" depends="_init" if="nuxeo.dbsetup.donuxeoconf">
+  <target name="set-nuxeoconf-db"
+          depends="_init"
+          if="nuxeo.dbsetup.donuxeoconf">
     <nx:profile name="pgsql">
       <antcall target="set-conf">
         <param name="name" value="nuxeo.templates" />
@@ -1022,7 +1080,8 @@
         </then>
       </elseif>
     </if>
-    <echo file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties" message="preset=${wizard.preset}" />
+    <echo file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties"
+          message="preset=${wizard.preset}" />
   </target>
 
 </project>
