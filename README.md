@@ -59,6 +59,7 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
   * nuxeo.conf: if NUXEO_CONF environment property is not set, default value is `${nuxeo.home}/bin/nuxeo.conf`.
   * zip.file: if set, the server will be unzipped from local file `${zip.file}` instead of being downloaded.
   * groupId, artifactId and classifier: if zip.file is not set, `${groupId}:${artifactId}::zip:${classifier}` will be downloaded.
+  * wizard.preset: the wizard preset to activate on the distribution. The value could be `nuxeo-dm`, `nuxeo-dam`, `nuxeo-cmf` or `nuxeo-sc`, default value is `nuxeo-dm`.
 
     Default values respectively are `org.nuxeo.ecm.distribution`, `nuxeo-distribution-tomcat` or `nuxeo-distribution-jboss`, `nuxeo-dm`.
 
@@ -109,6 +110,7 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
   * wizard-on, wizard-off: deprecated targets for setting on/off the wizard; prefer use of "set-conf".
   * start, stop: start or stop the server.
   * cleanup-db: can be used after the tests to remove the user and database that were created for the test.
+  * activate-wizard-preset: activate the wizard preset defined in the `wizard.preset` property.
 
 ## About Nuxeo
 
