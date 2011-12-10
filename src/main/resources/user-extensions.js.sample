@@ -1,40 +1,98 @@
 // Absolute path to current folder this path is set at runtime by run.sh
 Selenium.prototype.doRetrieveTestFolderPath = function() {
-  storedVars['testfolderpath'] = "/path/to/project-ear/ftest/selenium/data/";
+    storedVars['testfolderpath'] = "/path/to/project-ear/ftest/selenium/data/";
 };
 
 // helper method to store current year/month/day
 Selenium.prototype.doRetrieveCurrentDateInfo = function() {
-  var date = new Date();
-  storedVars['currentYear'] = date.getFullYear();
-  var m = date.getMonth() + 1;
-  storedVars['currentMonth'] = (m < 10) ? '0' + m : m;
-  var d = date.getDate();
-  storedVars['currentDay'] = (d < 10) ? '0' + d : d;
+    var date = new Date();
+    storedVars['currentYear'] = date.getFullYear();
+    var m = date.getMonth() + 1;
+    storedVars['currentMonth'] = (m < 10) ? '0' + m : m;
+    var d = date.getDate();
+    storedVars['currentDay'] = (d < 10) ? '0' + d : d;
 };
 
+
 // override default method to make sure privilege to type file path is enabled
+Selenium.prototype.doOriginalType = Selenium.prototype.doType;
+
 Selenium.prototype.doType = function(locator, value) {
-   /**
-   * Sets the value of an input field, as though you typed it in.
-   *
-   * <p>Can also be used to set the value of combo boxes, check boxes, etc. In these cases,
-   * value should be the value of the option selected, not the visible text.</p>
-   *
-   * @param locator an <a href="#locators">element locator</a>
-   * @param value the value to type
-   */
-   // this is the added line here:
-   netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead");
-   if (this.browserbot.controlKeyDown || this.browserbot.altKeyDown || this.browserbot.metaKeyDown) {
-        throw new SeleniumError("type not supported immediately after call to controlKeyDown() or altKeyDown() or metaKeyDown()");
-   }
-   // TODO fail if it can't be typed into.
-   var element = this.browserbot.findElement(locator);
-   if (this.browserbot.shiftKeyDown) {
-       value = new String(value).toUpperCase();
-   }
-   this.browserbot.replaceText(element, value);
+
+    // Don't block file uploads
+    netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead");
+
+    // convert string to uppercase if shift is pressed
+    if (this.browserbot.shiftKeyDown) {
+        value = new String(value).toUpperCase();
+    }
+    // wait for element to be present before trying to type into it
+    var timeoutTime = getTimeoutTime(this.defaultTimeout);
+    while (this.browserbot.findElementOrNull(locator)==null) {
+        if (new Date().getTime() > timeoutTime) {
+            throw new SeleniumError("Timed out after " + this.defaultTimeout + "ms");
+        }
+    }
+
+    this.doOriginalType(locator, value);
+
+};
+
+
+// override default click method to make sure element is present before clicking
+Selenium.prototype.doOriginalClick = Selenium.prototype.doClick;
+
+Selenium.prototype.doClick = function(locator) {
+
+    // wait for element to be present before trying to click it
+    var timeoutTime = getTimeoutTime(this.defaultTimeout);
+    while (this.browserbot.findElementOrNull(locator)==null) {
+        if (new Date().getTime() > timeoutTime) {
+            throw new SeleniumError("Timed out after " + this.defaultTimeout + "ms");
+        }
+    }
+
+    this.doOriginalClick(locator);
+
+};
+
+
+// override default clickAndWait method to make sure element is present before clicking
+Selenium.prototype.doClickAndWait = function(locator) {
+
+    this.doClick(locator);
+    return this.doWaitForPageToLoad(this.defaultTimeout);
+
+};
+
+
+// override buggy doTypeKeys method
+Selenium.prototype.doTypeKeys = function(locator, value) {
+
+    // wait for element to be present before trying to type into it
+    var timeoutTime = getTimeoutTime(this.defaultTimeout);
+    while (this.browserbot.findElementOrNull(locator)==null) {
+        if (new Date().getTime() > timeoutTime) {
+            throw new SeleniumError("Timed out after " + this.defaultTimeout + "ms");
+        }
+    }
+
+    // send key events (in the correct order unlike the api)
+    var keys = new String(value).split("");
+    for (var i = 0; i < keys.length; i++) {
+        var c = keys[i];
+        this.doKeyDown(locator, c);
+        this.doKeyPress(locator, c);
+       this.doKeyUp(locator, c);
+    }
+
+    // also set the correct text in the element
+    try {
+        this.doOriginalType(locator, value);
+    } catch(err) {
+        // this wasn't a text element
+    }
+
 };
 
 
