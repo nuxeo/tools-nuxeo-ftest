@@ -452,10 +452,9 @@
     <echo>Prepare Tomcat...</echo>
     <property name="classifier" value="nuxeo-cap" />
     <property name="wizard.preset" value="nuxeo-dm" />
-    <antcall target="download">
-      <param name="groupId" value="org.nuxeo.ecm.distribution" />
-      <param name="artifactId" value="nuxeo-distribution-tomcat" />
-    </antcall>
+    <property name="groupId" value="org.nuxeo.ecm.distribution" />
+    <property name="artifactId" value="nuxeo-distribution-tomcat" /> 
+    <antcall target="download" />
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
     <antcall target="fix-max-waits" />
@@ -476,10 +475,9 @@
     <echo>Prepare JBoss...</echo>
     <!-- Only Nuxeo DM on JBoss for now -->
     <property name="classifier" value="nuxeo-dm" />
-    <antcall target="download">
-      <param name="groupId" value="org.nuxeo.ecm.distribution" />
-      <param name="artifactId" value="nuxeo-distribution-jboss" />
-    </antcall>
+    <property name="groupId" value="org.nuxeo.ecm.distribution" />
+    <property name="artifactId" value="nuxeo-distribution-jboss" />
+    <antcall target="download" />
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
     <antcall target="fix-max-waits" />
