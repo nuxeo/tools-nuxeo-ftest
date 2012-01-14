@@ -262,6 +262,28 @@
   <target name="run-selenium" depends="_init">
     <antcall target="prepare-selenium" />
 
+    <if>
+        <or>
+            <equals arg1="${browser}" arg2="chrome" />
+            <equals arg1="${browser}" arg2="firefox" />
+        </or>
+        <then>
+            <property name="selbrowser" value="*chrome" />
+            <property name="browser.specific.selenium.arg" value="-firefoxProfileTemplate ${out.dir}/ffprofile" />
+        </then>
+        <elseif>
+            <equals arg1="${browser}" arg2="googlechrome" />
+            <then>
+                <property name="selbrowser" value="*googlechrome" />
+                <property name="browser.specific.selenium.arg" value="" />
+            </then>
+        </elseif>
+        <else>
+            <property name="selbrowser" value="'*${browser}'" />
+            <property name="browser.specific.selenium.arg" value="" />
+        </else>
+    </if>
+
     <property name="standard.selenium.args1"
               value="-jar ${out.dir}/selenium-server.jar" />
     <property name="standard.selenium.args2"
@@ -271,16 +293,7 @@
     <property name="standard.selenium.args5"
               value="-userExtensions ${out.dir}/user-extensions.js" />
     <property name="standard.selenium.args6"
-              value="-htmlSuite *${browser} ${nuxeoURL}" />
-    <condition property="browser.specific.selenium.arg" value="-port 14440">
-      <not>
-        <equals arg1="${browser}" arg2="chrome" />
-      </not>
-    </condition>
-    <condition property="browser.specific.selenium.arg"
-               value="-firefoxProfileTemplate ${out.dir}/ffprofile">
-      <equals arg1="${browser}" arg2="chrome" />
-    </condition>
+              value="-htmlSuite ${selbrowser} ${nuxeoURL}" />
 
     <mkdir dir="${out.dir}/results" />
     <echo>java ${standard.selenium.args1} ${standard.selenium.args2} ${standard.selenium.args3}

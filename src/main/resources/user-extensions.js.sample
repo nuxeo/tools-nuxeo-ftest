@@ -20,7 +20,9 @@ Selenium.prototype.doOriginalType = Selenium.prototype.doType;
 Selenium.prototype.doType = function(locator, value) {
 
     // Don't block file uploads
-    netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead");
+    if (typeof netscape != "undefined") {
+        netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead");
+    }
 
     // convert string to uppercase if shift is pressed
     if (this.browserbot.shiftKeyDown) {
