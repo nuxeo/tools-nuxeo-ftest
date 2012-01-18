@@ -21,8 +21,5 @@ user_pref("browser.sessionhistory.max_total_viewers", 4);
 user_pref("browser.sessionstore.max_tabs_undo", 4);
 user_pref("browser.sessionstore.interval", 1800000);
 
-// flag UserAgent as Selenium tester : this is used in Nuxeo
-user_pref("general.useragent.override", "Mozilla/5.0 Nuxeo-Selenium-Tester");
-
 // do not load images
 // user_pref("permissions.default.image", 2);

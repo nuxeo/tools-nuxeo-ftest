@@ -1055,6 +1055,11 @@
       <param name="value" value="dolog" />
     </antcall>
     <antcall target="set-nuxeoconf-db" />
+    <!-- activate tester name -->
+    <antcall target="set-conf">
+      <param name="name" value="org.nuxeo.ecm.tester.name" />
+      <param name="value" value="Nuxeo-Selenium-Tester" />
+    </antcall>
   </target>
 
   <target name="set-conf"
