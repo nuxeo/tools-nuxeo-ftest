@@ -3,6 +3,12 @@
 This Maven project produces a zip file containing resources for ease running functional tests.
 Currently, it only manages HTML Selenium and Java WebDriver test suites.
 
+## Requirements
+
+Functional tests require Firefox 3.6 or Higher. Some tests can also be
+run using other browsers than Firefox. xvfb can also be required when
+running tests using a fake X server.
+
 ## Selenium tests
 
 ### Preparing the infrastructure for running functional tests
@@ -14,6 +20,20 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
 
   * Create a tests directory containing your HTML tests suites.
   * Create a data directory containing data resources for your tests.
+
+### Test settings
+
+Selenium tests are run using a custom firefox profile, as well as
+custom extensions.
+
+The file at ffprofile/prefs.js.sample adds settings on the browser to
+set the default url, allow upload of files holds the base url,...  It
+also holds the current language (en). When using Selenium IDE, make
+sure english is your default language.
+
+user-extensions.js.sample holds helper commands used in suites. It
+also sets the current folder absolute path to make it possible to
+upload files when running tests.
 
 ## Webdriver tests
 
@@ -60,6 +80,7 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
   * zip.file: if set, the server will be unzipped from local file `${zip.file}` instead of being downloaded.
   * groupId, artifactId and classifier: if zip.file is not set, `${groupId}:${artifactId}::zip:${classifier}` will be downloaded.
   * wizard.preset: the wizard preset to activate on the distribution. The value could be `nuxeo-dm`, `nuxeo-dam`, `nuxeo-cmf` or `nuxeo-sc`, default value is `nuxeo-dm`.
+  * env.NUXEO_HOME: the server to use for testing instead of downloading a new one. Note that its nuxeo.conf file might be changed when running tests.
 
     Default values respectively are `org.nuxeo.ecm.distribution`, `nuxeo-distribution-tomcat` or `nuxeo-distribution-jboss`, `nuxeo-dm`.
 
