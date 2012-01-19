@@ -6,8 +6,9 @@ Currently, it only manages HTML Selenium and Java WebDriver test suites.
 ## Requirements
 
 Functional tests require Firefox 3.6 or Higher. Some tests can also be
-run using other browsers than Firefox. xvfb can also be required when
-running tests using a fake X server.
+run using other browsers than Firefox.
+
+For use on a headless server, a good solution is using x11vnc + Xvfb.
 
 ## Selenium tests
 
@@ -29,13 +30,13 @@ custom extensions.
 The file at ffprofile/prefs.js.sample adds settings on the browser to
 set the default url, allow upload of files holds the base url,...  It
 also holds the current language (en). When using Selenium IDE, make
-sure english is your default language.
+sure English is your default language.
 
 user-extensions.js.sample holds helper commands used in suites. It
 also sets the current folder absolute path to make it possible to
 upload files when running tests.
 
-## Webdriver tests
+## WebDriver tests
 
 ### Preparing the infrastructure for running functional tests
 
@@ -77,21 +78,34 @@ upload files when running tests.
   * out.dir: default value is `${maven.project.build.directory}`.
   * nuxeo.home: if NUXEO_HOME environment property is not set, default value depends on Maven profile, then values `${out.dir}/tomcat`.
   * nuxeo.conf: if NUXEO_CONF environment property is not set, default value is `${nuxeo.home}/bin/nuxeo.conf`.
-  * zip.file: if set, the server will be unzipped from local file `${zip.file}` instead of being downloaded.
-  * groupId, artifactId and classifier: if zip.file is not set, `${groupId}:${artifactId}::zip:${classifier}` will be downloaded.
   * wizard.preset: the wizard preset to activate on the distribution. The value could be `nuxeo-dm`, `nuxeo-dam`, `nuxeo-cmf` or `nuxeo-sc`, default value is `nuxeo-dm`.
+  * zip.file: the zipped server to use for testing instead of downloading a new one.
   * env.NUXEO_HOME: the server to use for testing instead of downloading a new one. Note that its nuxeo.conf file might be changed when running tests.
 
-    Default values respectively are `org.nuxeo.ecm.distribution`, `nuxeo-distribution-tomcat` or `nuxeo-distribution-jboss`, `nuxeo-dm`.
+#### Nuxeo server
+
+The Nuxeo server against which the tests are ran can be:
+
+  * downloaded (default): if `zip.file` and `env.NUXEO_HOME` are not set,
+    the artifact `${groupId}:${artifactId}::zip:${classifier}` will be downloaded.
+    The default values are `org.nuxeo.ecm.distribution:nuxeo-distribution-tomcat:nuxeo-cap` (for Tomcat)
+    and `org.nuxeo.ecm.distribution:nuxeo-distribution-jboss:nuxeo-dm` (for JBoss).
+  * unzipped from a local archive: using `zip.file` if set.
+  * a local repository: using `env.NUXEO_HOME` if set.
+
+The Nuxeo server type (Tomcat or JBoss) depends on Maven profiles:
+
+  * JBoss if `jboss` Maven profile is activated,
+  * Tomcat (default) else, or if `tomcat` Maven profile is activated.
 
 ### Database parameters
 
   You can ask the framework to prepare a database to connect to and modify the nuxeo.conf to point to it.
   The choice of the database engine is done by activating the corresponding profile.
-  Valid choices are: pgsql, mssql, oracle10g, oracle11g, mysql
+  Valid choices are: pgsql (PostgreSQL), mssql (MsSQL), oracle10g (Oracle 10g), oracle11g (Oracle 11g), mysql (MySQL)
 
   The following environment variables are used:
-  
+
   * NX\_DB\_HOST : database host
   * NX\_DB\_PORT : database port
   * NX\_DB\_ADMINNAME : name of the administrative/default database
