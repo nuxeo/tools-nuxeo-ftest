@@ -263,25 +263,26 @@
     <antcall target="prepare-selenium" />
 
     <if>
-        <or>
-            <equals arg1="${browser}" arg2="chrome" />
-            <equals arg1="${browser}" arg2="firefox" />
-        </or>
+      <or>
+        <equals arg1="${browser}" arg2="chrome" />
+        <equals arg1="${browser}" arg2="firefox" />
+      </or>
+      <then>
+        <property name="selbrowser" value="*chrome" />
+        <property name="browser.specific.selenium.arg"
+                  value="-firefoxProfileTemplate ${out.dir}/ffprofile" />
+      </then>
+      <elseif>
+        <equals arg1="${browser}" arg2="googlechrome" />
         <then>
-            <property name="selbrowser" value="*chrome" />
-            <property name="browser.specific.selenium.arg" value="-firefoxProfileTemplate ${out.dir}/ffprofile" />
+          <property name="selbrowser" value="*googlechrome" />
+          <property name="browser.specific.selenium.arg" value="" />
         </then>
-        <elseif>
-            <equals arg1="${browser}" arg2="googlechrome" />
-            <then>
-                <property name="selbrowser" value="*googlechrome" />
-                <property name="browser.specific.selenium.arg" value="" />
-            </then>
-        </elseif>
-        <else>
-            <property name="selbrowser" value="'*${browser}'" />
-            <property name="browser.specific.selenium.arg" value="" />
-        </else>
+      </elseif>
+      <else>
+        <property name="selbrowser" value="'*${browser}'" />
+        <property name="browser.specific.selenium.arg" value="" />
+      </else>
     </if>
 
     <property name="standard.selenium.args1"
@@ -466,7 +467,7 @@
     <property name="classifier" value="nuxeo-cap" />
     <property name="wizard.preset" value="nuxeo-dm" />
     <property name="groupId" value="org.nuxeo.ecm.distribution" />
-    <property name="artifactId" value="nuxeo-distribution-tomcat" /> 
+    <property name="artifactId" value="nuxeo-distribution-tomcat" />
     <antcall target="download" />
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
@@ -506,7 +507,9 @@
     </nx:profile>
   </target>
 
-  <target name="pgsql-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
+  <target name="pgsql-dbdrop"
+          depends="_init,setup-pgsql-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <sql driver="org.postgresql.Driver"
          url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
@@ -523,7 +526,9 @@
     </sql>
   </target>
 
-  <target name="pgsql-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
+  <target name="pgsql-dbcreate"
+          depends="_init,setup-pgsql-driver,pgsql-dbdrop"
+          if="nuxeo.dbsetup.dodbconf">
     <sql driver="org.postgresql.Driver"
          url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
@@ -585,7 +590,9 @@
     </sql>
   </target>
 
-  <target name="mssql-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
+  <target name="mssql-dbdrop"
+          depends="_init,setup-mssql-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <sql driver="net.sourceforge.jtds.jdbc.Driver"
          url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
@@ -604,7 +611,9 @@
     </sql>
   </target>
 
-  <target name="mssql-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
+  <target name="mssql-dbcreate"
+          depends="_init,setup-mssql-driver,mssql-dbdrop"
+          if="nuxeo.dbsetup.dodbconf">
     <sql driver="net.sourceforge.jtds.jdbc.Driver"
          url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
@@ -627,7 +636,9 @@
     </sql>
   </target>
 
-  <target name="oracle-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
+  <target name="oracle-dbdrop"
+          depends="_init,setup-oracle-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <sql driver="oracle.jdbc.OracleDriver"
          url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser} as sysdba"
@@ -655,7 +666,9 @@
     </sql>
   </target>
 
-  <target name="oracle-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
+  <target name="oracle-dbcreate"
+          depends="_init,setup-oracle-driver,oracle-dbdrop"
+          if="nuxeo.dbsetup.dodbconf">
     <sql driver="oracle.jdbc.OracleDriver"
          url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser} as sysdba"
@@ -675,7 +688,9 @@
     </sql>
   </target>
 
-  <target name="mysql-dbdrop" depends="_init" if="nuxeo.dbsetup.dodbconf">
+  <target name="mysql-dbdrop"
+          depends="_init,setup-mysql-driver"
+          if="nuxeo.dbsetup.dodbconf">
     <sql driver="com.mysql.jdbc.Driver"
          url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
@@ -693,7 +708,9 @@
     </sql>
   </target>
 
-  <target name="mysql-dbcreate" depends="_init" if="nuxeo.dbsetup.dodbconf">
+  <target name="mysql-dbcreate"
+          depends="_init,setup-mysql-driver,mysql-dbdrop"
+          if="nuxeo.dbsetup.dodbconf">
     <sql driver="com.mysql.jdbc.Driver"
          url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
@@ -717,78 +734,23 @@
     </copy>
   </target>
 
-  <target name="prepare-pgsql"
-          depends="_init,setup-pgsql-driver"
-          if="nuxeo.dbsetup.dodbconf">
-    <echo>Prepare PostgreSQL...</echo>
-    <antcall target="pgsql-dbdrop" />
-    <antcall target="pgsql-dbcreate" />
-  </target>
-
-  <target name="cleanup-pgsql"
-          depends="_init,setup-pgsql-driver"
-          if="nuxeo.dbsetup.dodbconf">
-    <antcall target="pgsql-dbdrop" />
-  </target>
-
   <target name="setup-mssql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
       <artifact:resolveFile key="net.sourceforge.jtds:jtds::jar" />
     </copy>
   </target>
 
-  <target name="prepare-mssql"
-          depends="_init,setup-mssql-driver"
-          if="nuxeo.dbsetup.dodbconf">
-    <echo>Prepare MSSQL...</echo>
-    <antcall target="mssql-dbdrop" />
-    <antcall target="mssql-dbcreate" />
-  </target>
-
-  <target name="cleanup-mssql"
-          depends="_init,setup-mssql-driver"
-          if="nuxeo.dbsetup.dodbconf">
-    <antcall target="mssql-dbdrop" />
-  </target>
-
-  <target name="setup-oracle10g-driver" depends="_init">
-    <copy todir="${jdbc.dir}">
-      <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
-    </copy>
-  </target>
-
-  <target name="prepare-oracle10g"
-          depends="_init,setup-oracle10g-driver"
-          if="nuxeo.dbsetup.dodbconf">
-    <echo>Prepare Oracle 10g...</echo>
-    <antcall target="oracle-dbdrop" />
-    <antcall target="oracle-dbcreate" />
-  </target>
-
-  <target name="cleanup-oracle10g"
-          depends="_init,setup-oracle10g-driver"
-          if="nuxeo.dbsetup.dodbconf">
-    <antcall target="oracle-dbdrop" />
-  </target>
-
-  <target name="setup-oracle11g-driver" depends="_init">
-    <copy todir="${jdbc.dir}">
-      <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
-    </copy>
-  </target>
-
-  <target name="prepare-oracle11g"
-          depends="_init,setup-oracle11g-driver"
-          if="nuxeo.dbsetup.dodbconf">
-    <echo>Prepare Oracle 11g...</echo>
-    <antcall target="oracle-dbdrop" />
-    <antcall target="oracle-dbcreate" />
-  </target>
-
-  <target name="cleanup-oracle11g"
-          depends="_init,setup-oracle11g-driver"
-          if="nuxeo.dbsetup.dodbconf">
-    <antcall target="oracle-dbdrop" />
+  <target name="setup-oracle-driver" depends="_init">
+    <nx:profile name="oracle10g">
+      <copy todir="${jdbc.dir}">
+        <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
+      </copy>
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <copy todir="${jdbc.dir}">
+        <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
+      </copy>
+    </nx:profile>
   </target>
 
   <target name="setup-mysql-driver" depends="_init">
@@ -797,66 +759,56 @@
     </copy>
   </target>
 
-  <target name="prepare-mysql"
-          depends="_init,setup-mysql-driver"
+  <target name="prepare-db"
+          depends="_init,cleanup-db"
           if="nuxeo.dbsetup.dodbconf">
-    <echo>Prepare MySQL...</echo>
-    <antcall target="mysql-dbdrop" />
-    <antcall target="mysql-dbcreate" />
-  </target>
-
-  <target name="cleanup-mysql"
-          depends="_init,setup-mysql-driver"
-          if="nuxeo.dbsetup.dodbconf">
-    <antcall target="mysql-dbdrop" />
-  </target>
-
-  <target name="prepare-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
-      <antcall target="prepare-pgsql" />
+      <echo>Prepare PostgreSQL...</echo>
+      <antcall target="pgsql-dbcreate" />
     </nx:profile>
     <nx:profile name="mssql">
-      <antcall target="prepare-mssql" />
+      <echo>Prepare MSSQL...</echo>
+      <antcall target="mssql-dbcreate" />
     </nx:profile>
     <nx:profile name="oracle10g">
-      <antcall target="prepare-oracle10g" />
+      <echo>Prepare Oracle 10g...</echo>
+      <antcall target="oracle-dbcreate" />
     </nx:profile>
     <nx:profile name="oracle11g">
-      <antcall target="prepare-oracle11g" />
+      <echo>Prepare Oracle 11g...</echo>
+      <antcall target="oracle-dbcreate" />
     </nx:profile>
     <nx:profile name="mysql">
-      <antcall target="prepare-mysql" />
+      <echo>Prepare MySQL...</echo>
+      <antcall target="mysql-dbcreate" />
     </nx:profile>
   </target>
 
   <target name="cleanup-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
-      <antcall target="cleanup-pgsql" />
+      <antcall target="pgsql-dbdrop" />
     </nx:profile>
     <nx:profile name="mssql">
-      <antcall target="cleanup-mssql" />
+      <antcall target="mssql-dbdrop" />
     </nx:profile>
     <nx:profile name="oracle10g">
-      <antcall target="cleanup-oracle10g" />
+      <antcall target="oracle-dbdrop" />
     </nx:profile>
     <nx:profile name="oracle11g">
-      <antcall target="cleanup-oracle11g" />
+      <antcall target="oracle-dbdrop" />
     </nx:profile>
     <nx:profile name="mysql">
-      <antcall target="cleanup-mysql" />
+      <antcall target="mysql-dbdrop" />
     </nx:profile>
   </target>
 
   <target name="prepare-environment"
           depends="_init,prepare-db,prepare-tomcat,prepare-jboss"
-          description="prepare all ressources for test">
-  </target>
+          description="prepare all ressources for test" />
 
-  <target name="cleanup-environment" depends="_init">
-    <antcall target="cleanup-db" />
-  </target>
+  <target name="cleanup-environment" depends="_init,cleanup-db" />
 
   <target name="download" unless="no.download">
     <delete failonerror="false" dir="${nuxeo.home}" />
