@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.nuxeo.ecm.distribution</groupId>
     <artifactId>nuxeo-distribution</artifactId>
-    <version>5.4.2</version>
+    <version>5.5</version>
   </parent>
 
   <groupId>org.nuxeo.ecm.distribution</groupId>
@@ -46,20 +46,14 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <executions>
           <execution>
-            <id>integration-test</id>
             <goals>
               <goal>integration-test</goal>
+              <goal>verify</goal>
             </goals>
             <configuration>
               <argLine>-Dlog4j.configuration=${file.uri.prefix}${build.directory}/tomcat/lib/log4j.xml
                 -Dnuxeo.log.dir=${build.directory}/tomcat/log</argLine>
             </configuration>
-          </execution>
-          <execution>
-            <id>verify</id>
-            <goals>
-              <goal>verify</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
@@ -71,6 +65,7 @@
             <id>start-tomcat</id>
             <phase>pre-integration-test</phase>
             <goals>
+              <!-- Goal mapped on package phase by default -->
               <goal>build</goal>
             </goals>
             <configuration>
@@ -85,6 +80,7 @@
             <id>stop-tomcat</id>
             <phase>post-integration-test</phase>
             <goals>
+              <!-- Goal mapped on package phase by default -->
               <goal>build</goal>
             </goals>
             <configuration>
