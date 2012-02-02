@@ -14,7 +14,7 @@ For use on a headless server, a good solution is using x11vnc + Xvfb.
 
 ### Preparing the infrastructure for running functional tests
 
-  * Copy samples/selenium/pom.xml and samples/selenium/itests.xml at root of a directory.
+  * Copy samples/selenium/* at root of a directory.
   * Edit and adapt those files to your case.
 
 ### Preparing tests resources
@@ -40,7 +40,7 @@ upload files when running tests.
 
 ### Preparing the infrastructure for running functional tests
 
-  * Copy samples/webdriver/pom.xml and samples/webdriver/itests.xml at root of a directory.
+  * Copy samples/webdriver/* at root of a directory.
   * Edit and adapt those files to your case.
 
 ### Preparing tests resources
@@ -52,6 +52,23 @@ upload files when running tests.
   Run the following Maven command to launch the testing suites:
 
     `mvn verify [-f path/to/pom.xml] [-DsomeParam=someValue] -P[tomcat|jboss]`
+
+  Maven verify phase automatically calls the previous phases (validate, compile,
+  test, package, pre-integration-test, integration-test and post-integration-test).
+  See [the Introduction to the Build Lifecycle](http://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html#Lifecycle_Reference)
+  for more details.
+
+  You can avoid executing the whole lifecycle by directly calling a phase on the wanted plugin.
+  For instance, if you only want to execute the tests (avoid pre-integration and post-integration phase
+  which are starting and stopping Nuxeo), run:
+
+    `mvn nuxeo-distribution-tools:integration-test [...]`
+
+  and for verifying the results:
+
+    `mvn nuxeo-distribution-tools:verify [...]`
+
+  The two phases can be called within the same line.
 
 ## Available parameters
 

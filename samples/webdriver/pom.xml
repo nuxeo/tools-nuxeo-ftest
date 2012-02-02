@@ -52,7 +52,8 @@
             </goals>
             <configuration>
               <argLine>-Dlog4j.configuration=${file.uri.prefix}${build.directory}/tomcat/lib/log4j.xml
-                -Dnuxeo.log.dir=${build.directory}/tomcat/log</argLine>
+                -Dnuxeo.log.dir=${build.directory}/tomcat/log
+              </argLine>
             </configuration>
           </execution>
         </executions>
@@ -60,6 +61,9 @@
       <plugin>
         <groupId>org.nuxeo.build</groupId>
         <artifactId>nuxeo-distribution-tools</artifactId>
+        <configuration>
+          <buildFile>${basedir}/itests.xml</buildFile>
+        </configuration>
         <executions>
           <execution>
             <id>start-tomcat</id>
@@ -69,7 +73,6 @@
               <goal>build</goal>
             </goals>
             <configuration>
-              <buildFile>${basedir}/itests.xml</buildFile>
               <targets>
                 <target>prepare-environment</target>
                 <target>start</target>
@@ -84,7 +87,6 @@
               <goal>build</goal>
             </goals>
             <configuration>
-              <buildFile>${basedir}/itests.xml</buildFile>
               <targets>
                 <target>stop</target>
                 <target>cleanup-environment</target>
