@@ -51,7 +51,7 @@ upload files when running tests.
 
   Run the following Maven command to launch the testing suites:
 
-    `mvn verify [-f path/to/pom.xml] [-DsomeParam=someValue] -P[tomcat|jboss]`
+    mvn verify [-f path/to/pom.xml] [-DsomeParam=someValue] -P[tomcat|jboss]
 
   Maven verify phase automatically calls the previous phases (validate, compile,
   test, package, pre-integration-test, integration-test and post-integration-test).
@@ -62,11 +62,11 @@ upload files when running tests.
   For instance, if you only want to execute the tests (avoid pre-integration and post-integration phase
   which are starting and stopping Nuxeo), run:
 
-    `mvn nuxeo-distribution-tools:integration-test [...]`
+    mvn nuxeo-distribution-tools:integration-test [...]
 
   and for verifying the results:
 
-    `mvn nuxeo-distribution-tools:verify [...]`
+    mvn nuxeo-distribution-tools:verify [...]
 
   The two phases can be called within the same line.
 
