@@ -473,6 +473,7 @@
     <antcall target="nuxeo-conf" />
     <antcall target="fix-max-waits" />
     <antcall target="activate-wizard-preset" />
+    <antcall target="mp-install" />
     <nx:profile name="oracle10g">
       <copy todir="${nuxeo.home}/lib/">
         <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
@@ -1058,6 +1059,20 @@
     </if>
     <echo file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties"
           message="preset=${wizard.preset}" />
+  </target>
+
+  <target name="mp-install"
+          depends="_init"
+          if="mp.install"
+          description="Install comma-separated Marketplace packages">
+    <for list="${mp.install}" param="package" delimiter="," trim="true">
+      <sequential>
+        <echo append="true"
+              file="${nuxeo.nxserver}/data/installAfterRestart.log"
+              message="@{package}">
+        </echo>
+      </sequential>
+    </for>
   </target>
 
 </project>

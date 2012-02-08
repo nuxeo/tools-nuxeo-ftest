@@ -95,7 +95,8 @@ upload files when running tests.
   * out.dir: default value is `${maven.project.build.directory}`.
   * nuxeo.home: if NUXEO_HOME environment property is not set, default value depends on Maven profile, then values `${out.dir}/tomcat`.
   * nuxeo.conf: if NUXEO_CONF environment property is not set, default value is `${nuxeo.home}/bin/nuxeo.conf`.
-  * wizard.preset: the wizard preset to activate on the distribution. The value could be `nuxeo-dm`, `nuxeo-dam`, `nuxeo-cmf` or `nuxeo-sc`, default value is `nuxeo-dm`.
+  * wizard.preset: the wizard preset to activate on the distribution. The value could be `nuxeo-cap` (does nothing), `nuxeo-dm`, `nuxeo-dam`, `nuxeo-cmf` or `nuxeo-sc`, default value is `nuxeo-dm`.
+  * mp.install: a comma-separated list of instructions for the Marketplace install process. For instance `file:/path/to/some/marketplace-package-1.0-SNAPSHOT.zip`.
   * zip.file: the zipped server to use for testing instead of downloading a new one.
   * env.NUXEO_HOME: the server to use for testing instead of downloading a new one. Note that its nuxeo.conf file might be changed when running tests.
 
@@ -163,6 +164,7 @@ The Nuxeo server type (Tomcat or JBoss) depends on Maven profiles:
   * start, stop: start or stop the server.
   * cleanup-db: can be used after the tests to remove the user and database that were created for the test.
   * activate-wizard-preset: activate the wizard preset defined in the `wizard.preset` property.
+  * mp-install: add comma-separated instructions defined in the `mp.install` property.
 
 ## About Nuxeo
 
