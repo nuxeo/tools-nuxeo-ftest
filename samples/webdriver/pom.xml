@@ -51,8 +51,8 @@
               <goal>verify</goal>
             </goals>
             <configuration>
-              <argLine>-Dlog4j.configuration=${file.uri.prefix}${build.directory}/tomcat/lib/log4j.xml
-                -Dnuxeo.log.dir=${build.directory}/tomcat/log
+              <argLine>-Dlog4j.configuration=${file.uri.prefix}${basedir}/log4j.xml
+                -Dnuxeo.log.dir=${build.directory}
               </argLine>
             </configuration>
           </execution>

@@ -1,5 +1,4 @@
 <project name="selenium-tests"
-         default="run-selenium-tests"
          xmlns:nx="urn:nuxeo-build"
          xmlns:artifact="urn:nuxeo-artifact">
   <taskdef resource="org/nuxeo/build/antlib.xml" uri="urn:nuxeo-build" />
@@ -14,7 +13,5 @@
     <artifact:resolveFile key="org.nuxeo:nuxeo-ftest::zip" />
   </unzip>
   <import file="${out.dir}/nuxeo-ftest.xml" />
-
-  <target name="run-selenium-tests" depends="run-selenium" />
 
 </project>

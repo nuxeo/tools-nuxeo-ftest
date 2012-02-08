@@ -54,7 +54,7 @@
               <goal>verify</goal>
             </goals>
             <configuration>
-              <target>run-selenium-tests</target>
+              <target>run-selenium</target>
             </configuration>
           </execution>
           <execution>
