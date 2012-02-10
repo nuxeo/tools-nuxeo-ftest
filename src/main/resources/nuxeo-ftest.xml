@@ -82,6 +82,12 @@
                else="${nuxeo.home}/nxserver">
       <isset property="is.jboss" />
     </condition>
+    <!-- set data dir for tomcat or jboss dir -->
+    <condition property="nuxeo.data"
+               value="${nuxeo.home}/server/default/data/NXRuntime/data"
+               else="${nuxeo.home}/nxserver/data">
+      <isset property="is.jboss" />
+    </condition>
     <!-- Generate random id. It will be used
     when NX_DB_NAME, NX_DB_USER or NX_DB_PASS are not specified -->
     <math result="randomresult">
@@ -468,12 +474,7 @@
     <property name="wizard.preset" value="nuxeo-dm" />
     <property name="groupId" value="org.nuxeo.ecm.distribution" />
     <property name="artifactId" value="nuxeo-distribution-tomcat" />
-    <antcall target="download" />
-    <antcall target="unzip-local" />
-    <antcall target="nuxeo-conf" />
-    <antcall target="fix-max-waits" />
-    <antcall target="activate-wizard-preset" />
-    <antcall target="mp-install" />
+    <antcall target="prepare-server" />
     <nx:profile name="oracle10g">
       <copy todir="${nuxeo.home}/lib/">
         <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
@@ -488,14 +489,11 @@
 
   <target name="prepare-jboss" depends="_init" if="is.jboss">
     <echo>Prepare JBoss...</echo>
-    <!-- Only Nuxeo DM on JBoss for now -->
-    <property name="classifier" value="nuxeo-dm" />
+    <property name="classifier" value="nuxeo-cap" />
+    <property name="wizard.preset" value="nuxeo-dm" />
     <property name="groupId" value="org.nuxeo.ecm.distribution" />
     <property name="artifactId" value="nuxeo-distribution-jboss" />
-    <antcall target="download" />
-    <antcall target="unzip-local" />
-    <antcall target="nuxeo-conf" />
-    <antcall target="fix-max-waits" />
+    <antcall target="prepare-server" />
     <nx:profile name="oracle10g">
       <copy todir="${nuxeo.home}/server/default/lib">
         <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
@@ -506,6 +504,15 @@
         <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
       </copy>
     </nx:profile>
+  </target>
+
+  <target name="prepare-server">
+    <antcall target="download" />
+    <antcall target="unzip-local" />
+    <antcall target="nuxeo-conf" />
+    <antcall target="fix-max-waits" />
+    <antcall target="activate-wizard-preset" />
+    <antcall target="mp-install" />
   </target>
 
   <target name="pgsql-dbdrop"
@@ -1028,31 +1035,31 @@
     <if>
       <equals arg1="${wizard.preset}" arg2="nuxeo-dm" />
       <then>
-        <copy file="${nuxeo.nxserver}/data/installAfterRestart-DM.log"
+        <copy file="${nuxeo.data}/installAfterRestart-DM.log"
               tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
               overwrite="true" />
       </then>
       <elseif>
         <equals arg1="${wizard.preset}" arg2="nuxeo-dam" />
         <then>
-          <copy file="${nuxeo.nxserver}/data/installAfterRestart-DAM.log"
-                tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+          <copy file="${nuxeo.data}/installAfterRestart-DAM.log"
+                tofile="${nuxeo.data}/installAfterRestart.log"
                 overwrite="true" />
         </then>
       </elseif>
       <elseif>
         <equals arg1="${wizard.preset}" arg2="nuxeo-cmf" />
         <then>
-          <copy file="${nuxeo.nxserver}/data/installAfterRestart-CMF.log"
-                tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+          <copy file="${nuxeo.data}/installAfterRestart-CMF.log"
+                tofile="${nuxeo.data}/installAfterRestart.log"
                 overwrite="true" />
         </then>
       </elseif>
       <elseif>
         <equals arg1="${wizard.preset}" arg2="nuxeo-sc" />
         <then>
-          <copy file="${nuxeo.nxserver}/data/installAfterRestart-SC.log"
-                tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+          <copy file="${nuxeo.data}/installAfterRestart-SC.log"
+                tofile="${nuxeo.data}/installAfterRestart.log"
                 overwrite="true" />
         </then>
       </elseif>
@@ -1068,7 +1075,7 @@
     <for list="${mp.install}" param="package" delimiter="," trim="true">
       <sequential>
         <echo append="true"
-              file="${nuxeo.nxserver}/data/installAfterRestart.log"
+              file="${nuxeo.data}/installAfterRestart.log"
               message="@{package}">
         </echo>
       </sequential>
