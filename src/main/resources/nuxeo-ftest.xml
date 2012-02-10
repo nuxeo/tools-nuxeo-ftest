@@ -1036,7 +1036,7 @@
       <equals arg1="${wizard.preset}" arg2="nuxeo-dm" />
       <then>
         <copy file="${nuxeo.data}/installAfterRestart-DM.log"
-              tofile="${nuxeo.nxserver}/data/installAfterRestart.log"
+              tofile="${nuxeo.data}/installAfterRestart.log"
               overwrite="true" />
       </then>
       <elseif>
