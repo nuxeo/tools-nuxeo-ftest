@@ -691,6 +691,7 @@
       CREATE USER ${nuxeo.db.user} IDENTIFIED BY ${nuxeo.db.pass};
       GRANT EXECUTE ON SYS.DBMS_CRYPTO TO ${nuxeo.db.user};
       GRANT SELECT ON SYS.V_$$SESSION TO ${nuxeo.db.user};
+      GRANT SELECT ON SYS.GV_$$SESSION TO ${nuxeo.db.user};
       GRANT CONNECT TO ${nuxeo.db.user};
       GRANT RESOURCE TO ${nuxeo.db.user};
     </sql>
