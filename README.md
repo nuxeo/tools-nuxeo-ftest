@@ -62,7 +62,7 @@ upload files when running tests.
   For instance, if you only want to execute the tests (avoid pre-integration and post-integration phase
   which are starting and stopping Nuxeo), run:
 
-    mvn org.nuxeo.build:nuxeo-distribution-tools:integration-test  -o -Dtarget=run-selenium
+    mvn org.nuxeo.build:nuxeo-distribution-tools:integration-test -Dtarget=run-selenium
 
   and for verifying the results:
 
