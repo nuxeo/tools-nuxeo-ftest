@@ -691,6 +691,7 @@
       CREATE USER ${nuxeo.db.user} IDENTIFIED BY ${nuxeo.db.pass};
       GRANT EXECUTE ON SYS.DBMS_CRYPTO TO ${nuxeo.db.user};
       GRANT SELECT ON SYS.V_$$SESSION TO ${nuxeo.db.user};
+      GRANT SELECT ON SYS.GV_$$SESSION TO ${nuxeo.db.user};
       GRANT CONNECT TO ${nuxeo.db.user};
       GRANT RESOURCE TO ${nuxeo.db.user};
     </sql>
@@ -819,6 +820,7 @@
   <target name="cleanup-environment" depends="_init,cleanup-db" />
 
   <target name="download" unless="no.download">
+    <echo message="Downloading ${groupId}:${artifactId}::zip:${classifier}" />
     <delete failonerror="false" dir="${nuxeo.home}" />
     <unzip dest="${nuxeo.home}/">
       <artifact:resolveFile key="${groupId}:${artifactId}::zip:${classifier}" />
