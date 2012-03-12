@@ -21,5 +21,11 @@ user_pref("browser.sessionhistory.max_total_viewers", 4);
 user_pref("browser.sessionstore.max_tabs_undo", 4);
 user_pref("browser.sessionstore.interval", 1800000);
 
+// disable "unresponsive script" warnings
+// using milliseconds (?): 1000s (default: 10ms)
+user_pref("dom.max_script_run_time", 0);
+// using seconds (?): 10 seconds
+user_pref("dom.max_chrome_script_run_time", 0);
+
 // do not load images
 // user_pref("permissions.default.image", 2);
