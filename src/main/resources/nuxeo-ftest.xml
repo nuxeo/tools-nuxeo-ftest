@@ -495,12 +495,12 @@
     <property name="artifactId" value="nuxeo-distribution-jboss" />
     <antcall target="prepare-server" />
     <nx:profile name="oracle10g">
-      <copy todir="${nuxeo.home}/server/default/lib">
+      <copy todir="${nuxeo.home}/common/lib">
         <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
       </copy>
     </nx:profile>
     <nx:profile name="oracle11g">
-      <copy todir="${nuxeo.home}/server/default/lib">
+      <copy todir="${nuxeo.home}/common/lib">
         <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
       </copy>
     </nx:profile>
