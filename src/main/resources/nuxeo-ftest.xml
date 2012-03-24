@@ -887,7 +887,7 @@
     <exec executable="${nuxeo.home}/bin/nuxeoctl.bat"
           spawn="false"
           failonerror="true">
-      <arg value="nogui" />
+      <arg value="--gui=false" />
       <arg value="start" />
     </exec>
   </target>
@@ -905,7 +905,7 @@
     <exec executable="${nuxeo.home}/bin/nuxeoctl.bat"
           spawn="false"
           failifexecutionfails="false">
-      <arg value="nogui" />
+      <arg value="--gui=false" />
       <arg value="stop" />
     </exec>
   </target>
