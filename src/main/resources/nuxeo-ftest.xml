@@ -13,6 +13,12 @@
   <property name="jdbc.dir" value="${out.dir}/jdbc-libs" />
   <property name="suites" value="null" />
 
+  <!-- for EAR testing -->
+  <property name="ear-jboss-groupId" value="org.jboss" />
+  <property name="ear-jboss-artifactId" value="jboss-as" />
+  <property name="ear-jboss-version" value="5.1.0.GA" />
+  <property name="ear-jboss-classifier" value="light" />
+
   <!-- FunkLoad support -->
   <propertyregex property="nuxeoURLNoEndingSlash"
                  input="${nuxeoURL}"
@@ -39,12 +45,20 @@
     <condition property="is.jboss">
       <isset property="maven.profile.jboss" />
     </condition>
+    <condition property="is.ear">
+      <isset property="maven.profile.jbossear" />
+    </condition>
     <condition property="is.tomcat">
       <or>
         <isset property="maven.profile.tomcat" />
-        <not>
-          <isset property="is.jboss" />
-        </not>
+        <and>
+          <not>
+            <isset property="is.jboss" />
+          </not>
+          <not>
+            <isset property="is.ear" />
+          </not>
+        </and>
       </or>
     </condition>
     <!-- Set nuxeo.home to NUXEO_HOME env property if defined,
@@ -52,7 +66,10 @@
     else set to ${out.dir}/tomcat -->
     <condition property="nuxeo.home" value="${out.dir}/jboss">
       <and>
-        <isset property="is.jboss" />
+        <or>
+            <isset property="is.jboss" />
+            <isset property="is.ear" />
+        </or>
         <not>
           <isset property="env.NUXEO_HOME" />
         </not>
@@ -86,7 +103,10 @@
     <condition property="nuxeo.data"
                value="${nuxeo.home}/server/default/data/NXRuntime/data"
                else="${nuxeo.home}/nxserver/data">
-      <isset property="is.jboss" />
+      <or>
+        <isset property="is.jboss" />
+        <isset property="is.ear" />
+      </or>
     </condition>
     <!-- Generate random id. It will be used
     when NX_DB_NAME, NX_DB_USER or NX_DB_PASS are not specified -->
@@ -506,6 +526,47 @@
     </nx:profile>
   </target>
 
+  <target name="prepare-ear" depends="_init" if="is.ear">
+    <echo>Prepare JBoss EAR...</echo>
+    <property name="classifier" value="nuxeo-cap" />
+    <property name="wizard.preset" value="nuxeo-dm" />
+    <property name="groupId" value="org.nuxeo.ecm.distribution" />
+    <property name="artifactId" value="nuxeo-distribution-jboss" />
+    <!-- download and unzip JBOSS -->
+    <echo message="Downloading ${ear-jboss-groupId}:${ear-jboss-artifactId}:${ear-jboss-version}:zip:${ear-jboss-classifier}" />
+    <delete failonerror="false" dir="${nuxeo.home}" />
+    <unzip dest="${nuxeo.home}/">
+      <artifact:resolveFile key="${ear-jboss-groupId}:${ear-jboss-artifactId}:${ear-jboss-version}:zip:${ear-jboss-classifier}" />
+      <cutdirsmapper dirs="1" />
+    </unzip>
+    <!-- download and unzip EAR -->
+    <echo message="Downloading ${groupId}:${artifactId}::zip:${classifier}-ear" />
+    <unzip dest="${nuxeo.home}/" overwrite="true">
+      <artifact:resolveFile key="${groupId}:${artifactId}::zip:${classifier}-ear" />
+      <cutdirsmapper dirs="1" />
+    </unzip>
+    <!-- configure -->
+    <antcall target="nuxeo-conf" />
+    <antcall target="fix-max-waits" />
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.wizard.done" />
+      <param name="value" value="true" />
+    </antcall>
+    <antcall target="activate-wizard-preset" />
+    <antcall target="mp-install" />
+    <!-- add JDBC lib -->
+    <nx:profile name="oracle10g">
+      <copy todir="${nuxeo.home}/common/lib">
+        <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
+      </copy>
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <copy todir="${nuxeo.home}/common/lib">
+        <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
+      </copy>
+    </nx:profile>
+  </target>
+
   <target name="prepare-server">
     <antcall target="download" />
     <antcall target="unzip-local" />
@@ -814,7 +875,7 @@
   </target>
 
   <target name="prepare-environment"
-          depends="_init,prepare-db,prepare-tomcat,prepare-jboss"
+          depends="_init,prepare-db,prepare-tomcat,prepare-jboss,prepare-ear"
           description="prepare all ressources for test" />
 
   <target name="cleanup-environment" depends="_init,cleanup-db" />
@@ -827,6 +888,7 @@
       <cutdirsmapper dirs="1" />
     </unzip>
   </target>
+
   <target name="unzip-local" if="zip.file">
     <echo message="Using local archive ${zip.file}" />
     <delete failonerror="false" dir="${nuxeo.home}" />
