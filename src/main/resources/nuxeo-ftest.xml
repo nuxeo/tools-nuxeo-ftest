@@ -355,7 +355,7 @@
     </fail>
   </target>
 
-  <target name="monitor" if="osfamily-unix">
+  <target name="monitor" depends="_init" if="osfamily-unix">
     <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="monitorctl.sh" />
     <exec executable="${nuxeo.home}/bin/monitorctl"
           spawn="false"
