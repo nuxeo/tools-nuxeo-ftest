@@ -355,6 +355,15 @@
     </fail>
   </target>
 
+  <target name="monitor" if="osfamily-unix">
+    <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="monitorctl.sh" />
+    <exec executable="${nuxeo.home}/bin/monitorctl"
+          spawn="false"
+          failonerror="false">
+      <arg value="${action}" />
+    </exec>
+  </target>
+
   <target name="funkload-ctl-daemons">
     <exec executable="fl-monitor-ctl" failonerror="false">
       <arg value="${monitorConf}" />
@@ -435,6 +444,9 @@
     <antcall target="funkload-ctl-daemons">
       <param name="action" value="start" />
     </antcall>
+    <antcall target="monitor">
+      <param name="action" value="start" />
+    </antcall>
     <!-- TESTS START -->
     <for list="${funkload-tests}" param="funkload-test" trim="true">
       <sequential>
@@ -469,6 +481,9 @@
       </sequential>
     </for>
     <!-- TESTS END -->
+    <antcall target="monitor">
+      <param name="action" value="stop" />
+    </antcall>
     <antcall target="funkload-ctl-daemons">
       <param name="action" value="stop" />
     </antcall>
