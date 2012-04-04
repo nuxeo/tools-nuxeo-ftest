@@ -67,8 +67,8 @@
     <condition property="nuxeo.home" value="${out.dir}/jboss">
       <and>
         <or>
-            <isset property="is.jboss" />
-            <isset property="is.ear" />
+          <isset property="is.jboss" />
+          <isset property="is.ear" />
         </or>
         <not>
           <isset property="env.NUXEO_HOME" />
@@ -963,10 +963,22 @@
   <target name="start-windows" if="osfamily-windows">
     <exec executable="${nuxeo.home}/bin/nuxeoctl.bat"
           spawn="false"
-          failonerror="true">
+          failonerror="false"
+          resultproperty="retcode">
       <arg value="--gui=false" />
       <arg value="start" />
     </exec>
+    <condition property="windows.startup.failed" value="${retcode}">
+      <not>
+        <equals arg1="${retcode}" arg2="0" />
+      </not>
+    </condition>
+    <antcall target="stop-windows-iffailed" />
+  </target>
+  <target name="stop-windows-iffailed" if="windows.startup.failed">
+    <antcall target="stop-windows" />
+    <fail status="${windows.startup.failed}"
+          message="Windows startup failed!" />
   </target>
 
   <target name="stop" depends="_init,stop-unix,stop-windows" />
