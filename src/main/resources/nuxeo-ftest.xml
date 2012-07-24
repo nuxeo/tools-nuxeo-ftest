@@ -367,7 +367,56 @@
 	<param name="name" value="JAVA_OPTS" />
 	<param name="value" value="$JAVA_OPTS -Xloggc:${nuxeo.log.dir}/gc.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps" />
       </antcall>
+      <nx:profile name="pgsql">
+	<antcall target="set-conf">
+	  <param name="name" value="PG_LOG" />
+	  <param name="value" value="/var/log/pgsql" />
+	</antcall>
+      </nx:profile>
     </nx:profile>
+  </target>
+
+  <target name="prepare-bench" depends="_init" if="osfamily-unix">
+    <antcall target="set-conf">
+      <param name="name" value="JAVA_OPTS" />
+      <param name="value" value="$JAVA_OPTS -Xms2g -Xmx2g -XX:MaxPermSize=512m" />
+    </antcall>
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.db.min-pool-size" />
+      <param name="value" value="10" />
+    </antcall>
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.vcs.min-pool-size" />
+      <param name="value" value="10" />
+    </antcall>
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.db.max-pool-size" />
+      <param name="value" value="50" />
+    </antcall>
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.vcs.max-pool-size" />
+      <param name="value" value="50" />
+    </antcall>
+    <echo>Get importer version ${maven.project.version}</echo>
+    <copy todir="${nuxeo.nxserver}/plugins/">
+      <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-core:${maven.project.version}:jar" />
+      <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-jaxrs:${maven.project.version}:jar" />
+    </copy>
+
+  </target>
+
+  <target name="build-funkload-report" depends="_init" if="osfamily-unix">
+    <if>
+      <not>
+	<isset property="output-report" />
+      </not>
+      <then>
+	<var name="output-report" value="funkload" />
+      </then>
+    </if>
+    <exec executable="fl-build-report" failonerror="false">
+      <arg line="--html ${resultFile} -r ${out.dir}/results/${output-report}" />
+    </exec>
   </target>
 
   <target name="monitor" depends="_init" if="osfamily-unix">
@@ -380,9 +429,17 @@
 
   <target name="build-monitor-report" depends="_init" if="osfamily-unix">
     <echo>Building monitoring report</echo>
+    <if>
+      <not>
+	<isset property="output-report" />
+      </not>
+      <then>
+	<var name="output-report" value="monitoring" />
+      </then>
+    </if>
     <exec executable="logchart"
           failonerror="false">
-      <arg line="${nuxeo.home}/log ${out.dir}/results/monitoring" />
+      <arg line="${nuxeo.home}/log ${out.dir}/results/${output-report}" />
     </exec>
   </target>
 
@@ -504,6 +561,206 @@
       </antcall>
       <antcall target="build-monitor-report" />
     </nx:profile>
+    <antcall target="funkload-ctl-daemons">
+      <param name="action" value="stop" />
+    </antcall>
+    <!-- Set exit status -->
+    <propertyregex property="errormessage"
+                   override="true"
+                   input="${errmsg}"
+                   regexp="(.*),"
+                   select="\1"
+                   defaultValue="${errmsg}" />
+    <fail status="${errors}" message="${errormessage}">
+      <condition>
+        <not>
+          <equals arg1="${errors}" arg2="0" />
+        </not>
+      </condition>
+    </fail>
+  </target>
+
+  <target name="run-importer">
+    <!-- warm up -->
+    <exec executable="curl" failonerror="false">
+      <arg line="-s -v -u Administrator:Administrator"/>
+      <arg line="${nuxeoURLNoEndingSlash}/site/randomImporter/run?targetPath=${load-path}&amp;batchSize=10&amp;nbThreads=1&amp;interactive=true&amp;nbNodes=5&amp;fileSizeKB=${load-fileSize}&amp;bulkMode=true&amp;onlyText=false" />
+    </exec>
+    <nx:profile name="monitor">
+      <antcall target="monitor">
+	<param name="action" value="start" />
+      </antcall>
+    </nx:profile>
+    <exec executable="curl" failonerror="false">
+      <arg line="-s -v -u Administrator:Administrator"/>
+      <arg line="${nuxeoURLNoEndingSlash}/site/randomImporter/run?targetPath=${load-path}&amp;batchSize=10&amp;nbThreads=${load-thread}&amp;interactive=true&amp;nbNodes=${load-nodes}&amp;fileSizeKB=${load-fileSize}&amp;bulkMode=true&amp;onlyText=false" />
+    </exec>
+    <nx:profile name="monitor">
+      <antcall target="monitor">
+	<param name="action" value="stop" />
+      </antcall>
+      <antcall target="build-monitor-report">
+	<param name="output-report" value="${bench-name}/monitor" />
+      </antcall>
+    </nx:profile>
+    <move todir="${out.dir}/results/${bench-name}">
+      <fileset dir="${nuxeo.nxserver}">
+	<include name="*.csv"/>
+      </fileset>
+    </move>
+  </target>
+
+  <target name="run-funkload-bench">
+    <mkdir dir="${out.dir}/results" />
+    <mkdir dir="${out.dir}/results/${bench-name}" />
+    <mkdir dir="${out.dir}/log" />
+    <mkdir dir="${out.dir}/log/${bench-name}" />
+    <var name="errors" value="0" />
+    <var name="errmsg" value="Tests in error: " />
+
+    <if>
+      <not>
+	<isset property="fl-options" />
+      </not>
+      <then>
+	<var name="fl-options" value="" />
+      </then>
+    </if>
+
+    <echo>WARMUP --------------------</echo>
+    <exec executable="fl-run-bench" failonerror="false">
+      <arg line="-c 10 -f -D 30 -s 1 --simple-fetch -u ${nuxeoURLNoEndingSlash} --no-color  ${fl-suite} ${fl-test}" />
+    </exec>
+
+    <nx:profile name="monitor">
+      <antcall target="monitor">
+	<param name="action" value="start" />
+      </antcall>
+    </nx:profile>
+    <echo>BENCH: fl-run-bench ${fl-options} --simple-fetch -u ${nuxeoURLNoEndingSlash} --no-color  ${fl-suite} ${fl-test} --------------------</echo>
+    <exec executable="fl-run-bench" failonerror="false">
+      <arg line="${fl-options} --simple-fetch -u ${nuxeoURLNoEndingSlash} --no-color  ${fl-suite} ${fl-test}" />
+    </exec>
+
+    <nx:profile name="monitor">
+      <antcall target="monitor">
+	<param name="action" value="stop" />
+      </antcall>
+      <antcall target="build-monitor-report">
+	<param name="output-report" value="${bench-name}/monitor" />
+      </antcall>
+    </nx:profile>
+
+    <antcall target="build-funkload-report">
+      <param name="resultFile" value="${fl-result}" />
+      <param name="output-report" value="${bench-name}/funkload" />
+    </antcall>
+  </target>
+
+
+  <target name="run-funkload-benchs" depends="_init">
+    <!-- Run FunLoad bench -->
+    <mkdir dir="${out.dir}/results" />
+    <mkdir dir="${out.dir}/log" />
+    <var name="errors" value="0" />
+    <var name="errmsg" value="Tests in error: " />
+
+    <antcall target="funkload-ctl-daemons">
+      <param name="action" value="start" />
+    </antcall>
+    <for list="${funkload-benchs}" param="bench-name" trim="true">
+      <sequential>
+	<mkdir dir="${out.dir}/results/@{bench-name}" />
+	<if>
+	  <equals arg1="@{bench-name}" arg2="reader-memory" />
+	  <then>
+	    <copy file="${nuxeo.conf}" tofile="${nuxeo.conf}.bak" overwrite="true" />
+	    <antcall target="set-conf">
+	      <param name="name" value="JAVA_OPTS" />
+	      <param name="value" value="$JAVA_OPTS -Xms1g -Xmx1g -XX:MaxPermSize=512m" />
+	    </antcall>
+	  </then>
+	</if>
+	<antcall target="start-unix" />
+        <if>
+	  <equals arg1="@{bench-name}" arg2="init" />
+          <then>
+	    <echo>BENCH INIT --------------------</echo>
+	    <!-- setup bench config used at the next restart -->
+	    <antcall target="prepare-bench" />
+	    <!-- initialize user and rights -->
+	    <antcallback target="fl-run-tests" return="errors,errmsg">
+	      <param name="suite" value="test_nuxeo.py" />
+	      <param name="tests" value="testInit" />
+	    </antcallback>
+	    <fail status="${errors}" message="${errormessage}">
+	      <condition>
+		<not>
+		  <equals arg1="${errors}" arg2="0" />
+		</not>
+	      </condition>
+	    </fail>
+          </then>
+          <elseif>
+	    <equals arg1="@{bench-name}" arg2="load" />
+	    <then>
+	      <echo>BENCH LOAD DATA --------------------</echo>
+	      <antcall target="run-importer">
+		<param name="bench-name" value="@{bench-name}" />
+	      </antcall>
+	    </then>
+	  </elseif>
+          <elseif>
+	    <equals arg1="@{bench-name}" arg2="writer-disk" />
+	    <then>
+	      <echo>BENCH WRITER DISK --------------------</echo>
+	      <antcall target="run-funkload-bench">
+		<param name="fl-suite" value="test_nuxeo.py" />
+		<param name="fl-test" value="Nuxeo.testWriter" />
+		<param name="fl-result" value="${out.dir}/log/nuxeo-bench.xml" />
+		<param name="bench-name" value="@{bench-name}" />
+	      </antcall>
+	    </then>
+	  </elseif>
+          <elseif>
+	    <equals arg1="@{bench-name}" arg2="reader-cpu" />
+	    <then>
+	      <echo>BENCH READER CPU --------------------</echo>
+	      <antcall target="run-funkload-bench">
+		<param name="fl-suite" value="test_nuxeo.py" />
+		<param name="fl-test" value="Nuxeo.testReader" />
+		<param name="fl-result" value="${out.dir}/log/nuxeo-bench.xml" />
+		<param name="bench-name" value="@{bench-name}" />
+	      </antcall>
+	    </then>
+	  </elseif>
+          <elseif>
+	    <equals arg1="@{bench-name}" arg2="reader-memory" />
+	    <then>
+	      <echo>BENCH READER MEMORY --------------------</echo>
+	      <antcall target="run-funkload-bench">
+		<param name="fl-suite" value="test_nuxeo.py" />
+		<param name="fl-test" value="Nuxeo.testReader" />
+		<param name="fl-result" value="${out.dir}/log/nuxeo-bench.xml" />
+		<param name="bench-name" value="@{bench-name}" />
+	      </antcall>
+	      <copy file="${nuxeo.conf}.bak" tofile="${nuxeo.conf}" overwrite="true"/>
+	    </then>
+	  </elseif>
+	  <else>
+	    <echo>ERROR Unknown bench task: @{bench-name}</echo>
+	  </else>
+        </if>
+	<!-- RESTART -->
+	<antcall target="stop-unix" />
+	<move file="${nuxeo.home}/log" todir="${out.dir}/results/@{bench-name}" />
+      </sequential>
+    </for>
+    <!-- TESTS END -->
+    <antcall target="funkload-ctl-daemons">
+      <param name="action" value="stop" />
+    </antcall>
+
     <antcall target="funkload-ctl-daemons">
       <param name="action" value="stop" />
     </antcall>

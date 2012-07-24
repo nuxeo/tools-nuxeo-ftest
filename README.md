@@ -1,7 +1,8 @@
 # Nuxeo resources for functional tests
 
-This Maven project produces a zip file containing resources for ease running functional tests.
-Currently, it only manages HTML Selenium and Java WebDriver test suites.
+This Maven project produces a zip file containing resources for ease
+running functional tests. Currently, it manages HTML Selenium test
+suites, Java WebDriver test suites and FunkLoad test and benchmark.
 
 ## Requirements
 
@@ -9,6 +10,22 @@ Functional tests require Firefox 3.6 or Higher. Some tests can also be
 run using other browsers than Firefox.
 
 For use on a headless server, a good solution is using x11vnc + Xvfb.
+
+To run benchmark you need to install:
+
+   * [FunkLoad](http://funkload.nuxeo.org/installation.html)
+
+       sudo easy_install -f http://funkload.nuxeo.org/snapshots/ -U funkload
+
+   * curl:
+
+       sudo apt-get install curl
+
+To enable monitoring and reporting:
+
+   sudo apt-get install sysstat atop gnuplot logtail pgfouine
+   sudo easy_install logchart
+
 
 ## Selenium tests
 
