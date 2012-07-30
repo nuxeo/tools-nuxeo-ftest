@@ -15,7 +15,8 @@
     <zip destfile="${outdir}/${maven.project.artifactId}-${maven.project.version}.zip"
          basedir="src/main/resources/" />
     <artifact:attach file="${outdir}/${maven.project.artifactId}-${maven.project.version}.zip"
-                     target="${maven.project.groupId}:${maven.project.artifactId}" type="zip" />
+                     target="${maven.project.groupId}:${maven.project.artifactId}"
+                     type="zip" />
   </target>
 
 </project>
