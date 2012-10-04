@@ -256,11 +256,11 @@
   <target name="selenium-run-suite">
     <echo>Suite: ${suite}</echo>
     <exec executable="java"
-          output="${out.dir}/selenium.log"
+          output="${out.dir}/selenium-${suite}.log"
           resultproperty="exitCode"
           failonerror="false">
       <arg line="${standard.selenium.args1}" />
-      <arg line="${standard.selenium.args2}" />
+      <arg line="${standard.selenium.args2}/selenium-debug-${suite}.log" />
       <arg line="${standard.selenium.args3}" />
       <arg line="${standard.selenium.args4}" />
       <arg line="${standard.selenium.args5}" />
@@ -313,8 +313,7 @@
 
     <property name="standard.selenium.args1"
               value="-jar ${out.dir}/selenium-server.jar" />
-    <property name="standard.selenium.args2"
-              value="-log ${out.dir}/selenium-debug.log" />
+    <property name="standard.selenium.args2" value="-log ${out.dir}" />
     <property name="standard.selenium.args3" value="-port 14440" />
     <property name="standard.selenium.args4" value="-timeout 7200" />
     <property name="standard.selenium.args5"
@@ -323,10 +322,10 @@
               value="-htmlSuite ${selbrowser} ${nuxeoURL}" />
 
     <mkdir dir="${out.dir}/results" />
-    <echo>java ${standard.selenium.args1} ${standard.selenium.args2} ${standard.selenium.args3}
+    <echo>java ${standard.selenium.args1} ${standard.selenium.args2}/selenium-debug-${suite}.log ${standard.selenium.args3}
       ${standard.selenium.args4} ${standard.selenium.args5} ${standard.selenium.args6}
       tests/${suite}.html ${out.dir}/results/result-${suite}.html ${browser.specific.selenium.arg}
-      >${out.dir}/selenium.log
+      >${out.dir}/selenium-${suite}.log
       with ${suite} in ${suites}
     </echo>
     <var name="errors" value="0" />
