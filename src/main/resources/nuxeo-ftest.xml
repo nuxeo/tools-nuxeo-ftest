@@ -975,9 +975,9 @@
           <include name="**/*.jar" />
         </fileset>
       </classpath>
-      IF EXISTS(SELECT * FROM SYS.DATABASES WHERE NAME='${nuxeo.db.name}')
+      IF EXISTS(SELECT * FROM sys.databases WHERE NAME='${nuxeo.db.name}')
          DROP DATABASE ${nuxeo.db.name};
-      IF EXISTS(SELECT * FROM SYS.SERVER_PRINCIPALS WHERE NAME='${nuxeo.db.user}' AND TYPE_DESC IN ('SQL_LOGIN'))
+      IF EXISTS(SELECT * FROM sys.server_principals WHERE NAME='${nuxeo.db.user}' AND TYPE_DESC IN ('SQL_LOGIN'))
          DROP LOGIN ${nuxeo.db.user};
     </sql>
   </target>
