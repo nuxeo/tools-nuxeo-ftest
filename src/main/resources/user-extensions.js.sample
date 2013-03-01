@@ -19,8 +19,8 @@ Selenium.prototype.doOriginalType = Selenium.prototype.doType;
 
 Selenium.prototype.doType = function(locator, value) {
 
-    // Don't block file uploads
-    if (typeof netscape != "undefined") {
+    // Don't block file uploads on Firefox < 15
+    if (typeof netscape != "undefined" && typeof netscape.security.PrivilegeManager != "undefined") {
         netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead");
     }
 
@@ -154,7 +154,7 @@ Selenium.ActiveA4jRequestCount = 0;
 // wait for jquery and/or prototype calls
 Selenium.prototype.doWaitForJSQueries = function(timeout) {
   return Selenium.decorateFunctionWithTimeout(function() {
-  	var testWindow = selenium.browserbot.getCurrentWindow();
+    var testWindow = selenium.browserbot.getCurrentWindow();
     if (testWindow.wrappedJSObject) {
         testWindow = testWindow.wrappedJSObject;
     }
@@ -169,7 +169,7 @@ Selenium.prototype.doWaitForJSQueries = function(timeout) {
  * Function that waits for opensocial gadgets to be loaded.
  * Assumes frame name starts with "open-social" and will display a div with id
  * "content".
- * Accepts one or more mandatory element id(s), separated by ',', 
+ * Accepts one or more mandatory element id(s), separated by ',',
  * with content to check, and timeout.
  */
 Selenium.prototype.doWaitForOpensocialGadgetsToLoad = function(mandatoryElementIds, timeout) {
