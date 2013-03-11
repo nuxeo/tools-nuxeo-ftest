@@ -247,6 +247,28 @@
          administration parameters are missing</echo>
       </then>
     </if>
+    <!-- metrics -->
+    <condition property="metrics.tomcat.enabled" value="true" else="false">
+      <isset property="is.tomcat"/>
+    </condition>
+    <condition property="metrics.graphite.enabled" value="true" else="false">
+      <isset property="env.NX_METRICS_GRAPHITE_HOST"/>
+    </condition>
+    <condition property="metrics.graphite.host" value="${env.NX_METRICS_GRAPHITE_HOST}" else="localhost">
+      <isset property="env.NX_METRICS_GRAPHITE_HOST"/>
+    </condition>
+    <condition property="metrics.graphite.port" value="${env.NX_METRICS_GRAPHITE_PORT}" else="2030">
+      <isset property="env.NX_METRICS_GRAPHITE_PORT"/>
+    </condition>
+    <condition property="metrics.graphite.period" value="${env.NX_METRICS_GRAPHITE_PERIOD}" else="10">
+      <isset property="env.NX_METRICS_GRAPHITE_PERIOD"/>
+    </condition>
+    <condition property="metrics.csv.enabled" value="true" else="false">
+      <isset property="env.NX_METRICS_CSV"/>
+    </condition>
+    <condition property="metrics.csv.period" value="${env.NX_METRICS_CSV_PERIOD}" else="10">
+      <isset property="env.NX_METRICS_CSV_PERIOD"/>
+    </condition>
   </target>
 
   <target name="debug" depends="_init">
@@ -291,7 +313,7 @@
     <if>
       <or>
         <equals arg1="${browser}" arg2="chrome" />
-        <equals arg1="${browser}" arg2="firefox" />
+        <equals arg1="${browser}" arg2="firefox-3.6" />
       </or>
       <then>
         <property name="selbrowser" value="*chrome" />
@@ -374,6 +396,38 @@
           <param name="value" value="/var/log/pgsql" />
         </antcall>
       </nx:profile>
+      <antcall target="set-conf">
+        <param name="name" value="metrics.log4j.enabled" />
+        <param name="value" value="true" />
+      </antcall>
+      <antcall target="set-conf">
+        <param name="name" value="metrics.tomcat.enabled" />
+        <param name="value" value="${metrics.tomcat.enabled}" />
+      </antcall>
+      <antcall target="set-conf">
+        <param name="name" value="metrics.graphite.enabled" />
+        <param name="value" value="${metrics.graphite.enabled}" />
+      </antcall>
+      <antcall target="set-conf">
+        <param name="name" value="metrics.graphite.host" />
+        <param name="value" value="${metrics.graphite.host}" />
+      </antcall>
+      <antcall target="set-conf">
+        <param name="name" value="metrics.graphite.port" />
+        <param name="value" value="${metrics.graphite.port}" />
+      </antcall>
+      <antcall target="set-conf">
+        <param name="name" value="metrics.graphite.period" />
+        <param name="value" value="${metrics.graphite.period}" />
+      </antcall>
+      <antcall target="set-conf">
+        <param name="name" value="metrics.csv.enabled" />
+        <param name="value" value="${metrics.csv.enabled}" />
+      </antcall>
+      <antcall target="set-conf">
+        <param name="name" value="metrics.csv.period" />
+        <param name="value" value="${metrics.csv.period}" />
+      </antcall>
     </nx:profile>
   </target>
 
