@@ -269,6 +269,19 @@
     <condition property="metrics.csv.period" value="${env.NX_METRICS_CSV_PERIOD}" else="10">
       <isset property="env.NX_METRICS_CSV_PERIOD"/>
     </condition>
+    <condition property="launcher.debug" value="${env.LAUNCHER_DEBUG}">
+      <and>
+        <isset property="env.LAUNCHER_DEBUG" />
+        <not>
+          <isset property="launcher.debug" />
+        </not>
+      </and>
+    </condition>
+    <condition property="launcher.debug" value="">
+      <not>
+        <isset property="launcher.debug" />
+      </not>
+    </condition>
   </target>
 
   <target name="debug" depends="_init">
@@ -1299,6 +1312,7 @@
           spawn="false"
           failonerror="true">
       <arg value="start" />
+      <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
   </target>
   <target name="start-windows" if="osfamily-windows">
@@ -1308,6 +1322,7 @@
           resultproperty="retcode">
       <arg value="--gui=false" />
       <arg value="start" />
+      <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
     <condition property="windows.startup.failed" value="${retcode}">
       <not>
