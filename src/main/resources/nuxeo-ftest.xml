@@ -282,6 +282,12 @@
         <isset property="launcher.debug" />
       </not>
     </condition>
+    <condition property="nuxeo.mailserver.set" value="true">
+      <and>
+        <isset property="mail.transport.port" />
+        <isset property="mail.transport.port" />
+      </and>
+    </condition>
   </target>
 
   <target name="debug" depends="_init">
@@ -1242,10 +1248,22 @@
       <antcall target="mysql-dbdrop" />
     </nx:profile>
   </target>
-
+  <target name="setup-mail-server" if="nuxeo.mailserver.set">
+   <antcall target="set-conf">
+	 <param name="name" value="mail.transport.port" />
+	 <param name="value" value="${mail.transport.port}" />
+   </antcall>
+   <antcall target="set-conf">
+	 <param name="name" value="mail.transport.host" />
+	 <param name="value" value="${mail.transport.host}" />
+   </antcall>
+   </target>	
+	
   <target name="prepare-environment"
           depends="_init,prepare-db,prepare-tomcat,prepare-jboss,prepare-ear,prepare-monitor"
-          description="prepare all ressources for test" />
+          description="prepare all ressources for test">
+  	<antcall target="setup-mail-server" />
+  </target>
 
   <target name="cleanup-environment" depends="_init,cleanup-db" />
 
