@@ -249,25 +249,33 @@
     </if>
     <!-- metrics -->
     <condition property="metrics.tomcat.enabled" value="true" else="false">
-      <isset property="is.tomcat"/>
+      <isset property="is.tomcat" />
     </condition>
     <condition property="metrics.graphite.enabled" value="true" else="false">
-      <isset property="env.NX_METRICS_GRAPHITE_HOST"/>
+      <isset property="env.NX_METRICS_GRAPHITE_HOST" />
     </condition>
-    <condition property="metrics.graphite.host" value="${env.NX_METRICS_GRAPHITE_HOST}" else="localhost">
-      <isset property="env.NX_METRICS_GRAPHITE_HOST"/>
+    <condition property="metrics.graphite.host"
+               value="${env.NX_METRICS_GRAPHITE_HOST}"
+               else="localhost">
+      <isset property="env.NX_METRICS_GRAPHITE_HOST" />
     </condition>
-    <condition property="metrics.graphite.port" value="${env.NX_METRICS_GRAPHITE_PORT}" else="2030">
-      <isset property="env.NX_METRICS_GRAPHITE_PORT"/>
+    <condition property="metrics.graphite.port"
+               value="${env.NX_METRICS_GRAPHITE_PORT}"
+               else="2030">
+      <isset property="env.NX_METRICS_GRAPHITE_PORT" />
     </condition>
-    <condition property="metrics.graphite.period" value="${env.NX_METRICS_GRAPHITE_PERIOD}" else="10">
-      <isset property="env.NX_METRICS_GRAPHITE_PERIOD"/>
+    <condition property="metrics.graphite.period"
+               value="${env.NX_METRICS_GRAPHITE_PERIOD}"
+               else="10">
+      <isset property="env.NX_METRICS_GRAPHITE_PERIOD" />
     </condition>
     <condition property="metrics.csv.enabled" value="true" else="false">
-      <isset property="env.NX_METRICS_CSV"/>
+      <isset property="env.NX_METRICS_CSV" />
     </condition>
-    <condition property="metrics.csv.period" value="${env.NX_METRICS_CSV_PERIOD}" else="10">
-      <isset property="env.NX_METRICS_CSV_PERIOD"/>
+    <condition property="metrics.csv.period"
+               value="${env.NX_METRICS_CSV_PERIOD}"
+               else="10">
+      <isset property="env.NX_METRICS_CSV_PERIOD" />
     </condition>
     <condition property="launcher.debug" value="${env.LAUNCHER_DEBUG}">
       <and>
