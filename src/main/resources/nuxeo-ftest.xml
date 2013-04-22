@@ -290,11 +290,45 @@
         <isset property="launcher.debug" />
       </not>
     </condition>
+    <!-- Mail server -->
+    <condition property="mail.transport.host"
+               value="${env.MAIL_TRANSPORT_HOST}">
+      <isset property="env.MAIL_TRANSPORT_HOST" />
+    </condition>
+    <condition property="mail.transport.port"
+               value="${env.MAIL_TRANSPORT_PORT}">
+      <isset property="env.MAIL_TRANSPORT_PORT" />
+    </condition>
+    <condition property="mail.transport.protocol"
+               value="${env.MAIL_TRANSPORT_PROTOCOL}">
+      <isset property="env.MAIL_TRANSPORT_PROTOCOL" />
+    </condition>
+    <condition property="mail.transport.usetls"
+               value="${env.MAIL_TRANSPORT_USETLS}">
+      <isset property="env.MAIL_TRANSPORT_USETLS" />
+    </condition>
+    <condition property="mail.transport.auth"
+               value="${env.MAIL_TRANSPORT_AUTH}">
+      <isset property="env.MAIL_TRANSPORT_AUTH" />
+    </condition>
+    <condition property="mail.transport.user"
+               value="${env.MAIL_TRANSPORT_USER}">
+      <isset property="env.MAIL_TRANSPORT_USER" />
+    </condition>
+    <condition property="mail.transport.password"
+               value="${env.MAIL_TRANSPORT_PASSWORD}">
+      <isset property="env.MAIL_TRANSPORT_PASSWORD" />
+    </condition>
     <condition property="nuxeo.mailserver.set" value="true">
-      <and>
+      <or>
         <isset property="mail.transport.port" />
-        <isset property="mail.transport.port" />
-      </and>
+        <isset property="mail.transport.host" />
+        <isset property="mail.transport.protocol" />
+        <isset property="mail.transport.usetls" />
+        <isset property="mail.transport.auth" />
+        <isset property="mail.transport.user" />
+        <isset property="mail.transport.password" />
+      </or>
     </condition>
   </target>
 
@@ -1256,21 +1290,79 @@
       <antcall target="mysql-dbdrop" />
     </nx:profile>
   </target>
-  <target name="setup-mail-server" if="nuxeo.mailserver.set">
-   <antcall target="set-conf">
-	 <param name="name" value="mail.transport.port" />
-	 <param name="value" value="${mail.transport.port}" />
-   </antcall>
-   <antcall target="set-conf">
-	 <param name="name" value="mail.transport.host" />
-	 <param name="value" value="${mail.transport.host}" />
-   </antcall>
-   </target>	
-	
+
+  <target name="setup-mail-server"
+          if="nuxeo.mailserver.set"
+          depends="_init"
+          description="Set mail transport properties in ${nuxeo.conf} if set.">
+    <if>
+      <isset property="mail.transport.port" />
+      <then>
+        <antcall target="set-conf">
+          <param name="name" value="mail.transport.port" />
+          <param name="value" value="${mail.transport.port}" />
+        </antcall>
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.host" />
+      <then>
+        <antcall target="set-conf">
+          <param name="name" value="mail.transport.host" />
+          <param name="value" value="${mail.transport.host}" />
+        </antcall>
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.protocol" />
+      <then>
+        <antcall target="set-conf">
+          <param name="name" value="mail.transport.protocol" />
+          <param name="value" value="${mail.transport.protocol}" />
+        </antcall>
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.usetls" />
+      <then>
+        <antcall target="set-conf">
+          <param name="name" value="mail.transport.usetls" />
+          <param name="value" value="${mail.transport.usetls}" />
+        </antcall>
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.auth" />
+      <then>
+        <antcall target="set-conf">
+          <param name="name" value="mail.transport.auth" />
+          <param name="value" value="${mail.transport.auth}" />
+        </antcall>
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.user" />
+      <then>
+        <antcall target="set-conf">
+          <param name="name" value="mail.transport.user" />
+          <param name="value" value="${mail.transport.user}" />
+        </antcall>
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.password" />
+      <then>
+        <antcall target="set-conf">
+          <param name="name" value="mail.transport.password" />
+          <param name="value" value="${mail.transport.password}" />
+        </antcall>
+      </then>
+    </if>
+  </target>
+
   <target name="prepare-environment"
           depends="_init,prepare-db,prepare-tomcat,prepare-jboss,prepare-ear,prepare-monitor"
           description="prepare all ressources for test">
-  	<antcall target="setup-mail-server" />
   </target>
 
   <target name="cleanup-environment" depends="_init,cleanup-db" />
@@ -1480,14 +1572,13 @@
   </target>
 
   <target name="nuxeo-conf"
-          depends="_init,set-java-home,check-set-wizard"
+          depends="_init,set-java-home,check-set-wizard,set-nuxeoconf-db,setup-mail-server"
           description="Configure ${nuxeo.conf} depending on environment values.">
     <!-- activate logs for Selenium tests -->
     <antcall target="set-conf">
       <param name="name" value="org.nuxeo.systemlog.token" />
       <param name="value" value="dolog" />
     </antcall>
-    <antcall target="set-nuxeoconf-db" />
     <!-- activate tester name -->
     <antcall target="set-conf">
       <param name="name" value="org.nuxeo.ecm.tester.name" />
