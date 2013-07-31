@@ -518,6 +518,10 @@
     <copy todir="${nuxeo.nxserver}/plugins/">
       <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-core:${maven.project.version}:jar" />
       <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-jaxrs:${maven.project.version}:jar" />
+      <artifact:resolveFile key="org.nuxeo.ecm:nuxeo-drive-core:${maven.project.version}:jar" />
+      <artifact:resolveFile key="org.nuxeo.ecm:nuxeo-drive-jsf:${maven.project.version}:jar" />
+      <artifact:resolveFile key="org.nuxeo.ecm:nuxeo-drive-operations:${maven.project.version}:jar" />
+      <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-platform-login-token:${maven.project.version}:jar" />
     </copy>
 
   </target>
@@ -819,6 +823,18 @@
                 </not>
               </condition>
             </fail>
+            <!-- initialize drive -->
+            <antcallback target="fl-run-tests" return="errors,errmsg">
+              <param name="suite" value="test_drive.py" />
+              <param name="tests" value="testInit" />
+            </antcallback>
+            <fail status="${errors}" message="${errormessage}">
+              <condition>
+                <not>
+                  <equals arg1="${errors}" arg2="0" />
+                </not>
+              </condition>
+            </fail>
           </then>
           <elseif>
             <equals arg1="@{bench-name}" arg2="load" />
@@ -869,6 +885,19 @@
               <copy file="${nuxeo.conf}.bak"
                     tofile="${nuxeo.conf}"
                     overwrite="true" />
+            </then>
+          </elseif>
+          <elseif>
+            <equals arg1="@{bench-name}" arg2="drive" />
+            <then>
+              <echo>BENCH DRIVE --------------------</echo>
+              <antcall target="run-funkload-bench">
+                <param name="fl-suite" value="test_drive.py" />
+                <param name="fl-test" value="Nuxeo.testDrive" />
+                <param name="fl-result"
+                       value="${out.dir}/log/drive-bench.xml" />
+                <param name="bench-name" value="@{bench-name}" />
+              </antcall>
             </then>
           </elseif>
           <else>
