@@ -31,3 +31,37 @@ user_pref("dom.max_chrome_script_run_time", 0);
 // don't skip proxy for localhost
 user_pref("network.proxy.no_proxies_on", "");
 
+// prevent different kinds of popups/alerts
+user_pref("browser.tabs.warnOnClose", false);
+user_pref("browser.tabs.warnOnOpen", false);
+user_pref("extensions.newAddons", false);
+user_pref("extensions.update.notifyUser", false);
+
+// disable autoscrolling
+user_pref("browser.urlbar.autocomplete.enabled", false);
+
+// downloads conf
+user_pref("browser.download.useDownloadDir", false);
+
+// prevent FF from running in offline mode when there's no network connection
+user_pref("toolkit.networkmanager.disable", true);
+
+// prevent FF from giving health reports
+user_pref("datareporting.policy.dataSubmissionEnabled", false);
+user_pref("datareporting.healthreport.uploadEnabled", false);
+user_pref("datareporting.healthreport.service.firstRun", false);
+user_pref("datareporting.healthreport.service.enabled", false);
+user_pref("datareporting.healthreport.logging.consoleEnabled", false);
+
+// start page conf to speed up FF
+user_pref("browser.startup.homepage", "about:blank");
+user_pref("pref.browser.homepage.disable_button.bookmark_page", false);
+user_pref("pref.browser.homepage.disable_button.restore_default", false);
+
+// misc confs to avoid useless updates
+user_pref("browser.search.update", false);
+user_pref("browser.bookmarks.restore_default_bookmarks", false);
+
+// misc confs to speed up FF
+user_pref("extensions.ui.dictionary.hidden", true);
+user_pref("layout.spellcheckDefault", 0);
