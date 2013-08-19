@@ -893,7 +893,7 @@
               <echo>BENCH DRIVE --------------------</echo>
               <antcall target="run-funkload-bench">
                 <param name="fl-suite" value="test_drive.py" />
-                <param name="fl-test" value="Nuxeo.testDrive" />
+                <param name="fl-test" value="Drive.testDrive" />
                 <param name="fl-result"
                        value="${out.dir}/log/drive-bench.xml" />
                 <param name="bench-name" value="@{bench-name}" />
