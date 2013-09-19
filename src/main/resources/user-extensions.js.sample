@@ -109,10 +109,6 @@ Selenium.prototype.doTypeKeys = function(locator, value) {
  */
 Selenium.prototype.doWatchA4jRequests = function() {
   var testWindow = selenium.browserbot.getCurrentWindow();
-  // workaround for text window detection, see NXP-12556
-  if (testWindow.wrappedJSObject) {
-    testWindow = testWindow.wrappedJSObject;
-  }
   testWindow.A4J.AJAX.startTest();
 }
 
@@ -123,10 +119,6 @@ Selenium.prototype.doWatchA4jRequests = function() {
 Selenium.prototype.doWaitForA4jRequest = function(timeout) {
   return Selenium.decorateFunctionWithTimeout(function() {
     var testWindow = selenium.browserbot.getCurrentWindow();
-    // workaround for text window detection, see NXP-12556
-    if (testWindow.wrappedJSObject) {
-      testWindow = testWindow.wrappedJSObject;
-    }
     if (testWindow.A4J.AJAX.isTestFinished() == true) {
         return true;
     }
@@ -139,10 +131,6 @@ Selenium.prototype.doWaitForA4jRequest = function(timeout) {
 Selenium.prototype.doWaitForJSQueries = function(timeout) {
   return Selenium.decorateFunctionWithTimeout(function() {
     var testWindow = selenium.browserbot.getCurrentWindow();
-    // workaround for text window detection, see NXP-12556
-    if (testWindow.wrappedJSObject) {
-      testWindow = testWindow.wrappedJSObject;
-    }
     if (testWindow.jQuery.active == 0 && testWindow.Ajax.activeRequestCount == 0) {
       return true;
     }
@@ -160,11 +148,6 @@ Selenium.prototype.doWaitForJSQueries = function(timeout) {
 Selenium.prototype.doWaitForOpensocialGadgetsToLoad = function(mandatoryElementIds, timeout) {
   var framesLoadedPredicate = function () {
     var testWindow = selenium.browserbot.getCurrentWindow();
-    // workaround for text window detection, see NXP-12556
-    if (testWindow.wrappedJSObject) {
-      testWindow = testWindow.wrappedJSObject;
-    }
-
     if (testWindow.document.getElementById("gwtContainerDiv") === null) {
       // there is no OpenSocial container
       return true;
@@ -222,10 +205,6 @@ Selenium.prototype.doWaitForOpensocialGadgetsToLoad = function(mandatoryElementI
  */
 Selenium.prototype.doSelectOpenSocialGadgetFrame = function(gadgetName) {
   var testWindow = selenium.browserbot.getCurrentWindow();
-  // workaround for text window detection, see NXP-12556
-  if (testWindow.wrappedJSObject) {
-    testWindow = testWindow.wrappedJSObject;
-  }
   if (testWindow.frames && testWindow.frames.length && testWindow.frames.length > 0) {
    for (var i = 0; i < testWindow.frames.length; i++) {
      var frame = testWindow.document.getElementById(testWindow.frames[i].name);
