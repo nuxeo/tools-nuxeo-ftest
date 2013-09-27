@@ -218,3 +218,43 @@ Selenium.prototype.doSelectOpenSocialGadgetFrame = function(gadgetName) {
   }
   return;
 }
+
+/**
+ * Select2 extensions.
+ */
+Selenium.prototype.doSelect2Type = function(cssSelector,value) {
+  LOG.debug("doSelect2Type begin");
+  if (selenium.isElementPresent(cssSelector + ' a.select2-choice')) {
+    LOG.debug("doSelect2Type single");
+    this.doSingleSelect2Type(cssSelector,value);
+  } else if (selenium.isElementPresent(cssSelector + ' input.select2-input')) {
+    LOG.debug("doSelect2Type multiple");
+    this.doMultipleSelect2Type(cssSelector,value);
+  } else {
+    LOG.debug("doSelect2Type null");
+    throw new SeleniumError("Select2 element not found : " + cssSelector);
+  }
+}
+
+Selenium.prototype.doSingleSelect2Type = function(cssSelector,value) {
+  var linkCssLocator = cssSelector + " a.select2-choice";
+  this.doClickAt(linkCssLocator);
+}
+
+Selenium.prototype.doMultipleSelect2Type = function(cssSelector,value) {
+  var inputCssSelector = cssSelector + " input.select2-input";
+  this.doTypeKeys(inputCssSelector, value);
+  this.doTypeKeys(inputCssSelector, value);
+}
+
+Selenium.prototype.doWaitForSelect2 = function(timeout) {
+  return Selenium.decorateFunctionWithTimeout(function() {
+    if (selenium.browserbot.findElementOrNull('css=.select2-result-selectable') == null) {
+       LOG.debug("doWaitForSelect wait");
+          return false;
+    }
+    LOG.info("doWaitForSelect found");
+    return true;
+  }, timeout);
+}
+
