@@ -24,9 +24,9 @@ user_pref("browser.sessionstore.interval", 1800000);
 // do not load images
 user_pref("permissions.default.image", 2);
 
-// disable unresponsive script alerts
-user_pref("dom.max_script_run_time", 0);
-user_pref("dom.max_chrome_script_run_time", 0);
+// disable unresponsive script alerts (ignored by selenium)
+//user_pref("dom.max_script_run_time", 0);
+//user_pref("dom.max_chrome_script_run_time", 0);
 
 // don't skip proxy for localhost
 user_pref("network.proxy.no_proxies_on", "");

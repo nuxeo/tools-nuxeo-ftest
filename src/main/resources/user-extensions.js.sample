@@ -17,75 +17,16 @@ Selenium.prototype.doRetrieveCurrentDateInfo = function() {
 // override default method to make sure privilege to type file path is enabled
 Selenium.prototype.doOriginalType = Selenium.prototype.doType;
 
-Selenium.prototype.doType = function(locator, value) {
-
-    // Don't block file uploads on Firefox < 15
-    if (typeof netscape != "undefined" && typeof netscape.security.PrivilegeManager != "undefined") {
-        netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead");
-    }
-
-    // convert string to uppercase if shift is pressed
-    if (this.browserbot.shiftKeyDown) {
-        value = new String(value).toUpperCase();
-    }
-    // wait for element to be present before trying to type into it
-    var timeoutTime = getTimeoutTime(this.defaultTimeout);
-    while (this.browserbot.findElementOrNull(locator)==null) {
-        if (new Date().getTime() > timeoutTime) {
-            throw new SeleniumError("Timed out after " + this.defaultTimeout + "ms");
-        }
-    }
-
-    this.doOriginalType(locator, value);
-
-};
-
-
-// override default click method to make sure element is present before clicking
-Selenium.prototype.doOriginalClick = Selenium.prototype.doClick;
-
-Selenium.prototype.doClick = function(locator) {
-
-    // wait for element to be present before trying to click it
-    var timeoutTime = getTimeoutTime(this.defaultTimeout);
-    while (this.browserbot.findElementOrNull(locator)==null) {
-        if (new Date().getTime() > timeoutTime) {
-            throw new SeleniumError("Timed out after " + this.defaultTimeout + "ms");
-        }
-    }
-
-    this.doOriginalClick(locator);
-
-};
-
-
-// override default clickAndWait method to make sure element is present before clicking
-Selenium.prototype.doClickAndWait = function(locator) {
-
-    this.doClick(locator);
-    return this.doWaitForPageToLoad(this.defaultTimeout);
-
-};
-
-
 // override buggy doTypeKeys method
+// FIXME: need to document what's buggy in case it's fixed in more recent versions
 Selenium.prototype.doTypeKeys = function(locator, value) {
-
-    // wait for element to be present before trying to type into it
-    var timeoutTime = getTimeoutTime(this.defaultTimeout);
-    while (this.browserbot.findElementOrNull(locator)==null) {
-        if (new Date().getTime() > timeoutTime) {
-            throw new SeleniumError("Timed out after " + this.defaultTimeout + "ms");
-        }
-    }
-
     // send key events (in the correct order unlike the api)
     var keys = new String(value).split("");
     for (var i = 0; i < keys.length; i++) {
-        var c = keys[i];
-        this.doKeyDown(locator, c);
-        this.doKeyPress(locator, c);
-       this.doKeyUp(locator, c);
+      var c = keys[i];
+      this.doKeyDown(locator, c);
+      this.doKeyPress(locator, c);
+      this.doKeyUp(locator, c);
     }
 
     // also set the correct text in the element
@@ -96,7 +37,6 @@ Selenium.prototype.doTypeKeys = function(locator, value) {
     }
 
 };
-
 
 /**
  * Registers with the a4j library to record when an Ajax request
