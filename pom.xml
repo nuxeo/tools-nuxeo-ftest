@@ -5,7 +5,7 @@
   <artifactId>nuxeo-ftest</artifactId>
   <name>Nuxeo functional tests</name>
   <description>Nuxeo resources for functional tests</description>
-  <version>1.7.10-SNAPSHOT</version>
+  <version>1.7.11-SNAPSHOT</version>
   <packaging>zip</packaging>
 
   <issueManagement>
