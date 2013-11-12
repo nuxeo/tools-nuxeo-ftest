@@ -13,6 +13,32 @@ Selenium.prototype.doRetrieveCurrentDateInfo = function() {
     storedVars['currentDay'] = (d < 10) ? '0' + d : d;
 };
 
+// NXBT-663: override isTextPresent to detect heavy pages
+Selenium.prototype.isTextPresent = function(pattern) {
+    /**
+   * Verifies that the specified text pattern appears somewhere on the rendered page shown to the user.
+   * @param pattern a <a href="#patterns">pattern</a> to match with the text of the page
+   * @return boolean true if the pattern matches the text, false otherwise
+   */
+    var allText = this.browserbot.bodyText();
+
+    var patternMatcher = new PatternMatcher(pattern);
+    if (patternMatcher.strategy == PatternMatcher.strategies.glob) {
+            if (pattern.indexOf("glob:")==0) {
+                    pattern = pattern.substring("glob:".length); // strip off "glob:"
+                }
+        patternMatcher.matcher = new PatternMatcher.strategies.globContains(pattern);
+    }
+    else if (patternMatcher.strategy == PatternMatcher.strategies.exact) {
+                pattern = pattern.substring("exact:".length); // strip off "exact:"
+        return allText.indexOf(pattern) != -1;
+    }
+    LOG.info("isTextPresent textLength=" + allText.length);
+    if (allText.length > 2500) {
+      LOG.info("isTextPresent: page is too heavy");
+    }
+    return patternMatcher.matches(allText);
+};
 
 // override default method to make sure privilege to type file path is enabled
 Selenium.prototype.doOriginalType = Selenium.prototype.doType;
