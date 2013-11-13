@@ -31,9 +31,13 @@ Selenium.prototype.isTextPresent = function(pattern) {
     }
     else if (patternMatcher.strategy == PatternMatcher.strategies.exact) {
                 pattern = pattern.substring("exact:".length); // strip off "exact:"
+        LOG.info("isTextPresent with pattern matcher, textLength=" + allText.length);
+        if (allText.length > 2500) {
+          LOG.info("isTextPresent: page is too heavy");
+        }
         return allText.indexOf(pattern) != -1;
     }
-    LOG.info("isTextPresent textLength=" + allText.length);
+    LOG.info("isTextPresent, textLength=" + allText.length);
     if (allText.length > 2500) {
       LOG.info("isTextPresent: page is too heavy");
     }
