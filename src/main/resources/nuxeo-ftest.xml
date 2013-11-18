@@ -1048,59 +1048,15 @@
          url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
          password="${nuxeo.dbsetup.adminpass}"
-         autocommit="true"
-         delimiter="--next--">
+         autocommit="true">
       <classpath>
         <pathelement path="${classpath}" />
         <fileset dir="${jdbc.dir}">
           <include name="**/*.jar" />
         </fileset>
       </classpath>
-      CREATE OR REPLACE FUNCTION mkplpgsql() RETURNS VOID LANGUAGE SQL AS $$$$
-      CREATE LANGUAGE plpgsql;
-      $$$$;
-      --next--
-      SELECT
-          CASE WHEN EXISTS (
-              SELECT 1 FROM pg_catalog.pg_language WHERE lanname='plpgsql'
-          ) THEN NULL
-          ELSE mkplpgsql()
-          END;
-      --next--
-      DROP FUNCTION mkplpgsql();
-      --next--
-      CREATE OR REPLACE FUNCTION mktxtint() RETURNS VOID LANGUAGE SQL AS $$$$
-      CREATE FUNCTION pg_catalog.text(integer) RETURNS text STRICT IMMUTABLE LANGUAGE SQL AS 'SELECT textin(int4out($$1));';
-      CREATE CAST (integer AS text) WITH FUNCTION pg_catalog.text(integer) AS IMPLICIT;
-      COMMENT ON FUNCTION pg_catalog.text(integer) IS 'convert integer to text';
-      $$$$;
-      --next--
-      SELECT
-          CASE WHEN EXISTS (
-              SELECT 1 FROM pg_catalog.pg_proc WHERE proname='text' AND prosrc='SELECT textin(int4out($$1));'
-          ) THEN NULL
-          ELSE mktxtint()
-          END;
-      --next--
-      DROP FUNCTION mktxtint();
-      --next--
-      CREATE OR REPLACE FUNCTION mktxtbigint() RETURNS VOID LANGUAGE SQL AS $$$$
-      CREATE FUNCTION pg_catalog.text(bigint) RETURNS text STRICT IMMUTABLE LANGUAGE SQL AS 'SELECT textin(int8out($$1));';
-      CREATE CAST (bigint AS text) WITH FUNCTION pg_catalog.text(bigint) AS IMPLICIT;
-      COMMENT ON FUNCTION pg_catalog.text(bigint) IS 'convert bigint to text';
-      $$$$;
-      --next--
-      SELECT
-          CASE WHEN EXISTS (
-              SELECT 1 FROM pg_catalog.pg_proc WHERE proname='text' AND prosrc='SELECT textin(int8out($$1));'
-          ) THEN NULL
-          ELSE mktxtbigint()
-          END;
-      --next--
-      DROP FUNCTION mktxtbigint();
-      --next--
       CREATE USER ${nuxeo.db.user} WITH PASSWORD '${nuxeo.db.pass}';
-      --next--
+      GRANT ${nuxeo.db.user} TO ${nuxeo.dbsetup.adminuser};
       CREATE DATABASE ${nuxeo.db.name} OWNER ${nuxeo.db.user} ENCODING='UTF-8';
     </sql>
   </target>
