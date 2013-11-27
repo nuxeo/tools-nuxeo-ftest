@@ -1415,6 +1415,7 @@
           spawn="false"
           failonerror="true">
       <arg value="start" />
+      <arg value="--force" />
       <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
   </target>
@@ -1425,6 +1426,7 @@
           resultproperty="retcode">
       <arg value="--gui=false" />
       <arg value="start" />
+      <arg value="--force" />
       <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
     <condition property="windows.startup.failed" value="${retcode}">
