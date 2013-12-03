@@ -1422,7 +1422,7 @@
   <target name="start-windows" if="osfamily-windows">
     <exec executable="${nuxeo.home}/bin/nuxeoctl.bat"
           spawn="false"
-          failonerror="false"
+          failonerror="true"
           resultproperty="retcode">
       <arg value="--gui=false" />
       <arg value="start" />
