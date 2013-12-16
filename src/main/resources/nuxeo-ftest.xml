@@ -804,7 +804,7 @@
             </antcall>
           </then>
         </if>
-        <antcall target="start-unix" />
+        <antcall target="restart-unix" />
         <if>
           <equals arg1="@{bench-name}" arg2="init" />
           <then>
@@ -1416,6 +1416,15 @@
           failonerror="true">
       <arg value="start" />
       <arg value="--force" />
+      <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
+    </exec>
+  </target>
+  <target name="restart-unix" if="osfamily-unix">
+    <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="*.sh,*ctl" />
+    <exec executable="${nuxeo.home}/bin/nuxeoctl"
+          spawn="false"
+          failonerror="true">
+      <arg value="restart" />
       <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
   </target>
