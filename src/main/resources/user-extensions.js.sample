@@ -1,4 +1,5 @@
-// Absolute path to current folder this path is set at runtime by run.sh
+var outDir = "out.dir";
+
 Selenium.prototype.doRetrieveTestFolderPath = function() {
     storedVars['testfolderpath'] = "/path/to/project-ear/ftest/selenium/data/";
 };
@@ -228,3 +229,54 @@ Selenium.prototype.doWaitForSelect2 = function(timeout) {
   }, timeout);
 }
 
+/**
+ * Screenshots.
+ */
+Selenium.prototype.doTakeScreenShot = function() {
+  try {
+    var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
+    file.initWithPath(outDir);
+    var filePrefix = "screenshot";
+    if (storedVars['currentTestCase'] && storedVars['currentTestCase'].length > 0) {
+      filePrefix = storedVars['currentTestCase'];
+    }
+    var timestamp = new Date().getTime();
+    file.append(filePrefix + timestamp + ".png");
+    LOG.info("TakeScreenShot in " + file.path);
+    this.doCaptureEntirePageScreenshot(file.path);
+  } catch(e) {
+    LOG.error("TakeScreenShot error" + e);
+  }
+};
+
+Selenium.decorateFunctionWithTimeout = function(f, timeout, callback) {
+  if (f == null) {
+      return null;
+  }
+
+  var timeoutTime = getTimeoutTime(timeout);
+
+  return function() {
+      if (new Date().getTime() > timeoutTime) {
+          if (callback != null) {
+               callback();
+          }
+          selenium.doTakeScreenShot();
+          throw new SeleniumError("Timed out after " + timeout + "ms");
+      }
+      return f();
+  };
+};
+
+
+Selenium.prototype.doOriginalOpen = Selenium.prototype.doOpen;
+
+Selenium.prototype.doOpen = function(url, ignoreResponseCode) {
+ if (url) {
+   var split = url.split("message=----- Selenium");
+   if (split.length == 2) {
+     storedVars['currentTestCase'] = split[1].replace(/^\s+|\s+$/g, '');
+   }
+ }
+ return this.doOriginalOpen(url, ignoreResponseCode);
+};
