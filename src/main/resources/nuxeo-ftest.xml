@@ -1394,18 +1394,16 @@
   </target>
 
   <target name="user-extensions"
-          depends="user-extensions-for-unix,user-extensions-for-windows">
+          depends="user-extensions-for-windows">
+    <replace file="${out.dir}/user-extensions.js"
+     token="/path/to/project-ear/ftest/selenium/data/"
+     value="${data.dir.path.for.currentos}${file.separator}" />
+    <replace file="${out.dir}/user-extensions.js"
+      token="out.dir"
+      value="${out.dir}" />
   </target>
   <target name="user-extensions-for-windows" if="osfamily-windows">
-    <replace file="${out.dir}/user-extensions.js"
-             token="/path/to/project-ear/ftest/selenium/data/"
-             value="${data.dir.path.for.currentos}\" />
     <replace file="${out.dir}/user-extensions.js" token="\" value="\\" />
-  </target>
-  <target name="user-extensions-for-unix" if="osfamily-unix">
-    <replace file="${out.dir}/user-extensions.js"
-             token="/path/to/project-ear/ftest/selenium/data/"
-             value="${data.dir.path.for.currentos}/" />
   </target>
 
   <target name="start" depends="_init,stop,start-unix,start-windows" />
