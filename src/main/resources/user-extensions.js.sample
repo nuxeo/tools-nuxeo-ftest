@@ -249,6 +249,7 @@ Selenium.prototype.doTakeScreenShot = function() {
   }
 };
 
+// Override decorateFunctionWithTimeout to take a screenshot on timeout
 Selenium.decorateFunctionWithTimeout = function(f, timeout, callback) {
   if (f == null) {
       return null;
@@ -268,14 +269,42 @@ Selenium.decorateFunctionWithTimeout = function(f, timeout, callback) {
   };
 };
 
+//Override click to take a screenshot on error
+Selenium.prototype.doOriginalClick = Selenium.prototype.doClick;
 
+Selenium.prototype.doClick = function(locator) {
+  try {
+    return this.doOriginalClick(locator);
+  } catch(e) {
+    selenium.doTakeScreenShot();
+    throw e;
+  }
+};
+
+//Override textPresent to take a screenshot on error
+Selenium.prototype.isOriginalTextPresent = Selenium.prototype.isTextPresent;
+
+Selenium.prototype.isTextPresent = function(pattern) {
+  try {
+    var result = this.isOriginalTextPresent(pattern);
+    if (!result) {
+      selenium.doTakeScreenShot();
+    }
+    return this.isOriginalTextPresent(pattern);
+  } catch(e) {
+    selenium.doTakeScreenShot();
+    throw e;
+  }
+};
+
+// Override open to store the name of the test and create a meaningful screenshot file name
 Selenium.prototype.doOriginalOpen = Selenium.prototype.doOpen;
 
 Selenium.prototype.doOpen = function(url, ignoreResponseCode) {
  if (url) {
-   var split = url.split("message=----- Selenium");
+   var split = url.split("message=----- Selenium ");
    if (split.length == 2) {
-     storedVars['currentTestCase'] = split[1].replace(/^\s+|\s+$/g, '');
+     storedVars['currentTestCase'] = split[1];
    }
  }
  return this.doOriginalOpen(url, ignoreResponseCode);
