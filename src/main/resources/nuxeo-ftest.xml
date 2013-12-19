@@ -1393,14 +1393,14 @@
              value="${nuxeoURL}" />
   </target>
 
-  <target name="user-extensions"
-          depends="user-extensions-for-windows">
+  <target name="user-extensions">
     <replace file="${out.dir}/user-extensions.js"
      token="/path/to/project-ear/ftest/selenium/data/"
      value="${data.dir.path.for.currentos}${file.separator}" />
     <replace file="${out.dir}/user-extensions.js"
       token="out.dir"
       value="${out.dir}" />
+    <antcall target="user-extensions-for-windows" />
   </target>
   <target name="user-extensions-for-windows" if="osfamily-windows">
     <replace file="${out.dir}/user-extensions.js" token="\" value="\\" />
