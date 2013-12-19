@@ -281,22 +281,6 @@ Selenium.prototype.doClick = function(locator) {
   }
 };
 
-//Override textPresent to take a screenshot on error
-Selenium.prototype.isOriginalTextPresent = Selenium.prototype.isTextPresent;
-
-Selenium.prototype.isTextPresent = function(pattern) {
-  try {
-    var result = this.isOriginalTextPresent(pattern);
-    if (!result) {
-      selenium.doTakeScreenShot();
-    }
-    return this.isOriginalTextPresent(pattern);
-  } catch(e) {
-    selenium.doTakeScreenShot();
-    throw e;
-  }
-};
-
 // Override open to store the name of the test and create a meaningful screenshot file name
 Selenium.prototype.doOriginalOpen = Selenium.prototype.doOpen;
 
