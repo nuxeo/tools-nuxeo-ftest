@@ -154,7 +154,7 @@
             <propertycopy property="env.NX_DB_@{dbvar}"
                           from="env.NX_${maven.dbprofile}_DB_@{dbvar}"
                           silent="false" />
-            <echo>Using NX_${maven.dbprofile}_DB_@{dbvar} fallback for undefined NX_DB_@{dbvar}</echo>
+            <echo level="info">Using NX_${maven.dbprofile}_DB_@{dbvar} fallback for undefined NX_DB_@{dbvar}</echo>
           </then>
         </if>
       </sequential>
@@ -243,8 +243,7 @@
         </not>
       </and>
       <then>
-        <echo>WARNING: Profile ${maven.dbprofile} is selected but database
-         administration parameters are missing</echo>
+        <echo level="warning">Profile ${maven.dbprofile} is selected but database administration parameters are missing</echo>
       </then>
     </if>
     <!-- metrics -->
@@ -337,7 +336,7 @@
   </target>
 
   <target name="selenium-run-suite">
-    <echo>Suite: ${suite}</echo>
+    <echo level="info">Suite: ${suite}</echo>
     <exec executable="java"
           output="${out.dir}/selenium-${suite}.log"
           resultproperty="exitCode"
@@ -405,7 +404,7 @@
               value="-htmlSuite ${selbrowser} ${nuxeoURL}" />
 
     <mkdir dir="${out.dir}/results" />
-    <echo>java ${standard.selenium.args1} ${standard.selenium.args2}/selenium-debug-${suite}.log ${standard.selenium.args3}
+    <echo level="info">java ${standard.selenium.args1} ${standard.selenium.args2}/selenium-debug-${suite}.log ${standard.selenium.args3}
       ${standard.selenium.args4} ${standard.selenium.args5} ${standard.selenium.args6}
       tests/${suite}.html ${out.dir}/results/result-${suite}.html ${browser.specific.selenium.arg}
       >${out.dir}/selenium-${suite}.log
@@ -439,7 +438,7 @@
 
   <target name="prepare-monitor" depends="_init" if="osfamily-unix">
     <nx:profile name="monitor">
-      <echo>Prepare Monitoring...</echo>
+      <echo level="info">Prepare Monitoring...</echo>
       <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="monitorctl.sh" />
       <antcall target="set-conf">
         <param name="name" value="JAVA_OPTS" />
@@ -514,7 +513,7 @@
       <param name="name" value="nuxeo.vcs.max-pool-size" />
       <param name="value" value="50" />
     </antcall>
-    <echo>Get importer version ${maven.project.version}</echo>
+    <echo level="info">Get importer version ${maven.project.version}</echo>
     <copy todir="${nuxeo.nxserver}/plugins/">
       <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-core:${maven.project.version}:jar" />
       <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-jaxrs:${maven.project.version}:jar" />
@@ -549,7 +548,7 @@
   </target>
 
   <target name="build-monitor-report" depends="_init" if="osfamily-unix">
-    <echo>Building monitoring report</echo>
+    <echo level="info">Building monitoring report</echo>
     <if>
       <not>
         <isset property="output-report" />
@@ -575,8 +574,8 @@
   </target>
 
   <target name="fl-run-suite">
-    <echo>Suite: ${suite}</echo>
-    <echo>Running: fl-run-test -v --simple-fetch ${suite} -u ${nuxeoURLNoEndingSlash} --no-color</echo>
+    <echo level="info">Suite: ${suite}</echo>
+    <echo level="info">Running: fl-run-test -v --simple-fetch ${suite} -u ${nuxeoURLNoEndingSlash} --no-color</echo>
     <exec executable="fl-run-test"
           failonerror="false"
           resultProperty="exitCode">
@@ -601,8 +600,8 @@
   <target name="fl-run-tests">
     <for list="${tests}" param="test" delimiter=":" trim="true">
       <sequential>
-        <echo>Suite: ${suite} - Test: @{test}</echo>
-        <echo>Running: fl-run-test -v --simple-fetch ${suite} -e @{test} -u ${nuxeoURLNoEndingSlash} --no-color</echo>
+        <echo level="info">Suite: ${suite} - Test: @{test}</echo>
+        <echo level="info">Running: fl-run-test -v --simple-fetch ${suite} -e @{test} -u ${nuxeoURLNoEndingSlash} --no-color</echo>
         <exec executable="fl-run-test"
               failonerror="false"
               resultProperty="exitCode">
@@ -644,7 +643,7 @@
     <!-- TESTS START -->
     <for list="${funkload-tests}" param="funkload-test" trim="true">
       <sequential>
-        <echo>Handling list element: @{funkload-test}</echo>
+        <echo level="info">Handling list element: @{funkload-test}</echo>
         <propertyregex property="flsuite"
                        override="true"
                        input="@{funkload-test}"
@@ -747,7 +746,7 @@
       </then>
     </if>
 
-    <echo>WARMUP --------------------</echo>
+    <echo level="info">WARMUP --------------------</echo>
     <exec executable="fl-run-bench" failonerror="false">
       <arg line="-c 10 -f -D 30 -s 1 --simple-fetch -u ${nuxeoURLNoEndingSlash} --no-color  ${fl-suite} ${fl-test}" />
     </exec>
@@ -757,7 +756,7 @@
         <param name="action" value="start" />
       </antcall>
     </nx:profile>
-    <echo>BENCH: fl-run-bench ${fl-options} --simple-fetch -u ${nuxeoURLNoEndingSlash} --no-color  ${fl-suite} ${fl-test} --------------------</echo>
+    <echo level="info">BENCH: fl-run-bench ${fl-options} --simple-fetch -u ${nuxeoURLNoEndingSlash} --no-color  ${fl-suite} ${fl-test} --------------------</echo>
     <exec executable="fl-run-bench" failonerror="false">
       <arg line="${fl-options} --simple-fetch -u ${nuxeoURLNoEndingSlash} --no-color  ${fl-suite} ${fl-test}" />
     </exec>
@@ -808,7 +807,7 @@
         <if>
           <equals arg1="@{bench-name}" arg2="init" />
           <then>
-            <echo>BENCH INIT --------------------</echo>
+            <echo level="info">BENCH INIT --------------------</echo>
             <!-- setup bench config used at the next restart -->
             <antcall target="prepare-bench" />
             <!-- initialize user and rights -->
@@ -839,7 +838,7 @@
           <elseif>
             <equals arg1="@{bench-name}" arg2="load" />
             <then>
-              <echo>BENCH LOAD DATA --------------------</echo>
+              <echo level="info">BENCH LOAD DATA --------------------</echo>
               <antcall target="run-importer">
                 <param name="bench-name" value="@{bench-name}" />
               </antcall>
@@ -848,7 +847,7 @@
           <elseif>
             <equals arg1="@{bench-name}" arg2="writer-disk" />
             <then>
-              <echo>BENCH WRITER DISK --------------------</echo>
+              <echo level="info">BENCH WRITER DISK --------------------</echo>
               <antcall target="run-funkload-bench">
                 <param name="fl-suite" value="test_nuxeo.py" />
                 <param name="fl-test" value="Nuxeo.testWriter" />
@@ -861,7 +860,7 @@
           <elseif>
             <equals arg1="@{bench-name}" arg2="reader-cpu" />
             <then>
-              <echo>BENCH READER CPU --------------------</echo>
+              <echo level="info">BENCH READER CPU --------------------</echo>
               <antcall target="run-funkload-bench">
                 <param name="fl-suite" value="test_nuxeo.py" />
                 <param name="fl-test" value="Nuxeo.testReader" />
@@ -874,7 +873,7 @@
           <elseif>
             <equals arg1="@{bench-name}" arg2="reader-memory" />
             <then>
-              <echo>BENCH READER MEMORY --------------------</echo>
+              <echo level="info">BENCH READER MEMORY --------------------</echo>
               <antcall target="run-funkload-bench">
                 <param name="fl-suite" value="test_nuxeo.py" />
                 <param name="fl-test" value="Nuxeo.testReader" />
@@ -890,7 +889,7 @@
           <elseif>
             <equals arg1="@{bench-name}" arg2="drive" />
             <then>
-              <echo>BENCH DRIVE --------------------</echo>
+              <echo level="info">BENCH DRIVE --------------------</echo>
               <antcall target="run-funkload-bench">
                 <param name="fl-suite" value="test_drive.py" />
                 <param name="fl-test" value="Drive.testDrive" />
@@ -901,7 +900,7 @@
             </then>
           </elseif>
           <else>
-            <echo>ERROR Unknown bench task: @{bench-name}</echo>
+            <echo level="error">Unknown bench task: @{bench-name}</echo>
           </else>
         </if>
         <!-- RESTART -->
@@ -935,7 +934,7 @@
   </target>
 
   <target name="prepare-tomcat" depends="_init" if="is.tomcat">
-    <echo>Prepare Tomcat...</echo>
+    <echo level="info">Prepare Tomcat...</echo>
     <property name="classifier" value="nuxeo-cap" />
     <property name="wizard.preset" value="nuxeo-dm" />
     <property name="groupId" value="org.nuxeo.ecm.distribution" />
@@ -954,7 +953,7 @@
   </target>
 
   <target name="prepare-jboss" depends="_init" if="is.jboss">
-    <echo>Prepare JBoss...</echo>
+    <echo level="info">Prepare JBoss...</echo>
     <property name="classifier" value="nuxeo-cap" />
     <property name="wizard.preset" value="nuxeo-dm" />
     <property name="groupId" value="org.nuxeo.ecm.distribution" />
@@ -973,20 +972,22 @@
   </target>
 
   <target name="prepare-ear" depends="_init" if="is.ear">
-    <echo>Prepare JBoss EAR...</echo>
+    <echo level="info">Prepare JBoss EAR...</echo>
     <property name="classifier" value="nuxeo-cap" />
     <property name="wizard.preset" value="nuxeo-dm" />
     <property name="groupId" value="org.nuxeo.ecm.distribution" />
     <property name="artifactId" value="nuxeo-distribution-jboss" />
     <!-- download and unzip JBOSS -->
-    <echo message="Downloading ${ear-jboss-groupId}:${ear-jboss-artifactId}:${ear-jboss-version}:zip:${ear-jboss-classifier}" />
+    <echo level="info"
+          message="Downloading ${ear-jboss-groupId}:${ear-jboss-artifactId}:${ear-jboss-version}:zip:${ear-jboss-classifier}" />
     <delete failonerror="false" dir="${nuxeo.home}" />
     <unzip dest="${nuxeo.home}/">
       <artifact:resolveFile key="${ear-jboss-groupId}:${ear-jboss-artifactId}:${ear-jboss-version}:zip:${ear-jboss-classifier}" />
       <cutdirsmapper dirs="1" />
     </unzip>
     <!-- download and unzip EAR -->
-    <echo message="Downloading ${groupId}:${artifactId}::zip:${classifier}-ear" />
+    <echo level="info"
+          message="Downloading ${groupId}:${artifactId}::zip:${classifier}-ear" />
     <unzip dest="${nuxeo.home}/" overwrite="true">
       <artifact:resolveFile key="${groupId}:${artifactId}::zip:${classifier}-ear" />
       <cutdirsmapper dirs="1" />
@@ -1236,23 +1237,23 @@
           if="nuxeo.dbsetup.dodbconf">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
-      <echo>Prepare PostgreSQL...</echo>
+      <echo level="info">Prepare PostgreSQL...</echo>
       <antcall target="pgsql-dbcreate" />
     </nx:profile>
     <nx:profile name="mssql">
-      <echo>Prepare MSSQL...</echo>
+      <echo level="info">Prepare MSSQL...</echo>
       <antcall target="mssql-dbcreate" />
     </nx:profile>
     <nx:profile name="oracle10g">
-      <echo>Prepare Oracle 10g...</echo>
+      <echo level="info">Prepare Oracle 10g...</echo>
       <antcall target="oracle-dbcreate" />
     </nx:profile>
     <nx:profile name="oracle11g">
-      <echo>Prepare Oracle 11g...</echo>
+      <echo level="info">Prepare Oracle 11g...</echo>
       <antcall target="oracle-dbcreate" />
     </nx:profile>
     <nx:profile name="mysql">
-      <echo>Prepare MySQL...</echo>
+      <echo level="info">Prepare MySQL...</echo>
       <antcall target="mysql-dbcreate" />
     </nx:profile>
   </target>
@@ -1353,7 +1354,8 @@
   <target name="cleanup-environment" depends="_init,cleanup-db" />
 
   <target name="download" unless="no.download">
-    <echo message="Downloading ${groupId}:${artifactId}::zip:${classifier}" />
+    <echo level="info"
+          message="Downloading ${groupId}:${artifactId}::zip:${classifier}" />
     <delete failonerror="false" dir="${nuxeo.home}" />
     <unzip dest="${nuxeo.home}/">
       <artifact:resolveFile key="${groupId}:${artifactId}::zip:${classifier}" />
@@ -1362,7 +1364,7 @@
   </target>
 
   <target name="unzip-local" if="zip.file">
-    <echo message="Using local archive ${zip.file}" />
+    <echo level="info" message="Using local archive ${zip.file}" />
     <delete failonerror="false" dir="${nuxeo.home}" />
     <unzip dest="${nuxeo.home}/" src="${zip.file}">
       <cutdirsmapper dirs="1" />
@@ -1374,7 +1376,7 @@
     <copy tofile="${out.dir}/selenium-server.jar">
       <artifact:resolveFile key="org.seleniumhq.selenium:selenium-server-standalone::jar" />
     </copy>
-    <echo>Replace local folder in user-extensions.js</echo>
+    <echo level="info">Replace local folder in user-extensions.js</echo>
     <path id="data.dir.path">
       <pathelement location="data" />
     </path>
@@ -1382,9 +1384,9 @@
     <copy file="${out.dir}/user-extensions.js.sample"
           tofile="${out.dir}/user-extensions.js"
           overwrite="true" />
-    <echo>Set into user-extensions-browser.js project path ${data.dir.path.for.currentos}</echo>
+    <echo level="info">Set into user-extensions-browser.js project path ${data.dir.path.for.currentos}</echo>
     <antcall target="user-extensions" />
-    <echo>Replace url in prefs.js</echo>
+    <echo level="info">Replace url in prefs.js</echo>
     <copy file="${out.dir}/ffprofile/prefs.js.sample"
           tofile="${out.dir}/ffprofile/prefs.js"
           overwrite="true" />
@@ -1395,11 +1397,11 @@
 
   <target name="user-extensions">
     <replace file="${out.dir}/user-extensions.js"
-     token="/path/to/project-ear/ftest/selenium/data/"
-     value="${data.dir.path.for.currentos}${file.separator}" />
+             token="/path/to/project-ear/ftest/selenium/data/"
+             value="${data.dir.path.for.currentos}${file.separator}" />
     <replace file="${out.dir}/user-extensions.js"
-      token="out.dir"
-      value="${out.dir}" />
+             token="out.dir"
+             value="${out.dir}" />
     <antcall target="user-extensions-for-windows" />
   </target>
   <target name="user-extensions-for-windows" if="osfamily-windows">
@@ -1479,7 +1481,8 @@
   </target>
 
   <target name="check-set-wizard" if="nuxeo.wizard.done" depends="_init">
-    <echo message="Setting nuxeo.wizard.done=${nuxeo.wizard.done}" />
+    <echo level="info"
+          message="Setting nuxeo.wizard.done=${nuxeo.wizard.done}" />
     <antcall target="set-conf">
       <param name="name" value="nuxeo.wizard.done" />
       <param name="value" value="${nuxeo.wizard.done}" />
@@ -1494,7 +1497,7 @@
       <param name="name" value="JAVA_HOME" />
       <param name="value" value="${env.NX_JAVA_HOME}" />
     </antcall>
-    <echo message="Using JAVA_HOME=${env.NX_JAVA_HOME}" />
+    <echo level="info" message="Using JAVA_HOME=${env.NX_JAVA_HOME}" />
   </target>
 
   <target name="fix-max-waits"
