@@ -1583,7 +1583,7 @@
     </antcall>
     <!-- replace log4j configuration -->
     <delete>
-      <fileset fir="${nuxeo.home}/lib" includes="log4j*"/>
+      <fileset dir="${nuxeo.home}/lib" includes="log4j*"/>
     </delete>
     <copy todir="${nuxeo.home}/lib">
       <fileset file="${out.dir}/log4j.xml"/>
