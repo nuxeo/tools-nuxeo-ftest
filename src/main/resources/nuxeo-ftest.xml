@@ -1581,13 +1581,9 @@
       <param name="name" value="org.nuxeo.ecm.tester.name" />
       <param name="value" value="Nuxeo-Selenium-Tester" />
     </antcall>
-    <!-- replace log4j configuration -->
-    <delete>
-      <fileset dir="${nuxeo.home}/lib" includes="log4j*"/>
-    </delete>
-    <copy todir="${nuxeo.home}/lib">
+    <copy todir="${nuxeo.home}/lib" overwrite="true">
       <fileset file="${out.dir}/log4j.xml"/>
-      <artifact:resolveFile key="log4j:apache-log4j-extras:1.2.17:jar" />
+      <artifact:resolveFile key="log4j:apache-log4j-extras:1.2.17:jar:minimal" />
     </copy>
   </target>
 
