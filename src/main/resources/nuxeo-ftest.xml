@@ -640,6 +640,8 @@
       </antcall>
     </nx:profile>
 
+    <sleep seconds="5" />
+
     <!-- TESTS START -->
     <for list="${funkload-tests}" param="funkload-test" trim="true">
       <sequential>
