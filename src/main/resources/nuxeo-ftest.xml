@@ -817,6 +817,13 @@
               <param name="suite" value="test_nuxeo.py" />
               <param name="tests" value="testInit" />
             </antcallback>
+            <!-- Set exit status -->
+            <propertyregex property="errormessage"
+              override="true"
+              input="${errmsg}"
+              regexp="(.*),"
+              select="\1"
+              defaultValue="${errmsg}" />
             <fail status="${errors}" message="${errormessage}">
               <condition>
                 <not>
@@ -829,6 +836,12 @@
               <param name="suite" value="test_drive.py" />
               <param name="tests" value="testInit" />
             </antcallback>
+            <propertyregex property="errormessage"
+              override="true"
+              input="${errmsg}"
+              regexp="(.*),"
+              select="\1"
+              defaultValue="${errmsg}" />
             <fail status="${errors}" message="${errormessage}">
               <condition>
                 <not>
