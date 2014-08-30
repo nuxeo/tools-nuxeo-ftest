@@ -69,6 +69,9 @@ Selenium.prototype.doTypeKeys = function(locator, value) {
 
 };
 
+Selenium.jsf2AjaxRequestFinished = false;
+Selenium.jsf2AjaxRequestActiveCount = 0;
+
 /**
  * Registers with the a4j library to record when an Ajax request
  * finishes.
@@ -79,8 +82,30 @@ Selenium.prototype.doTypeKeys = function(locator, value) {
  * every opportunity, to make sure the A4jRequestFinished flag is consumed.
  */
 Selenium.prototype.doWatchA4jRequests = function() {
+  Selenium.jsf2AjaxRequestFinished = false;
+  Selenium.jsf2AjaxRequestActiveCount = 0;
   var testWindow = selenium.browserbot.getCurrentWindow();
-  testWindow.A4J.AJAX.startTest();
+  if (typeof testWindow.A4J === "undefined") {
+    // assume JSF2
+    testWindow.jsf.ajax.addOnEvent(function(data) {
+      var ajaxstatus = data.status;
+      switch (ajaxstatus) {
+        case "begin":
+          Selenium.jsf2AjaxRequestActiveCount++;
+          break;
+        case "complete":
+          break;
+        case "success":
+            Selenium.jsf2AjaxRequestActiveCount--;
+            if (Selenium.jsf2AjaxRequestActiveCount == 0) {
+                Selenium.jsf2AjaxRequestFinished = true;
+            }
+            break;
+      }
+    });
+  } else {
+    testWindow.A4J.AJAX.startTest();
+  }
 }
 
 /**
@@ -90,13 +115,21 @@ Selenium.prototype.doWatchA4jRequests = function() {
 Selenium.prototype.doWaitForA4jRequest = function(timeout) {
   return Selenium.decorateFunctionWithTimeout(function() {
     var testWindow = selenium.browserbot.getCurrentWindow();
-    if (testWindow.A4J.AJAX.isTestFinished() == true) {
+    if (typeof testWindow.A4J === "undefined") {
+      // assume JSF2
+      if (Selenium.jsf2AjaxRequestFinished) {
+        Selenium.jsf2AjaxRequestFinished = false;
         return true;
+      }
+      return false;
+    } else {
+      if (testWindow.A4J.AJAX.isTestFinished() == true) {
+        return true;
+      }
+      return false;
     }
-    return false;
   }, timeout);
 }
-
 
 // wait for jquery and/or prototype calls
 Selenium.prototype.doWaitForJSQueries = function(timeout) {
