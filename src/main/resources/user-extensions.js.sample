@@ -69,6 +69,7 @@ Selenium.prototype.doTypeKeys = function(locator, value) {
 
 };
 
+Selenium.jsf2AjaxRequestStarted = false;
 Selenium.jsf2AjaxRequestFinished = false;
 Selenium.jsf2AjaxRequestActiveCount = 0;
 
@@ -82,25 +83,30 @@ Selenium.jsf2AjaxRequestActiveCount = 0;
  * every opportunity, to make sure the A4jRequestFinished flag is consumed.
  */
 Selenium.prototype.doWatchA4jRequests = function() {
-  Selenium.jsf2AjaxRequestFinished = false;
-  Selenium.jsf2AjaxRequestActiveCount = 0;
   var testWindow = selenium.browserbot.getCurrentWindow();
   if (typeof testWindow.A4J === "undefined") {
     // assume JSF2
+    Selenium.jsf2AjaxRequestStarted = false;
+    Selenium.jsf2AjaxRequestFinished = false;
+    Selenium.jsf2AjaxRequestActiveCount = 0;
     testWindow.jsf.ajax.addOnEvent(function(data) {
       var ajaxstatus = data.status;
       switch (ajaxstatus) {
         case "begin":
+          LOG.info("JSF2 ajax request begin");
+          Selenium.jsf2AjaxRequestStarted = true;
           Selenium.jsf2AjaxRequestActiveCount++;
           break;
         case "complete":
+          LOG.info("JSF2 ajax request complete");
           break;
         case "success":
-            Selenium.jsf2AjaxRequestActiveCount--;
-            if (Selenium.jsf2AjaxRequestActiveCount == 0) {
-                Selenium.jsf2AjaxRequestFinished = true;
-            }
-            break;
+          LOG.info("JSF2 ajax request success");
+          Selenium.jsf2AjaxRequestActiveCount--;
+          if (Selenium.jsf2AjaxRequestActiveCount == 0) {
+            Selenium.jsf2AjaxRequestFinished = true;
+          }
+          break;
       }
     });
   } else {
@@ -117,7 +123,9 @@ Selenium.prototype.doWaitForA4jRequest = function(timeout) {
     var testWindow = selenium.browserbot.getCurrentWindow();
     if (typeof testWindow.A4J === "undefined") {
       // assume JSF2
-      if (Selenium.jsf2AjaxRequestFinished) {
+      if (Selenium.jsf2AjaxRequestStarted && Selenium.jsf2AjaxRequestFinished) {
+        LOG.info("JSF2 ajax request end detected");
+        Selenium.jsf2AjaxRequestStarted = false;
         Selenium.jsf2AjaxRequestFinished = false;
         return true;
       }
