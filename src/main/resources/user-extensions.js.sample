@@ -69,7 +69,6 @@ Selenium.prototype.doTypeKeys = function(locator, value) {
 
 };
 
-Selenium.jsf2AjaxListenerSet = false;
 Selenium.jsf2AjaxRequestStarted = false;
 Selenium.jsf2AjaxRequestFinished = false;
 Selenium.jsf2AjaxRequestActiveCount = 0;
@@ -90,7 +89,8 @@ Selenium.prototype.doWatchA4jRequests = function() {
     Selenium.jsf2AjaxRequestStarted = false;
     Selenium.jsf2AjaxRequestFinished = false;
     Selenium.jsf2AjaxRequestActiveCount = 0;
-    if (!Selenium.jsf2AjaxListenerSet) {
+    if (testWindow.jsf2AjaxListenerSet === undefined) {
+        testWindow.jsf2AjaxListenerSet = true;
         testWindow.jsf.ajax.addOnEvent(function(data) {
           var ajaxstatus = data.status;
           switch (ajaxstatus) {
@@ -111,8 +111,9 @@ Selenium.prototype.doWatchA4jRequests = function() {
               break;
           }
         });
+    } else {
+      LOG.info("JSF Ajax listener already set on page");
     }
-    Selenium.jsf2AjaxListenerSet = true;
   } else {
     testWindow.A4J.AJAX.startTest();
   }
@@ -123,8 +124,8 @@ Selenium.prototype.doWatchA4jRequests = function() {
  * an Ajax request has finished and then return.
  */
 Selenium.prototype.doWaitForA4jRequest = function(timeout) {
+  var testWindow = selenium.browserbot.getCurrentWindow();
   return Selenium.decorateFunctionWithTimeout(function() {
-    var testWindow = selenium.browserbot.getCurrentWindow();
     if (typeof testWindow.A4J === "undefined") {
       // assume JSF2
       if (Selenium.jsf2AjaxRequestStarted && Selenium.jsf2AjaxRequestFinished) {
