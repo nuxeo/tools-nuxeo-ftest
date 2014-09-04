@@ -2,6 +2,7 @@ var outDir = "out.dir";
 
 Selenium.prototype.doRetrieveTestFolderPath = function() {
     storedVars['testfolderpath'] = "/path/to/project-ear/ftest/selenium/data/";
+    storedVars['testfolderpath'] = "/home/anahide/workspaces/nuxeo/nuxeo-distribution/nuxeo-distribution-dm/ftest/selenium/data/";
 };
 
 // helper method to store current year/month/day
@@ -32,15 +33,13 @@ Selenium.prototype.isTextPresent = function(pattern) {
     }
     else if (patternMatcher.strategy == PatternMatcher.strategies.exact) {
                 pattern = pattern.substring("exact:".length); // strip off "exact:"
-        LOG.info("isTextPresent with pattern matcher, textLength=" + allText.length);
         if (allText.length > 2500) {
-          LOG.info("isTextPresent: page is too heavy");
+          LOG.info("isTextPresent: page is heavy");
         }
         return allText.indexOf(pattern) != -1;
     }
-    LOG.info("isTextPresent, textLength=" + allText.length);
     if (allText.length > 2500) {
-      LOG.info("isTextPresent: page is too heavy");
+      LOG.info("isTextPresent: page is heavy");
     }
     return patternMatcher.matches(allText);
 };
