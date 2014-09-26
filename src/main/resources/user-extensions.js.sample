@@ -104,7 +104,8 @@ Selenium.prototype.doWatchA4jRequests = function() {
             case "success":
               LOG.info("JSF2 ajax request success");
               Selenium.jsf2AjaxRequestActiveCount--;
-              if (Selenium.jsf2AjaxRequestActiveCount == 0) {
+              if (Selenium.jsf2AjaxRequestActiveCount <= 0) {
+                Selenium.jsf2AjaxRequestActiveCount = 0;
                 Selenium.jsf2AjaxRequestFinished = true;
               }
               break;
