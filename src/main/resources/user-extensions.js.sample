@@ -60,9 +60,10 @@ Selenium.prototype.doTypeKeys = function(locator, value) {
 
     // also set the correct text in the element
     try {
-        this.doOriginalType(locator, value);
+      this.doOriginalType(locator, value);
     } catch(err) {
-        // this wasn't a text element
+      selenium.doTakeScreenShot();
+      // this wasn't a text element
     }
 
 };
