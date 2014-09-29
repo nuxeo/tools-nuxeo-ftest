@@ -46,6 +46,16 @@ Selenium.prototype.isTextPresent = function(pattern) {
 // override default method to make sure privilege to type file path is enabled
 Selenium.prototype.doOriginalType = Selenium.prototype.doType;
 
+// take screenshot on error
+Selenium.prototype.doType = function(locator, value) {
+  try {
+    this.doOriginalType(locator, value);
+  } catch(e) {
+    selenium.doTakeScreenShot();
+    throw e;
+  }
+}
+
 // override buggy doTypeKeys method
 // FIXME: need to document what's buggy in case it's fixed in more recent versions
 Selenium.prototype.doTypeKeys = function(locator, value) {
