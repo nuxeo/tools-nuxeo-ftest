@@ -36,6 +36,33 @@
   <target name="_init" unless="_init.done">
     <property name="_init.done" value="true" />
     <property environment="env" />
+
+    <if>
+      <or>
+        <and>
+          <isset property="maven.test.skip" />
+          <not>
+            <isfalse value="${maven.test.skip}" />
+          </not>
+        </and>
+        <and>
+          <isset property="skipTests" />
+          <not>
+            <isfalse value="${skipTests}" />
+          </not>
+        </and>
+        <and>
+          <isset property="skipITs" />
+          <not>
+            <isfalse value="${skipITs}" />
+          </not>
+        </and>
+      </or>
+      <then>
+        <nx:exit message="Tests are skipped." status="0" />
+      </then>
+    </if>
+
     <condition property="osfamily-unix">
       <os family="unix" />
     </condition>
@@ -819,11 +846,11 @@
             </antcallback>
             <!-- Set exit status -->
             <propertyregex property="errormessage"
-              override="true"
-              input="${errmsg}"
-              regexp="(.*),"
-              select="\1"
-              defaultValue="${errmsg}" />
+                           override="true"
+                           input="${errmsg}"
+                           regexp="(.*),"
+                           select="\1"
+                           defaultValue="${errmsg}" />
             <fail status="${errors}" message="${errormessage}">
               <condition>
                 <not>
@@ -837,11 +864,11 @@
               <param name="tests" value="testInit" />
             </antcallback>
             <propertyregex property="errormessage"
-              override="true"
-              input="${errmsg}"
-              regexp="(.*),"
-              select="\1"
-              defaultValue="${errmsg}" />
+                           override="true"
+                           input="${errmsg}"
+                           regexp="(.*),"
+                           select="\1"
+                           defaultValue="${errmsg}" />
             <fail status="${errors}" message="${errormessage}">
               <condition>
                 <not>

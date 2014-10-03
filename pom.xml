@@ -165,7 +165,7 @@
       <plugin>
         <groupId>org.nuxeo.build</groupId>
         <artifactId>ant-assembly-maven-plugin</artifactId>
-        <version>2.0-SNAPSHOT</version>
+        <version>2.0.3-SNAPSHOT</version>
         <extensions>true</extensions>
         <configuration>
           <buildFile>${basedir}/src/main/assemble/assembly.xml</buildFile>
