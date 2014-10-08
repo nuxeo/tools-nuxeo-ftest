@@ -1068,20 +1068,24 @@
   <target name="pgsql-dbdrop"
           depends="_init,setup-pgsql-driver"
           if="nuxeo.dbsetup.dodbconf">
-    <sql driver="org.postgresql.Driver"
-         url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-         userid="${nuxeo.dbsetup.adminuser}"
-         password="${nuxeo.dbsetup.adminpass}"
-         autocommit="true">
-      <classpath>
-        <pathelement path="${classpath}" />
-        <fileset dir="${jdbc.dir}">
-          <include name="**/*.jar" />
-        </fileset>
-      </classpath>
-      DROP DATABASE IF EXISTS ${nuxeo.db.name};
-      DROP USER IF EXISTS ${nuxeo.db.user};
-    </sql>
+    <parallel threadCount="1" timeout="120000" failonany="true">
+      <sequential>
+        <sql driver="org.postgresql.Driver"
+             url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser}"
+             password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true">
+          <classpath>
+            <pathelement path="${classpath}" />
+            <fileset dir="${jdbc.dir}">
+              <include name="**/*.jar" />
+            </fileset>
+          </classpath>
+          DROP DATABASE IF EXISTS ${nuxeo.db.name};
+          DROP USER IF EXISTS ${nuxeo.db.user};
+        </sql>
+      </sequential>
+    </parallel>
   </target>
 
   <target name="pgsql-dbcreate"
@@ -1107,22 +1111,26 @@
   <target name="mssql-dbdrop"
           depends="_init,setup-mssql-driver"
           if="nuxeo.dbsetup.dodbconf">
-    <sql driver="net.sourceforge.jtds.jdbc.Driver"
-         url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-         userid="${nuxeo.dbsetup.adminuser}"
-         password="${nuxeo.dbsetup.adminpass}"
-         autocommit="true">
-      <classpath>
-        <pathelement path="${classpath}" />
-        <fileset dir="${jdbc.dir}">
-          <include name="**/*.jar" />
-        </fileset>
-      </classpath>
-      IF EXISTS(SELECT * FROM sys.databases WHERE NAME='${nuxeo.db.name}')
-         DROP DATABASE ${nuxeo.db.name};
-      IF EXISTS(SELECT * FROM sys.server_principals WHERE NAME='${nuxeo.db.user}' AND TYPE_DESC IN ('SQL_LOGIN'))
-         DROP LOGIN ${nuxeo.db.user};
-    </sql>
+    <parallel threadCount="1" timeout="120000" failonany="true">
+      <sequential>
+        <sql driver="net.sourceforge.jtds.jdbc.Driver"
+             url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser}"
+             password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true">
+          <classpath>
+            <pathelement path="${classpath}" />
+            <fileset dir="${jdbc.dir}">
+              <include name="**/*.jar" />
+            </fileset>
+          </classpath>
+          IF EXISTS(SELECT * FROM sys.databases WHERE NAME='${nuxeo.db.name}')
+             DROP DATABASE ${nuxeo.db.name};
+          IF EXISTS(SELECT * FROM sys.server_principals WHERE NAME='${nuxeo.db.user}' AND TYPE_DESC IN ('SQL_LOGIN'))
+             DROP LOGIN ${nuxeo.db.user};
+        </sql>
+      </sequential>
+    </parallel>
   </target>
 
   <target name="mssql-dbcreate"
@@ -1153,31 +1161,35 @@
   <target name="oracle-dbdrop"
           depends="_init,setup-oracle-driver"
           if="nuxeo.dbsetup.dodbconf">
-    <sql driver="oracle.jdbc.OracleDriver"
-         url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-         userid="${nuxeo.dbsetup.adminuser} as sysdba"
-         password="${nuxeo.dbsetup.adminpass}"
-         autocommit="true"
-         delimiter="--next--">
-      <classpath>
-        <pathelement path="${classpath}" />
-        <fileset dir="${jdbc.dir}">
-          <include name="**/*.jar" />
-        </fileset>
-      </classpath>
-      DECLARE
-        num number:=0;
-        drop_stmt VARCHAR2(200);
-      BEGIN
-        SELECT COUNT(*) INTO num FROM dba_users WHERE username = UPPER('${nuxeo.db.user}');
-        IF num &lt;&gt; 0 THEN
-          EXECUTE IMMEDIATE 'DROP USER ${nuxeo.db.user} CASCADE';
-        END IF;
-      EXCEPTION
-        WHEN OTHERS THEN
-          raise_application_error(-20001,'An error was encountered - '||SQLCODE||' -ERROR- '||SQLERRM);
-      END;
-    </sql>
+    <parallel threadCount="1" timeout="120000" failonany="true">
+      <sequential>
+        <sql driver="oracle.jdbc.OracleDriver"
+             url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser} as sysdba"
+             password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true"
+             delimiter="--next--">
+          <classpath>
+            <pathelement path="${classpath}" />
+            <fileset dir="${jdbc.dir}">
+              <include name="**/*.jar" />
+            </fileset>
+          </classpath>
+          DECLARE
+            num number:=0;
+            drop_stmt VARCHAR2(200);
+          BEGIN
+            SELECT COUNT(*) INTO num FROM dba_users WHERE username = UPPER('${nuxeo.db.user}');
+            IF num &lt;&gt; 0 THEN
+              EXECUTE IMMEDIATE 'DROP USER ${nuxeo.db.user} CASCADE';
+            END IF;
+          EXCEPTION
+            WHEN OTHERS THEN
+              raise_application_error(-20001,'An error was encountered - '||SQLCODE||' -ERROR- '||SQLERRM);
+          END;
+        </sql>
+      </sequential>
+    </parallel>
   </target>
 
   <target name="oracle-dbcreate"
@@ -1206,21 +1218,25 @@
   <target name="mysql-dbdrop"
           depends="_init,setup-mysql-driver"
           if="nuxeo.dbsetup.dodbconf">
-    <sql driver="com.mysql.jdbc.Driver"
-         url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
-         userid="${nuxeo.dbsetup.adminuser}"
-         password="${nuxeo.dbsetup.adminpass}"
-         autocommit="true">
-      <classpath>
-        <pathelement path="${classpath}" />
-        <fileset dir="${jdbc.dir}">
-          <include name="**/*.jar" />
-        </fileset>
-      </classpath>
-      GRANT USAGE on *.* TO ${nuxeo.db.user}@'%';
-      DROP USER ${nuxeo.db.user};
-      DROP DATABASE IF EXISTS ${nuxeo.db.name}
-    </sql>
+    <parallel threadCount="1" timeout="120000" failonany="true">
+      <sequential>
+        <sql driver="com.mysql.jdbc.Driver"
+             url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser}"
+             password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true">
+          <classpath>
+            <pathelement path="${classpath}" />
+            <fileset dir="${jdbc.dir}">
+              <include name="**/*.jar" />
+            </fileset>
+          </classpath>
+          GRANT USAGE on *.* TO ${nuxeo.db.user}@'%';
+          DROP USER ${nuxeo.db.user};
+          DROP DATABASE IF EXISTS ${nuxeo.db.name}
+        </sql>
+      </sequential>
+    </parallel>
   </target>
 
   <target name="mysql-dbcreate"
