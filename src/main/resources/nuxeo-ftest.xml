@@ -1509,7 +1509,15 @@
           message="Windows startup failed!" />
   </target>
 
-  <target name="stop" depends="_init,stop-unix,stop-windows" />
+  <target name="stop" depends="_init,stop-unix,stop-windows">
+    <if>
+      <equals arg1="${env.KILL_TOMCAT}" arg2="true"/>
+      <then>
+        <antcall target="kill-tomcat" />
+      </then>
+    </if>
+  </target>
+
   <target name="stop-unix" if="osfamily-unix">
     <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="*.sh,*ctl" />
     <exec executable="${nuxeo.home}/bin/nuxeoctl"
@@ -1697,6 +1705,38 @@
               file="${nuxeo.data}/installAfterRestart.log"
               message="@{package}">
         </echo>
+      </sequential>
+    </for>
+  </target>
+
+  <target name="kill-tomcat" depends="_init">
+    <exec executable="${env.JAVA_HOME}/bin/jps">
+      <arg value="-l" />
+      <redirector outputproperty="tomcat.pid">
+        <outputfilterchain>
+          <prefixlines prefix=" " />
+          <linecontains>
+            <contains value="org.apache.catalina.startup.Bootstrap" />
+          </linecontains>
+          <replacestring from=" org.apache.catalina.startup.Bootstrap" />
+          <striplinebreaks/>
+          <trim/>
+        </outputfilterchain>
+      </redirector>
+    </exec>
+    <for list="${tomcat.pid}" delimiter=" " param="pid">
+      <sequential>
+        <echo message="Terminating pid @{pid}" />
+        <exec executable="kill" osfamily="unix">
+          <arg value="-9"/>
+          <arg value="@{pid}"/>
+        </exec>
+        <exec executable="taskkill" osfamily="windows">
+          <arg value="/f"/>
+          <arg value="/t"/>
+          <arg value="/pid"/>
+          <arg value="@{pid}"/>
+        </exec>
       </sequential>
     </for>
   </target>
