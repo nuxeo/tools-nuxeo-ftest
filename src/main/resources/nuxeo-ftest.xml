@@ -978,7 +978,6 @@
   <target name="prepare-tomcat" depends="_init" if="is.tomcat">
     <echo level="info">Prepare Tomcat...</echo>
     <property name="classifier" value="nuxeo-cap" />
-    <property name="wizard.preset" value="nuxeo-dm" />
     <property name="groupId" value="org.nuxeo.ecm.distribution" />
     <property name="artifactId" value="nuxeo-distribution-tomcat" />
     <antcall target="prepare-server" />
@@ -997,7 +996,6 @@
   <target name="prepare-jboss" depends="_init" if="is.jboss">
     <echo level="info">Prepare JBoss...</echo>
     <property name="classifier" value="nuxeo-cap" />
-    <property name="wizard.preset" value="nuxeo-dm" />
     <property name="groupId" value="org.nuxeo.ecm.distribution" />
     <property name="artifactId" value="nuxeo-distribution-jboss" />
     <antcall target="prepare-server" />
@@ -1016,7 +1014,6 @@
   <target name="prepare-ear" depends="_init" if="is.ear">
     <echo level="info">Prepare JBoss EAR...</echo>
     <property name="classifier" value="nuxeo-cap" />
-    <property name="wizard.preset" value="nuxeo-dm" />
     <property name="groupId" value="org.nuxeo.ecm.distribution" />
     <property name="artifactId" value="nuxeo-distribution-jboss" />
     <!-- download and unzip JBOSS -->
@@ -1511,7 +1508,7 @@
 
   <target name="stop" depends="_init,stop-unix,stop-windows">
     <if>
-      <equals arg1="${env.KILL_TOMCAT}" arg2="true"/>
+      <equals arg1="${env.KILL_TOMCAT}" arg2="true" />
       <then>
         <antcall target="kill-tomcat" />
       </then>
@@ -1660,20 +1657,12 @@
           if="wizard.preset"
           description="Activate the configured wizard preset.">
     <if>
-      <equals arg1="${wizard.preset}" arg2="nuxeo-dm" />
+      <equals arg1="${wizard.preset}" arg2="nuxeo-dam" />
       <then>
-        <copy file="${nuxeo.data}/installAfterRestart-DM.log"
+        <copy file="${nuxeo.data}/installAfterRestart-DAM.log"
               tofile="${nuxeo.data}/installAfterRestart.log"
               overwrite="true" />
       </then>
-      <elseif>
-        <equals arg1="${wizard.preset}" arg2="nuxeo-dam" />
-        <then>
-          <copy file="${nuxeo.data}/installAfterRestart-DAM.log"
-                tofile="${nuxeo.data}/installAfterRestart.log"
-                overwrite="true" />
-        </then>
-      </elseif>
       <elseif>
         <equals arg1="${wizard.preset}" arg2="nuxeo-cmf" />
         <then>
@@ -1719,8 +1708,8 @@
             <contains value="org.apache.catalina.startup.Bootstrap" />
           </linecontains>
           <replacestring from=" org.apache.catalina.startup.Bootstrap" />
-          <striplinebreaks/>
-          <trim/>
+          <striplinebreaks />
+          <trim />
         </outputfilterchain>
       </redirector>
     </exec>
@@ -1728,14 +1717,14 @@
       <sequential>
         <echo message="Terminating pid @{pid}" />
         <exec executable="kill" osfamily="unix">
-          <arg value="-9"/>
-          <arg value="@{pid}"/>
+          <arg value="-9" />
+          <arg value="@{pid}" />
         </exec>
         <exec executable="taskkill" osfamily="windows">
-          <arg value="/f"/>
-          <arg value="/t"/>
-          <arg value="/pid"/>
-          <arg value="@{pid}"/>
+          <arg value="/f" />
+          <arg value="/t" />
+          <arg value="/pid" />
+          <arg value="@{pid}" />
         </exec>
       </sequential>
     </for>

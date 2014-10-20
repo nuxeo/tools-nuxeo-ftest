@@ -112,7 +112,7 @@ upload files when running tests.
   * out.dir: default value is `${maven.project.build.directory}`.
   * nuxeo.home: if NUXEO_HOME environment property is not set, default value depends on Maven profile, then values `${out.dir}/tomcat`.
   * nuxeo.conf: if NUXEO_CONF environment property is not set, default value is `${nuxeo.home}/bin/nuxeo.conf`.
-  * wizard.preset: the wizard preset to activate on the distribution. The value could be `nuxeo-cap` (does nothing), `nuxeo-dm`, `nuxeo-dam`, `nuxeo-cmf` or `nuxeo-sc`, default value is `nuxeo-dm`.
+  * wizard.preset: the wizard preset to activate on the distribution. The value can be `nuxeo-cap` (deprecated, does nothing), `nuxeo-dam`, `nuxeo-cmf` or `nuxeo-sc`; there is no default value (property is not set).
   * mp.install: a comma-separated list of instructions for the Marketplace install process. For instance `file:/path/to/some/marketplace-package-1.0-SNAPSHOT.zip`.
   * zip.file: the zipped server to use for testing instead of downloading a new one.
   * env.NUXEO_HOME: the server to use for testing instead of downloading a new one. Note that its nuxeo.conf file might be changed when running tests.
