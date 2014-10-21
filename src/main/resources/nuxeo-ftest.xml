@@ -652,7 +652,7 @@
     </for>
   </target>
 
-  <target name="run-funkload-tests">
+  <target name="run-funkload-tests" depends="_init">
     <!-- Run FunLoad tests -->
     <mkdir dir="${out.dir}/results" />
     <mkdir dir="${out.dir}/log" />
