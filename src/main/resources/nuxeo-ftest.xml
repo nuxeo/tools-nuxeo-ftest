@@ -1468,11 +1468,22 @@
     <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="*.sh,*ctl" />
     <exec executable="${nuxeo.home}/bin/nuxeoctl"
           spawn="false"
-          failonerror="true">
+          failonerror="false"
+          resultproperty="retcode">
       <arg value="start" />
       <arg value="--force" />
       <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
+    <condition property="startup.failed" value="${retcode}">
+      <not>
+        <equals arg1="${retcode}" arg2="0" />
+      </not>
+    </condition>
+    <antcall target="stop-iffailed" />
+  </target>
+  <target name="stop-iffailed" if="startup.failed">
+    <antcall target="stop" />
+    <fail status="${startup.failed}" message="Startup failed!" />
   </target>
   <target name="restart-unix" if="osfamily-unix">
     <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="*.sh,*ctl" />
@@ -1493,17 +1504,12 @@
       <arg value="--force" />
       <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
-    <condition property="windows.startup.failed" value="${retcode}">
+    <condition property="startup.failed" value="${retcode}">
       <not>
         <equals arg1="${retcode}" arg2="0" />
       </not>
     </condition>
-    <antcall target="stop-windows-iffailed" />
-  </target>
-  <target name="stop-windows-iffailed" if="windows.startup.failed">
-    <antcall target="stop-windows" />
-    <fail status="${windows.startup.failed}"
-          message="Windows startup failed!" />
+    <antcall target="stop-iffailed" />
   </target>
 
   <target name="stop" depends="_init,stop-unix,stop-windows">
