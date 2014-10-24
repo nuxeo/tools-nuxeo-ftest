@@ -357,7 +357,9 @@
       </or>
     </condition>
     <property name="test.clid.path" value="/opt/build/hudson/instance.clid" />
-    <condition property="nuxeoctl.option.clid" value="--clid=${test.clid.path}">
+    <condition property="nuxeoctl.option.clid"
+               value="--clid=${test.clid.path}"
+               else="">
       <and>
         <not>
           <isset property="nuxeoctl.option.clid" />
