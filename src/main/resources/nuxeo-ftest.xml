@@ -356,6 +356,15 @@
         <isset property="mail.transport.password" />
       </or>
     </condition>
+    <property name="test.clid.path" value="/opt/build/hudson/instance.clid" />
+    <condition property="nuxeoctl.option.clid" value="--clid=${test.clid.path}">
+      <and>
+        <not>
+          <isset property="nuxeoctl.option.clid" />
+        </not>
+        <available file="${test.clid.path}" />
+      </and>
+    </condition>
   </target>
 
   <target name="debug" depends="_init">
@@ -1465,6 +1474,19 @@
 
   <target name="start" depends="_init,stop,start-unix,start-windows" />
   <target name="start-unix" if="osfamily-unix">
+    <if>
+      <available file="${nuxeo.data}/installAfterRestart.log" />
+      <then>
+        <echo level="info" message="Execute pending actions before start" />
+        <exec executable="${nuxeo.home}/bin/nuxeoctl"
+              spawn="false"
+              failonerror="true">
+          <arg value="mp-install" />
+          <arg value="${nuxeoctl.option.clid}" />
+          <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
+        </exec>
+      </then>
+    </if>
     <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="*.sh,*ctl" />
     <exec executable="${nuxeo.home}/bin/nuxeoctl"
           spawn="false"
@@ -1472,6 +1494,7 @@
           resultproperty="retcode">
       <arg value="start" />
       <arg value="--force" />
+      <arg value="${nuxeoctl.option.clid}" />
       <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
     <condition property="startup.failed" value="${retcode}">
@@ -1495,6 +1518,20 @@
     </exec>
   </target>
   <target name="start-windows" if="osfamily-windows">
+    <if>
+      <available file="${nuxeo.data}/installAfterRestart.log" />
+      <then>
+        <echo level="info" message="Execute pending actions before start" />
+        <exec executable="${nuxeo.home}/bin/nuxeoctl.bat"
+              spawn="false"
+              failonerror="true">
+          <arg value="--gui=false" />
+          <arg value="${nuxeoctl.option.clid}" />
+          <arg value="mp-install" />
+          <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
+        </exec>
+      </then>
+    </if>
     <exec executable="${nuxeo.home}/bin/nuxeoctl.bat"
           spawn="false"
           failonerror="false"
@@ -1502,6 +1539,7 @@
       <arg value="--gui=false" />
       <arg value="start" />
       <arg value="--force" />
+      <arg value="${nuxeoctl.option.clid}" />
       <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
     <condition property="startup.failed" value="${retcode}">
