@@ -1705,24 +1705,18 @@
     <if>
       <equals arg1="${wizard.preset}" arg2="nuxeo-dam" />
       <then>
-        <copy file="${nuxeo.data}/installAfterRestart-DAM.log"
-              tofile="${nuxeo.data}/installAfterRestart.log"
-              overwrite="true" />
+        <echo append="true"
+              file="${nuxeo.data}/installAfterRestart.log"
+              message="nuxeo-dam">
+        </echo>
       </then>
-      <elseif>
-        <equals arg1="${wizard.preset}" arg2="nuxeo-cmf" />
-        <then>
-          <copy file="${nuxeo.data}/installAfterRestart-CMF.log"
-                tofile="${nuxeo.data}/installAfterRestart.log"
-                overwrite="true" />
-        </then>
-      </elseif>
       <elseif>
         <equals arg1="${wizard.preset}" arg2="nuxeo-sc" />
         <then>
-          <copy file="${nuxeo.data}/installAfterRestart-SC.log"
-                tofile="${nuxeo.data}/installAfterRestart.log"
-                overwrite="true" />
+          <echo append="true"
+                file="${nuxeo.data}/installAfterRestart.log"
+                message="nuxeo-sc">
+          </echo>
         </then>
       </elseif>
     </if>
