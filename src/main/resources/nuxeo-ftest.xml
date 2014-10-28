@@ -356,7 +356,26 @@
         <isset property="mail.transport.password" />
       </or>
     </condition>
-    <property name="test.clid.path" value="/opt/build/hudson/instance.clid" />
+    <condition property="test.clid.path" value="${env.TEST_CLID_PATH}">
+      <and>
+        <not>
+          <isset property="test.clid.path" />
+        </not>
+        <isset property="env.TEST_CLID_PATH" />
+      </and>
+    </condition>
+    <if>
+      <not>
+        <isset property="test.clid.path" />
+      </not>
+      <then>
+        <condition property="test.clid.path"
+                   value="/opt/build/hudson/instance.clid"
+                   else="c:/instance.clid">
+          <isset property="osfamily-unix" />
+        </condition>
+      </then>
+    </if>
     <condition property="nuxeoctl.option.clid"
                value="--clid=${test.clid.path}"
                else="">
@@ -364,6 +383,7 @@
         <not>
           <isset property="nuxeoctl.option.clid" />
         </not>
+        <isset property="test.clid.path" />
         <available file="${test.clid.path}" />
       </and>
     </condition>
