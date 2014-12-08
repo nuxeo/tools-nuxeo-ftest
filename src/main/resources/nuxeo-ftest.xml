@@ -29,102 +29,8 @@
   <property name="oracle10g.driver.version" value="10.2.0.5" />
   <property name="oracle11g.driver.version" value="11.2.0.2" />
 
-  <target name="_init" unless="_init.done">
-    <property name="_init.done" value="true" />
-    <property environment="env" />
-
-    <if>
-      <or>
-        <and>
-          <isset property="maven.test.skip" />
-          <not>
-            <isfalse value="${maven.test.skip}" />
-          </not>
-        </and>
-        <and>
-          <isset property="skipTests" />
-          <not>
-            <isfalse value="${skipTests}" />
-          </not>
-        </and>
-        <and>
-          <isset property="skipITs" />
-          <not>
-            <isfalse value="${skipITs}" />
-          </not>
-        </and>
-      </or>
-      <then>
-        <nx:exit message="Tests are skipped." status="0" />
-      </then>
-    </if>
-
-    <condition property="osfamily-unix">
-      <os family="unix" />
-    </condition>
-    <condition property="osfamily-windows">
-      <os family="windows" />
-    </condition>
-    <condition property="is.jboss">
-      <isset property="maven.profile.jboss" />
-    </condition>
-    <condition property="is.ear">
-      <isset property="maven.profile.jbossear" />
-    </condition>
-    <condition property="is.tomcat">
-      <or>
-        <isset property="maven.profile.tomcat" />
-        <and>
-          <not>
-            <isset property="is.jboss" />
-          </not>
-          <not>
-            <isset property="is.ear" />
-          </not>
-        </and>
-      </or>
-    </condition>
-    <!-- Set nuxeo.home to NUXEO_HOME env property if defined,
-    else set to ${out.dir}/jboss if jboss Maven profile is active,
-    else set to ${out.dir}/tomcat -->
-    <condition property="nuxeo.home" value="${out.dir}/jboss">
-      <and>
-        <or>
-          <isset property="is.jboss" />
-          <isset property="is.ear" />
-        </or>
-        <not>
-          <isset property="env.NUXEO_HOME" />
-        </not>
-      </and>
-    </condition>
-    <condition property="nuxeo.home" value="${env.NUXEO_HOME}" else="${out.dir}/tomcat">
-      <isset property="env.NUXEO_HOME" />
-    </condition>
-    <condition property="no.download">
-      <or>
-        <isset property="zip.file" />
-        <isset property="env.NUXEO_HOME" />
-      </or>
-    </condition>
-    <!-- Set nuxeo.conf to NUXEO_CONF env property if defined,
-    else set to ${nuxeo.home}/bin/nuxeo.conf -->
-    <condition property="nuxeo.conf" value="${env.NUXEO_CONF}" else="${nuxeo.home}/bin/nuxeo.conf">
-      <isset property="env.NUXEO_CONF" />
-    </condition>
-    <!-- set nxserver dir for tomcat or jboss dir -->
-    <condition property="nuxeo.nxserver" value="${nuxeo.home}/server/default/deploy" else="${nuxeo.home}/nxserver">
-      <isset property="is.jboss" />
-    </condition>
-    <!-- set data dir for tomcat or jboss dir -->
-    <condition property="nuxeo.data"
-               value="${nuxeo.home}/server/default/data/NXRuntime/data"
-               else="${nuxeo.home}/nxserver/data">
-      <or>
-        <isset property="is.jboss" />
-        <isset property="is.ear" />
-      </or>
-    </condition>
+  <target name="_initdb" unless="_initdb.done">
+    <property name="_initdb.done" value="true" />
     <!-- Generate random id. It will be used
     when NX_DB_NAME, NX_DB_USER or NX_DB_PASS are not specified -->
     <math result="randomresult">
@@ -248,6 +154,105 @@
         <echo level="warning">Profile ${maven.dbprofile} is selected but database administration parameters are missing</echo>
       </then>
     </if>
+  </target>
+
+  <target name="_init" unless="_init.done" depends="_initdb">
+    <property name="_init.done" value="true" />
+    <property environment="env" />
+
+    <if>
+      <or>
+        <and>
+          <isset property="maven.test.skip" />
+          <not>
+            <isfalse value="${maven.test.skip}" />
+          </not>
+        </and>
+        <and>
+          <isset property="skipTests" />
+          <not>
+            <isfalse value="${skipTests}" />
+          </not>
+        </and>
+        <and>
+          <isset property="skipITs" />
+          <not>
+            <isfalse value="${skipITs}" />
+          </not>
+        </and>
+      </or>
+      <then>
+        <nx:exit message="Tests are skipped." status="0" />
+      </then>
+    </if>
+
+    <condition property="osfamily-unix">
+      <os family="unix" />
+    </condition>
+    <condition property="osfamily-windows">
+      <os family="windows" />
+    </condition>
+    <condition property="is.jboss">
+      <isset property="maven.profile.jboss" />
+    </condition>
+    <condition property="is.ear">
+      <isset property="maven.profile.jbossear" />
+    </condition>
+    <condition property="is.tomcat">
+      <or>
+        <isset property="maven.profile.tomcat" />
+        <and>
+          <not>
+            <isset property="is.jboss" />
+          </not>
+          <not>
+            <isset property="is.ear" />
+          </not>
+        </and>
+      </or>
+    </condition>
+    <!-- Set nuxeo.home to NUXEO_HOME env property if defined,
+    else set to ${out.dir}/jboss if jboss Maven profile is active,
+    else set to ${out.dir}/tomcat -->
+    <condition property="nuxeo.home" value="${out.dir}/jboss">
+      <and>
+        <or>
+          <isset property="is.jboss" />
+          <isset property="is.ear" />
+        </or>
+        <not>
+          <isset property="env.NUXEO_HOME" />
+        </not>
+      </and>
+    </condition>
+    <condition property="nuxeo.home" value="${env.NUXEO_HOME}" else="${out.dir}/tomcat">
+      <isset property="env.NUXEO_HOME" />
+    </condition>
+    <condition property="no.download">
+      <or>
+        <isset property="zip.file" />
+        <isset property="env.NUXEO_HOME" />
+      </or>
+    </condition>
+    <!-- Set nuxeo.conf to NUXEO_CONF env property if defined,
+    else set to ${nuxeo.home}/bin/nuxeo.conf -->
+    <condition property="nuxeo.conf" value="${env.NUXEO_CONF}" else="${nuxeo.home}/bin/nuxeo.conf">
+      <isset property="env.NUXEO_CONF" />
+    </condition>
+    <!-- set nxserver dir for tomcat or jboss dir -->
+    <condition property="nuxeo.nxserver" value="${nuxeo.home}/server/default/deploy" else="${nuxeo.home}/nxserver">
+      <isset property="is.jboss" />
+    </condition>
+    <!-- set data dir for tomcat or jboss dir -->
+    <condition property="nuxeo.data"
+               value="${nuxeo.home}/server/default/data/NXRuntime/data"
+               else="${nuxeo.home}/nxserver/data">
+      <or>
+        <isset property="is.jboss" />
+        <isset property="is.ear" />
+      </or>
+    </condition>
+
     <!-- metrics -->
     <condition property="metrics.tomcat.enabled" value="true" else="false">
       <isset property="is.tomcat" />
