@@ -31,6 +31,7 @@
 
   <target name="_initdb" unless="_initdb.done">
     <property name="_initdb.done" value="true" />
+    <property environment="env" />
     <!-- Generate random id. It will be used
     when NX_DB_NAME, NX_DB_USER or NX_DB_PASS are not specified -->
     <math result="randomresult">
@@ -158,8 +159,6 @@
 
   <target name="_init" unless="_init.done" depends="_initdb">
     <property name="_init.done" value="true" />
-    <property environment="env" />
-
     <if>
       <or>
         <and>
