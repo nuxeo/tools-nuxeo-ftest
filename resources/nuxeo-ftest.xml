@@ -1,0 +1,1416 @@
+<project name="nuxeo-ftest" xmlns:nx="urn:nuxeo-build" xmlns:artifact="urn:nuxeo-artifact">
+  <taskdef resource="org/nuxeo/build/antlib.xml" uri="urn:nuxeo-build" />
+  <taskdef resource="org/nuxeo/build/artifact/antlib.xml" uri="urn:nuxeo-artifact" />
+  <taskdef resource="net/sf/antcontrib/antlib.xml" />
+
+  <property name="nuxeoURL" value="http://localhost:8080/nuxeo/" />
+  <property name="browser" value="chrome" />
+  <property name="out.dir" value="${maven.project.build.directory}" />
+  <property name="jdbc.dir" value="${out.dir}/jdbc-libs" />
+  <property name="suites" value="null" />
+
+  <!-- FunkLoad support -->
+  <propertyregex property="nuxeoURLNoEndingSlash"
+                 input="${nuxeoURL}"
+                 regexp="(.*)/"
+                 select="\1"
+                 defaultValue="${nuxeoURL}" />
+  <property name="monitorConf" value="monitor.conf" />
+  <property name="credentialsConf" value="credential.conf" />
+
+  <!-- Oracle drivers are not available in public maven repositories.
+       They need to be available in a local/private repository -->
+  <property name="oracle10g.driver.version" value="10.2.0.5" />
+  <property name="oracle11g.driver.version" value="11.2.0.2" />
+
+  <target name="_initdb" unless="_initdb.done">
+    <property name="_initdb.done" value="true" />
+    <!-- Generate random id. It will be used
+         when NX_DB_NAME, NX_DB_USER or NX_DB_PASS are not specified -->
+    <math result="randomresult">
+      <op op="rint">
+        <op op="*">
+          <num value="999999" />
+          <op op="random" />
+        </op>
+      </op>
+    </math>
+    <propertyregex property="rndid" input="${randomresult}" regexp="([^\.]*)\.0" select="\1" />
+    <!-- put db profile used into a property for later use -->
+    <nx:profile name="pgsql">
+      <property name="maven.dbprofile" value="PGSQL" />
+    </nx:profile>
+    <nx:profile name="mssql">
+      <property name="maven.dbprofile" value="MSSQL" />
+    </nx:profile>
+    <nx:profile name="oracle10g">
+      <property name="maven.dbprofile" value="ORACLE10G" />
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <property name="maven.dbprofile" value="ORACLE11G" />
+    </nx:profile>
+    <nx:profile name="mysql">
+      <property name="maven.dbprofile" value="MYSQL" />
+    </nx:profile>
+    <!-- if NX_DB_SOMETHING is not defined,
+         try to fallback on NX_${maven.dbprofile}_DB_SOMETHING -->
+    <for list="HOST,PORT,NAME,USER,PASS,ADMINNAME,ADMINUSER,ADMINPASS" param="dbvar">
+      <sequential>
+        <if>
+          <and>
+            <not>
+              <isset property="env.NX_DB_@{dbvar}" />
+            </not>
+            <isset property="env.NX_${maven.dbprofile}_DB_@{dbvar}" />
+          </and>
+          <then>
+            <propertycopy property="env.NX_DB_@{dbvar}" from="env.NX_${maven.dbprofile}_DB_@{dbvar}" silent="false" />
+            <echo level="info">Using NX_${maven.dbprofile}_DB_@{dbvar} fallback for undefined NX_DB_@{dbvar}</echo>
+          </then>
+        </if>
+      </sequential>
+    </for>
+    <!-- set nuxeo.db.host to NX_DB_HOST env property if defined -->
+    <condition property="nuxeo.db.host" value="${env.NX_DB_HOST}">
+      <isset property="env.NX_DB_HOST" />
+    </condition>
+    <!-- set nuxeo.db.port to NX_DB_PORT env property if defined -->
+    <condition property="nuxeo.db.port" value="${env.NX_DB_PORT}">
+      <isset property="env.NX_DB_PORT" />
+    </condition>
+    <!-- set nuxeo.db.name to NX_DB_NAME env property if defined -->
+    <condition property="nuxeo.db.name" value="${env.NX_DB_NAME}" else="nxdbname${rndid}">
+      <isset property="env.NX_DB_NAME" />
+    </condition>
+    <!-- set nuxeo.db.user to NX_DB_USER env property if defined -->
+    <condition property="nuxeo.db.user" value="${env.NX_DB_USER}" else="nxdbuser${rndid}">
+      <isset property="env.NX_DB_USER" />
+    </condition>
+    <!-- set nuxeo.db.pass to NX_DB_PASS env property if defined -->
+    <condition property="nuxeo.db.pass" value="${env.NX_DB_PASS}" else="nxdbpass${rndid}">
+      <isset property="env.NX_DB_PASS" />
+    </condition>
+    <!-- set nuxeo.dbsetup.adminname to NX_DB_ADMINNAME env property if defined -->
+    <condition property="nuxeo.dbsetup.adminname" value="${env.NX_DB_ADMINNAME}">
+      <isset property="env.NX_DB_ADMINNAME" />
+    </condition>
+    <!-- set nuxeo.dbsetup.adminuser to NX_DB_ADMINUSER env property if defined -->
+    <condition property="nuxeo.dbsetup.adminuser" value="${env.NX_DB_ADMINUSER}">
+      <isset property="env.NX_DB_ADMINUSER" />
+    </condition>
+    <!-- set nuxeo.dbsetup.adminpass to NX_DB_ADMINPASS env property if defined -->
+    <condition property="nuxeo.dbsetup.adminpass" value="${env.NX_DB_ADMINPASS}">
+      <isset property="env.NX_DB_ADMINPASS" />
+    </condition>
+    <!-- set nuxeo.dbsetup.donuxeoconf to true if we have all the parameters
+         required by nuxeo -->
+    <condition property="nuxeo.dbsetup.donuxeoconf" value="true">
+      <and>
+        <isset property="nuxeo.db.host" />
+        <isset property="nuxeo.db.port" />
+        <isset property="nuxeo.db.name" />
+        <isset property="nuxeo.db.user" />
+        <isset property="nuxeo.db.pass" />
+      </and>
+    </condition>
+    <!-- set nuxeo.dbsetup.dodbconf to true if we have all the parameters
+         required by nuxeo and admin access to the database -->
+    <condition property="nuxeo.dbsetup.dodbconf" value="true">
+      <and>
+        <isset property="nuxeo.dbsetup.donuxeoconf" />
+        <isset property="nuxeo.dbsetup.adminname" />
+        <isset property="nuxeo.dbsetup.adminuser" />
+        <isset property="nuxeo.dbsetup.adminpass" />
+      </and>
+    </condition>
+    <!-- fail the build when a db profile is selected but db parameters
+         are missing -->
+    <fail message="${maven.dbprofile} is selected but database parameters are missing">
+      <condition>
+        <and>
+          <isset property="maven.dbprofile" />
+          <not>
+            <isset property="nuxeo.dbsetup.donuxeoconf" />
+          </not>
+        </and>
+      </condition>
+    </fail>
+    <!-- give a warning when a db profile is selected but db administration
+         parameters are missing -->
+    <if>
+      <and>
+        <isset property="maven.dbprofile" />
+        <not>
+          <isset property="nuxeo.dbsetup.dodbconf" />
+        </not>
+      </and>
+      <then>
+        <echo level="warning">Profile ${maven.dbprofile} is selected but database administration parameters are missing</echo>
+      </then>
+    </if>
+  </target>
+  
+  <target name="_initos.props" unless="_initos.done">
+    <property name="_initos.done" value="true"/>
+    <condition property="osfamily-unix">
+      <os family="unix" />
+    </condition>
+    <condition property="osfamily-windows">
+      <os family="windows" />
+    </condition>
+  </target>
+
+  <target name="_initos.windows" if="osfamily-windows" depends="_initos.props">
+    <property name="nuxeoctl" value="nuxeoctl.bat"/>
+  </target>
+
+  <target name="_initos.unix" if="osfamily-unix" depends="_initos.props">
+    <property name="nuxeoctl" value="nuxeoctl"/>
+  </target>
+
+  <target name="_initos" depends="_initos.windows,_initos.unix"/>
+
+  <target name="_init" unless="_init.done" depends="_initos,_initdb">
+    <property name="_init.done" value="true" />
+    <property environment="env" />
+
+    <if>
+      <or>
+        <and>
+          <isset property="maven.test.skip" />
+          <not>
+            <isfalse value="${maven.test.skip}" />
+          </not>
+        </and>
+        <and>
+          <isset property="skipTests" />
+          <not>
+            <isfalse value="${skipTests}" />
+          </not>
+        </and>
+        <and>
+          <isset property="skipITs" />
+          <not>
+            <isfalse value="${skipITs}" />
+          </not>
+        </and>
+      </or>
+      <then>
+        <nx:exit message="Tests are skipped." status="0" />
+      </then>
+    </if>
+
+    <condition property="run.cargo">
+      <equals arg1="${launcher}" arg2="cargo"/>
+    </condition>
+
+    <condition property="run.tomcat">
+      <not>
+        <isset property="run.cargo"/>
+      </not>
+    </condition>
+
+    <condition property="kill.tomcat">
+      <isset property="env.KILL_TOMCAT"/>
+    </condition>
+
+    <condition property="nuxeo.home" value="${env.NUXEO_HOME}" else="${out.dir}/tomcat">
+      <isset property="env.NUXEO_HOME" />
+    </condition>
+
+    <condition property="nuxeo.conf" value="${env.NUXEO_CONF}" else="${nuxeo.home}/bin/nuxeo.conf">
+      <isset property="env.NUXEO_CONF" />
+    </condition>
+
+    <property name="nuxeo.nxserver" value="${nuxeo.home}/nxserver" />
+    <property name="nuxeo.data" value="${nuxeo.home}/nxserver/data" />
+
+    <echo level="info" message="home = ${nuxeo.home}"/>
+
+    <condition property="no.prepare-launcher">
+      <or>
+        <isset property="env.NUXEO_HOME" />
+        <available property="launcher.exists" file="${nuxeo.home}"/>
+      </or>
+    </condition>
+
+
+    <!-- metrics -->
+    <condition property="metrics.tomcat.enabled" value="true" else="false">
+        <isset property="run.tomcat" />
+    </condition>
+    <condition property="metrics.graphite.enabled" value="true" else="false">
+      <isset property="env.NX_METRICS_GRAPHITE_HOST" />
+    </condition>
+    <condition property="metrics.graphite.host" value="${env.NX_METRICS_GRAPHITE_HOST}" else="localhost">
+      <isset property="env.NX_METRICS_GRAPHITE_HOST" />
+    </condition>
+    <condition property="metrics.graphite.port" value="${env.NX_METRICS_GRAPHITE_PORT}" else="2030">
+      <isset property="env.NX_METRICS_GRAPHITE_PORT" />
+    </condition>
+    <condition property="metrics.graphite.period" value="${env.NX_METRICS_GRAPHITE_PERIOD}" else="10">
+      <isset property="env.NX_METRICS_GRAPHITE_PERIOD" />
+    </condition>
+    <condition property="metrics.csv.enabled" value="true" else="false">
+      <isset property="env.NX_METRICS_CSV" />
+    </condition>
+    <condition property="metrics.csv.period" value="${env.NX_METRICS_CSV_PERIOD}" else="10">
+      <isset property="env.NX_METRICS_CSV_PERIOD" />
+    </condition>
+    <condition property="launcher.debug" value="${env.LAUNCHER_DEBUG}" else="">
+      <and>
+        <isset property="env.LAUNCHER_DEBUG" />
+        <not>
+          <isset property="launcher.debug" />
+        </not>
+      </and>
+    </condition>
+
+    <!-- Mail server -->
+    <condition property="mail.transport.host" value="${env.MAIL_TRANSPORT_HOST}">
+      <isset property="env.MAIL_TRANSPORT_HOST" />
+    </condition>
+    <condition property="mail.transport.port" value="${env.MAIL_TRANSPORT_PORT}">
+      <isset property="env.MAIL_TRANSPORT_PORT" />
+    </condition>
+    <condition property="mail.transport.protocol" value="${env.MAIL_TRANSPORT_PROTOCOL}">
+      <isset property="env.MAIL_TRANSPORT_PROTOCOL" />
+    </condition>
+    <condition property="mail.transport.usetls" value="${env.MAIL_TRANSPORT_USETLS}">
+      <isset property="env.MAIL_TRANSPORT_USETLS" />
+    </condition>
+    <condition property="mail.transport.auth" value="${env.MAIL_TRANSPORT_AUTH}">
+      <isset property="env.MAIL_TRANSPORT_AUTH" />
+    </condition>
+    <condition property="mail.transport.user" value="${env.MAIL_TRANSPORT_USER}">
+      <isset property="env.MAIL_TRANSPORT_USER" />
+    </condition>
+    <condition property="mail.transport.password" value="${env.MAIL_TRANSPORT_PASSWORD}">
+      <isset property="env.MAIL_TRANSPORT_PASSWORD" />
+    </condition>
+    <condition property="nuxeo.mailserver.set" value="true">
+      <or>
+        <isset property="mail.transport.port" />
+        <isset property="mail.transport.host" />
+        <isset property="mail.transport.protocol" />
+        <isset property="mail.transport.usetls" />
+        <isset property="mail.transport.auth" />
+        <isset property="mail.transport.user" />
+        <isset property="mail.transport.password" />
+      </or>
+    </condition>
+
+    <!-- connect id -->
+    <condition property="test.clid.path" value="${env.TEST_CLID_PATH}">
+      <and>
+        <not>
+          <isset property="test.clid.path" />
+        </not>
+        <isset property="env.TEST_CLID_PATH" />
+      </and>
+    </condition>
+    <if>
+      <not>
+        <isset property="test.clid.path" />
+      </not>
+      <then>
+        <condition property="test.clid.path" value="/opt/build/hudson/instance.clid" else="c:/instance.clid">
+          <isset property="osfamily-unix" />
+        </condition>
+      </then>
+    </if>
+    <condition property="nuxeoctl.option.clid" value="--clid=${test.clid.path}" else="">
+      <and>
+        <not>
+          <isset property="nuxeoctl.option.clid" />
+        </not>
+        <isset property="test.clid.path" />
+        <available file="${test.clid.path}" />
+      </and>
+    </condition>
+  </target>
+
+  <target name="debug" depends="_init">
+    <echoproperties />
+  </target>
+
+  <!-- prepare environment -->
+
+  <target name="prepare-monitor" if="osfamily-unix">
+    <nx:profile name="monitor">
+      <echo level="info">Prepare Monitoring...</echo>
+      <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="monitorctl.sh" />
+      <set-conf name="JAVA_OPTS" value="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=1089 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dorg.nuxeo.vcs.cache.statistics=true" />
+      <set-conf name="JAVA_OPTS" value="$JAVA_OPTS -Xloggc:${nuxeo.log.dir}/gc.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps" />
+      <nx:profile name="pgsql">
+        <set-conf name="PG_LOG" value="/var/log/pgsql" />
+      </nx:profile>
+      <set-conf name="metrics.log4j.enabled" value="true" />
+      <set-conf name="metrics.tomcat.enabled" value="${metrics.tomcat.enabled}" />
+      <set-conf name="metrics.graphite.enabled" value="${metrics.graphite.enabled}" />
+      <set-conf name="metrics.graphite.host" value="${metrics.graphite.host}" />
+      <set-conf name="metrics.graphite.port" value="${metrics.graphite.port}" />
+      <set-conf name="metrics.graphite.period" value="${metrics.graphite.period}" />
+      <set-conf name="metrics.csv.enabled" value="${metrics.csv.enabled}" />
+      <set-conf name="metrics.csv.period" value="${metrics.csv.period}" />
+    </nx:profile>
+  </target>
+
+  <macrodef name="prepare-bench">
+    <sequential>
+      <set-conf name="JAVA_OPTS" value="$JAVA_OPTS -Xms2g -Xmx2g -XX:MaxPermSize=512m" />
+      <set-conf name="nuxeo.db.min-pool-size" value="10" />
+      <set-conf name="nuxeo.vcs.min-pool-size" value="10" />
+      <set-conf name="nuxeo.db.max-pool-size" value="50" />
+      <set-conf name="nuxeo.vcs.max-pool-size" value="50" />
+      <echo level="info">Get importer version ${maven.project.version}</echo>
+      <copy todir="${nuxeo.nxserver}/plugins/">
+        <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-core:${maven.project.version}:jar" />
+        <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-jaxrs:${maven.project.version}:jar" />
+        <artifact:resolveFile key="org.nuxeo.ecm:nuxeo-drive-core:${maven.project.version}:jar" />
+        <artifact:resolveFile key="org.nuxeo.ecm:nuxeo-drive-jsf:${maven.project.version}:jar" />
+        <artifact:resolveFile key="org.nuxeo.ecm:nuxeo-drive-operations:${maven.project.version}:jar" />
+        <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-platform-login-token:${maven.project.version}:jar" />
+      </copy>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="build-funkload-report">
+    <attribute name="output-report" default="funkload"/>
+    <sequential>
+      <exec executable="fl-build-report" failonerror="false">
+        <arg line="--html ${resultFile} -r ${out.dir}/results/@{output-report}" />
+      </exec>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="monitor-start">
+    <sequential>
+      <monitor-exec action="start"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="monitor-stop">
+    <attribute name="output-report" default="monitoring"/>
+    <sequential>
+      <monitor-exec action="stop">
+        <post-hook>
+          <echo level="info">Building monitoring report</echo>
+          <exec executable="logchart" failonerror="false">
+            <arg line="${nuxeo.home}/log ${out.dir}/results/${output-report}" />
+          </exec>
+        </post-hook>
+      </monitor-exec>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="monitor-exec">
+    <attribute name="action"/>
+    <element name="pre-hook" optional="true"/>
+    <element name="post-hook" optional="true"/> 
+    <sequential>
+      <nx:profile name="monitor">
+        <sequential>
+          <pre-hook/>
+          <exec executable="${nuxeo.home}/bin/monitorctl.sh" spawn="false" failonerror="false">
+            <arg value="@{action}" />
+          </exec>
+          <post-hook/>
+        </sequential>
+      </nx:profile>
+    </sequential>
+  </macrodef>
+  
+  <macrodef name="funkload-ctl-daemons">
+    <attribute name="action"/>
+    <sequential>
+      <exec executable="fl-monitor-ctl" failonerror="false">
+        <arg value="${monitorConf}" />
+        <arg value="@{action}" />
+      </exec>
+      <exec executable="fl-credential-ctl" failonerror="true">
+        <arg value="${credentialsConf}" />
+        <arg value="@{action}" />
+      </exec>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="fl-run-suite">
+    <attribute name="suite"/>
+    <sequential>
+      <echo level="info">Suite: @{suite}</echo>
+      <echo level="info">Running: fl-run-test -v --simple-fetch @{suite} -u ${nuxeoURLNoEndingSlash} --no-color</echo>
+      <exec executable="fl-run-test" failonerror="false" resultProperty="exitCode">
+        <arg line="-v --simple-fetch @{suite} -u ${nuxeoURLNoEndingSlash} --no-color" />
+      </exec>
+      <math result="tmperr" operation="+" operand1="${errors}" operand2="${exitCode}" datatype="int" />
+      <var name="errors" value="${tmperr}" />
+      <if>
+        <not>
+          <equals arg1="${exitCode}" arg2="0" />
+        </not>
+        <then>
+          <var name="errmsg" value="${errmsg} @{suite}," />
+        </then>
+      </if>
+    </sequential>
+  </macrodef>
+  
+  <macrodef name="fl-run-tests">
+    <attribute name="suite"/>
+    <attribute name="tests"/>
+    <sequential>
+      <for list="@{tests}" param="test" delimiter=":" trim="true">
+        <sequential>
+          <echo level="info">Suite: @{suite} - Test: @{test}</echo>
+          <echo level="info">Running: fl-run-test -v --simple-fetch @{suite} -e @{test} -u ${nuxeoURLNoEndingSlash} --no-color</echo>
+          <exec executable="fl-run-test" failonerror="false" resultProperty="exitCode">
+            <arg line="-v --simple-fetch @{suite} -e @{test} -u ${nuxeoURLNoEndingSlash} --no-color" />
+          </exec>
+          <math result="tmperr" operation="+" operand1="${errors}" operand2="${exitCode}" datatype="int" />
+          <var name="errors" value="${tmperr}" />
+          <if>
+            <not>
+              <equals arg1="${exitCode}" arg2="0" />
+            </not>
+            <then>
+              <var name="errmsg" value="${errmsg} @{suite}:@{test}," />
+            </then>
+          </if>
+        </sequential>
+      </for>
+    </sequential>
+  </macrodef>
+
+  <target name="run-funkload-tests" depends="_init">
+    <!-- Run FunLoad tests -->
+    <mkdir dir="${out.dir}/results" />
+    <mkdir dir="${out.dir}/log" />
+    <var name="errors" value="0" />
+    <var name="errmsg" value="Tests in error: " />
+    <funkload-ctl-daemons action="start"/>
+    <monitor-start/>
+
+    <sleep seconds="5" />
+    
+    <!-- TESTS START -->
+    <for list="${funkload-tests}" param="funkload-test" trim="true">
+      <sequential>
+        <echo level="info">Handling list element: @{funkload-test}</echo>
+        <propertyregex property="flsuite" override="true" input="@{funkload-test}" regexp="([^\[]+).*" select="\1" />
+        <propertyregex property="fltests"
+                       override="true"
+                       input="@{funkload-test}"
+                       regexp=".+\[(.*)\]"
+                       select="\1"
+                       defaultValue="" />
+        <if>
+          <not>
+            <equals arg1="${fltests}" arg2="" />
+          </not>
+          <then>
+            <fl-run-tests suite="${flsuite" tests="${fltests"/>
+          </then>
+          <else>
+            <fl-run-suite suite="${flsuite}"/>
+          </else>
+        </if>
+      </sequential>
+    </for>
+    <!-- TESTS END -->
+    <monitor-stop/>
+    <funkload-ctl-daemons action="stop"/>
+    <!-- Set exit status -->
+    <propertyregex property="errormessage"
+                   override="true"
+                   input="${errmsg}"
+                   regexp="(.*),"
+                   select="\1"
+                   defaultValue="${errmsg}" />
+    <fail status="${errors}" message="${errormessage}">
+      <condition>
+        <not>
+          <equals arg1="${errors}" arg2="0" />
+        </not>
+      </condition>
+    </fail>
+  </target>
+  
+  <macrodef name="run-importer">
+    <sequential>
+      <!-- warm up -->
+      <exec executable="curl" failonerror="false">
+        <arg line="-s -v -u Administrator:Administrator" />
+        <arg line="${nuxeoURLNoEndingSlash}/site/randomImporter/run?targetPath=${load-path}&amp;batchSize=10&amp;nbThreads=1&amp;interactive=true&amp;nbNodes=5&amp;fileSizeKB=${load-fileSize}&amp;bulkMode=true&amp;onlyText=false" />
+      </exec>
+      <monitor-start/>
+      <exec executable="curl" failonerror="false">
+        <arg line="-s -v -u Administrator:Administrator" />
+        <arg line="${nuxeoURLNoEndingSlash}/site/randomImporter/run?targetPath=${load-path}&amp;batchSize=10&amp;nbThreads=${load-thread}&amp;interactive=true&amp;nbNodes=${load-nodes}&amp;fileSizeKB=${load-fileSize}&amp;bulkMode=true&amp;onlyText=false" />
+      </exec>
+      <monitor-stop output-report="${bench-name}/monitor"/>
+      <move todir="${out.dir}/results/${bench-name}">
+        <fileset dir="${nuxeo.nxserver}">
+          <include name="*.csv" />
+        </fileset>
+      </move>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="run-funkload-bench">
+    <attribute name="fl-suite" />
+    <attribute name="fl-test" />
+    <attribute name="fl-result" />
+    <attribute name="fl-options" default=""/>
+    <attribute name="bench-name" />
+    <sequential>
+      <mkdir dir="${out.dir}/results" />
+      <mkdir dir="${out.dir}/results/@{bench-name}" />
+      <mkdir dir="${out.dir}/log" />
+      <mkdir dir="${out.dir}/log/@{bench-name}" />
+      <var name="errors" value="0" />
+      <var name="errmsg" value="Tests in error: " />
+
+
+      <echo level="info">WARMUP --------------------</echo>
+      <exec executable="fl-run-bench" failonerror="false">
+        <arg line="-c 10 -f -D 30 -s 1 --simple-fetch -u ${nuxeoURLNoEndingSlash} --no-color  @{fl-suite} @{fl-test}" />
+      </exec>
+
+      <monitor-start/>
+      <echo level="info">BENCH: fl-run-bench @{fl-options} --simple-fetch -u ${nuxeoURLNoEndingSlash} --no-color  @{fl-suite} @{fl-test} --------------------</echo>
+      <exec executable="fl-run-bench" failonerror="false">
+        <arg line="@{fl-options} --simple-fetch -u ${nuxeoURLNoEndingSlash} --no-color  @{fl-suite} @{fl-test}" />
+      </exec>
+
+      <monitor-stop output-report="@{bench-name}/monitor"/>
+      <build-funkload-report resultFile="@{fl-result}" output-report="@{bench-name}/funkload" />
+    </sequential>
+  </macrodef>
+
+
+  <target name="run-funkload-benchs" depends="_init">
+    <!-- Run FunLoad bench -->
+    <mkdir dir="${out.dir}/results" />
+    <mkdir dir="${out.dir}/log" />
+    <var name="errors" value="0" />
+    <var name="errmsg" value="Tests in error: " />
+    
+    <funkload-ctl-daemons action="start"/>
+    <for list="${funkload-benchs}" param="bench-name" trim="true">
+      <sequential>
+        <mkdir dir="${out.dir}/results/@{bench-name}" />
+        <if>
+          <equals arg1="@{bench-name}" arg2="reader-memory" />
+          <then>
+            <copy file="${nuxeo.conf}" tofile="${nuxeo.conf}.bak" overwrite="true" />
+            <set-conf name="JAVA_OPTS" value="$JAVA_OPTS -Xms1g -Xmx1g -XX:MaxPermSize=512m" />
+          </then>
+        </if>
+        <execute-launcher command="restart"/> 
+        <if>
+          <equals arg1="@{bench-name}" arg2="init" />
+          <then>
+            <echo level="info">BENCH INIT --------------------</echo>
+            <!-- setup bench config used at the next restart -->
+            <prepare-bench/>
+            <!-- initialize user and rights -->
+            <fl-run-tests suite="test_nuxeo.py" tests="testInit"/>
+            <!-- Set exit status -->
+            <propertyregex property="errormessage"
+                           override="true"
+                           input="${errmsg}"
+                           regexp="(.*),"
+                           select="\1"
+                           defaultValue="${errmsg}" />
+            <fail status="${errors}" message="${errormessage}">
+              <condition>
+                <not>
+                  <equals arg1="${errors}" arg2="0" />
+                </not>
+              </condition>
+            </fail>
+            <!-- initialize drive -->
+            <fl-run-tests suite="test_drive.py" tests="testInit"/>
+            <propertyregex property="errormessage"
+                           override="true"
+                           input="${errmsg}"
+                           regexp="(.*),"
+                           select="\1"
+                           defaultValue="${errmsg}" />
+            <fail status="${errors}" message="${errormessage}">
+              <condition>
+                <not>
+                  <equals arg1="${errors}" arg2="0" />
+                </not>
+              </condition>
+            </fail>
+          </then>
+          <elseif>
+            <equals arg1="@{bench-name}" arg2="load" />
+            <then>
+              <echo level="info">BENCH LOAD DATA --------------------</echo>
+              <run-importer bench-name="@{bench-name}"/>
+            </then>
+          </elseif>
+          <elseif>
+            <equals arg1="@{bench-name}" arg2="writer-disk" />
+            <then>
+              <echo level="info">BENCH WRITER DISK --------------------</echo>
+              <run-funkload-bench fl-suite="test_nuxeo.py" fl-test="Nuxeo.testWriter" fl-result="${out.dir}/log/nuxeo-bench.xml" bench-name="@{bench-name}" />
+            </then>
+          </elseif>
+          <elseif>
+            <equals arg1="@{bench-name}" arg2="reader-cpu" />
+            <then>
+              <echo level="info">BENCH READER CPU --------------------</echo>
+              <run-funkload-bench fl-suite="test_nuxeo.py" fl-test="Nuxeo.testReader" fl-result="${out.dir}/log/nuxeo-bench.xml" bench-name="@{bench-name}" />
+            </then>
+          </elseif>
+          <elseif>
+            <equals arg1="@{bench-name}" arg2="reader-memory" />
+            <then>
+              <echo level="info">BENCH READER MEMORY --------------------</echo>
+              <run-funkload-bench fl-suite="test_nuxeo.py" fl-test="Nuxeo.testReader" fl-result="${out.dir}/log/nuxeo-bench.xml" bench-name="@{bench-name}" />
+              <copy file="${nuxeo.conf}.bak" tofile="${nuxeo.conf}" overwrite="true" />
+            </then>
+          </elseif>
+          <elseif>
+            <equals arg1="@{bench-name}" arg2="drive" />
+            <then>
+              <echo level="info">BENCH DRIVE --------------------</echo>
+              <run-funkload-bench fl-suite="test_drive.py" fl-test="Drive.testDrive" fl-result="${out.dir}/log/drive-bench.xml" bench-name="@{bench-name}" />
+            </then>
+          </elseif>
+          <else>
+            <echo level="error">Unknown bench task: @{bench-name}</echo>
+          </else>
+        </if>
+        <move file="${nuxeo.home}/log" todir="${out.dir}/results/@{bench-name}" />
+      </sequential>
+    </for>
+
+    <!-- TESTS END -->
+    <execute-launcher command="stop" />
+    <funkload-ctl-daemons action="stop"/>
+
+    <!-- Set exit status -->
+    <propertyregex property="errormessage"
+                   override="true"
+                   input="${errmsg}"
+                   regexp="(.*),"
+                   select="\1"
+                   defaultValue="${errmsg}" />
+    <fail status="${errors}" message="${errormessage}">
+      <condition>
+        <not>
+          <equals arg1="${errors}" arg2="0" />
+        </not>
+      </condition>
+    </fail>
+  </target>
+
+
+  <target name="prepare-launcher" depends="download-cap,unzip-local,oracle-lib,nuxeo-conf,fix-max-waits,mp-install" unless="no.prepare-launcher"/>
+
+  <target name="pgsql-dbdrop" depends="_init,setup-pgsql-driver" if="nuxeo.dbsetup.dodbconf">
+    <parallel threadCount="1" timeout="120000" failonany="true">
+      <sequential>
+        <sql driver="org.postgresql.Driver"
+             url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser}"
+             password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true">
+          <classpath>
+            <pathelement path="${classpath}" />
+            <fileset dir="${jdbc.dir}">
+              <include name="**/*.jar" />
+            </fileset>
+          </classpath>
+          DROP DATABASE IF EXISTS ${nuxeo.db.name};
+          DROP USER IF EXISTS ${nuxeo.db.user};
+        </sql>
+      </sequential>
+    </parallel>
+  </target>
+
+  <target name="pgsql-dbcreate" depends="_init,setup-pgsql-driver,pgsql-dbdrop" if="nuxeo.dbsetup.dodbconf">
+    <nx:profile name="pgsql">
+      <sql driver="org.postgresql.Driver"
+           url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+           userid="${nuxeo.dbsetup.adminuser}"
+           password="${nuxeo.dbsetup.adminpass}"
+           autocommit="true">
+        <classpath>
+          <pathelement path="${classpath}" />
+          <fileset dir="${jdbc.dir}">
+            <include name="**/*.jar" />
+          </fileset>
+        </classpath>
+        CREATE USER ${nuxeo.db.user} WITH PASSWORD '${nuxeo.db.pass}';
+        GRANT ${nuxeo.db.user} TO ${nuxeo.dbsetup.adminuser};
+        CREATE DATABASE ${nuxeo.db.name} OWNER ${nuxeo.db.user} ENCODING='UTF-8';
+      </sql>
+    </nx:profile>
+  </target>
+
+  <target name="mssql-dbdrop" depends="_init,setup-mssql-driver" if="nuxeo.dbsetup.dodbconf">
+    <parallel threadCount="1" timeout="120000" failonany="true">
+      <sequential>
+        <sql driver="net.sourceforge.jtds.jdbc.Driver"
+             url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser}"
+             password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true">
+          <classpath>
+            <pathelement path="${classpath}" />
+            <fileset dir="${jdbc.dir}">
+              <include name="**/*.jar" />
+            </fileset>
+          </classpath>
+          IF EXISTS(SELECT * FROM sys.databases WHERE NAME='${nuxeo.db.name}')
+          DROP DATABASE ${nuxeo.db.name};
+          IF EXISTS(SELECT * FROM sys.server_principals WHERE NAME='${nuxeo.db.user}' AND TYPE_DESC IN ('SQL_LOGIN'))
+          DROP LOGIN ${nuxeo.db.user};
+        </sql>
+      </sequential>
+    </parallel>
+  </target>
+
+  <target name="mssql-dbcreate" depends="_init,setup-mssql-driver,mssql-dbdrop" if="nuxeo.dbsetup.dodbconf">
+    <nx:profile name="mssql">
+      <sql driver="net.sourceforge.jtds.jdbc.Driver"
+           url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+           userid="${nuxeo.dbsetup.adminuser}"
+           password="${nuxeo.dbsetup.adminpass}"
+           autocommit="true">
+        <classpath>
+          <pathelement path="${classpath}" />
+          <fileset dir="${jdbc.dir}">
+            <include name="**/*.jar" />
+          </fileset>
+        </classpath>
+        CREATE LOGIN ${nuxeo.db.user} WITH PASSWORD='${nuxeo.db.pass}';
+        CREATE DATABASE ${nuxeo.db.name};
+        ALTER DATABASE ${nuxeo.db.name} COLLATE French_CS_AS;
+        ALTER DATABASE ${nuxeo.db.name} SET ALLOW_SNAPSHOT_ISOLATION ON;
+        ALTER DATABASE ${nuxeo.db.name} SET READ_COMMITTED_SNAPSHOT ON;
+        USE ${nuxeo.db.name};
+        CREATE USER ${nuxeo.db.user} FOR LOGIN ${nuxeo.db.user};
+        EXECUTE sp_addrolemember 'db_owner', ${nuxeo.db.user};
+      </sql>
+    </nx:profile>
+  </target>
+
+  <target name="oracle-dbdrop" depends="_init,setup-oracle-driver" if="nuxeo.dbsetup.dodbconf">
+    <parallel threadCount="1" timeout="120000" failonany="true">
+      <sequential>
+        <sql driver="oracle.jdbc.OracleDriver"
+             url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser} as sysdba"
+             password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true"
+             delimiter="--next--">
+          <classpath>
+            <pathelement path="${classpath}" />
+            <fileset dir="${jdbc.dir}">
+              <include name="**/*.jar" />
+            </fileset>
+          </classpath>
+          DECLARE
+          num number:=0;
+          drop_stmt VARCHAR2(200);
+          BEGIN
+          SELECT COUNT(*) INTO num FROM dba_users WHERE username = UPPER('${nuxeo.db.user}');
+          IF num &lt;&gt; 0 THEN
+          EXECUTE IMMEDIATE 'DROP USER ${nuxeo.db.user} CASCADE';
+          END IF;
+          EXCEPTION
+          WHEN OTHERS THEN
+          raise_application_error(-20001,'An error was encountered - '||SQLCODE||' -ERROR- '||SQLERRM);
+          END;
+        </sql>
+      </sequential>
+    </parallel>
+  </target>
+
+  <target name="oracle-dbcreate" depends="_init,setup-oracle-driver,oracle-dbdrop" if="nuxeo.dbsetup.dodbconf">
+    <oracle-execute profile="oracle10g"/>
+    <oracle-execute profile="oracle11g"/>
+  </target>
+  
+  <macrodef name="oracle-execute">
+    <attribute name="profile"/>
+    <element name="statements"/>
+    <sequential>
+      <nx:profile name="@{profile}">
+        <sql driver="oracle.jdbc.OracleDriver"
+             url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser} as sysdba"
+             password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true">
+          <classpath>
+            <pathelement path="${classpath}" />
+            <fileset dir="${jdbc.dir}">
+              <include name="**/*.jar" />
+            </fileset>
+          </classpath>
+          CREATE USER ${nuxeo.db.user} IDENTIFIED BY ${nuxeo.db.pass};
+          GRANT EXECUTE ON SYS.DBMS_CRYPTO TO ${nuxeo.db.user};
+          GRANT SELECT ON SYS.V_$$SESSION TO ${nuxeo.db.user};
+          GRANT SELECT ON SYS.GV_$$SESSION TO ${nuxeo.db.user};
+          GRANT CONNECT TO ${nuxeo.db.user};
+          GRANT RESOURCE TO ${nuxeo.db.user};
+        </sql>
+      </nx:profile>
+    </sequential>
+  </macrodef>
+
+  <target name="mysql-dbdrop" depends="_init,setup-mysql-driver" if="nuxeo.dbsetup.dodbconf">
+    <nx:profile name="mysql">
+      <parallel threadCount="1" timeout="120000" failonany="true">
+        <sequential>
+          <sql driver="com.mysql.jdbc.Driver"
+               url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+               userid="${nuxeo.dbsetup.adminuser}"
+               password="${nuxeo.dbsetup.adminpass}"
+               autocommit="true">
+            <classpath>
+              <pathelement path="${classpath}" />
+              <fileset dir="${jdbc.dir}">
+                <include name="**/*.jar" />
+              </fileset>
+            </classpath>
+            GRANT USAGE on *.* TO ${nuxeo.db.user}@'%';
+            DROP USER ${nuxeo.db.user};
+            DROP DATABASE IF EXISTS ${nuxeo.db.name}
+          </sql>
+        </sequential>
+      </parallel>
+    </nx:profile>
+  </target>
+
+  <target name="mysql-dbcreate" depends="_init,setup-mysql-driver,mysql-dbdrop" if="nuxeo.dbsetup.dodbconf">
+    <nx:profile name="mysql">
+      <sql driver="com.mysql.jdbc.Driver"
+           url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+           userid="${nuxeo.dbsetup.adminuser}"
+           password="${nuxeo.dbsetup.adminpass}"
+           autocommit="true">
+        <classpath>
+          <pathelement path="${classpath}" />
+          <fileset dir="${jdbc.dir}">
+            <include name="**/*.jar" />
+          </fileset>
+        </classpath>
+        CREATE DATABASE ${nuxeo.db.name} CHARACTER SET UTF8;;
+        GRANT ALL ON ${nuxeo.db.name}.* TO '${nuxeo.db.user}'@'%' IDENTIFIED BY '${nuxeo.db.pass}';
+        FLUSH PRIVILEGES;
+      </sql>
+    </nx:profile>
+  </target>
+
+  <target name="setup-pgsql-driver" depends="_init">
+    <nx:profile name="pgsql">
+      <copy todir="${jdbc.dir}">
+        <artifact:resolveFile key="postgresql:postgresql::jar" />
+      </copy>
+    </nx:profile>
+  </target>
+
+  <target name="setup-mssql-driver" depends="_init">
+    <nx:profile name="mssql"> 
+      <copy todir="${jdbc.dir}">
+        <artifact:resolveFile key="net.sourceforge.jtds:jtds::jar" />
+      </copy>
+    </nx:profile>
+  </target>
+
+  <target name="setup-oracle-driver" depends="_init">
+    <nx:profile name="oracle10g">
+      <copy todir="${jdbc.dir}">
+        <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
+      </copy>
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <copy todir="${jdbc.dir}">
+        <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
+      </copy>
+    </nx:profile>
+  </target>
+
+  <target name="setup-mysql-driver" depends="_init">
+    <nx:profile name="mysql"> 
+      <copy todir="${jdbc.dir}">
+        <artifact:resolveFile key="mysql:mysql-connector-java::jar" />
+      </copy>
+    </nx:profile>
+  </target>
+
+  <target name="prepare-db" depends="_init,cleanup-db,pgsql-dbcreate,mssql-dbcreate,oracle-dbcreate" if="nuxeo.dbsetup.dodbconf"/>
+
+  <target name="cleanup-db" depends="_init,pgsql-dbdrop,mssql-dbdrop,oracle-dbdrop,mysql-dbdrop" if="nuxeo.dbsetup.dodbconf">
+    <delete dir="${jdbc.dir}"/>
+  </target>
+
+  <target name="setup-mail-server"
+          if="nuxeo.mailserver.set"
+          unless="no.prepare-launcher"
+          depends="_init"
+          description="Set mail transport properties in ${nuxeo.conf} if set.">
+    <if>
+      <isset property="mail.transport.port" />
+      <then>
+        <set-conf name="mail.transport.port" value="${mail.transport.port}" />
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.host" />
+      <then>
+        <set-conf name="mail.transport.host" value="${mail.transport.host}" />
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.protocol" />
+      <then>
+        <set-conf name="mail.transport.protocol" value="${mail.transport.protocol}" />
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.usetls" />
+      <then>
+        <set-conf name="mail.transport.usetls" value="${mail.transport.usetls}" />
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.auth" />
+      <then>
+        <set-conf name="mail.transport.auth" value="${mail.transport.auth}" />
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.user" />
+      <then>
+        <set-conf name="mail.transport.user" value="${mail.transport.user}" />
+      </then>
+    </if>
+    <if>
+      <isset property="mail.transport.password" />
+      <then>
+        <set-conf name="mail.transport.password" value="${mail.transport.password}" />
+      </then>
+    </if>
+  </target>
+
+  <target name="prepare-environment" depends="_init,prepare-db,prepare-launcher"
+          description="prepare all ressources for test"/>
+
+  <target name="cleanup-environment" depends="_init,cleanup-db" />
+
+  <target name="download-cap" unless="no.prepare-launcher">
+    <download groupId="org.nuxeo.ecm.distribution" artifactId="nuxeo-distribution-tomcat" classifier="nuxeo-cap"/>
+  </target>
+
+  <target name="oracle-lib" unless="no.prepare-launcher">
+    <nx:profile name="oracle10g">
+      <copy todir="${nuxeo.home}/lib/">
+        <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
+      </copy>
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <copy todir="${nuxeo.home}/lib/">
+        <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
+      </copy>
+    </nx:profile>
+  </target>
+
+  <macrodef name="download">
+    <attribute name="groupId"/>
+    <attribute name="artifactId"/>
+    <attribute name="classifier"/>
+    <sequential>
+      <echo level="info" message="Downloading @{groupId}:@{artifactId}::zip:@{classifier}" />
+      <delete failonerror="false" dir="${nuxeo.home}" />
+      <unzip dest="${nuxeo.home}/">
+        <artifact:resolveFile key="@{groupId}:@{artifactId}::zip:@{classifier}" />
+        <cutdirsmapper dirs="1" />
+      </unzip>
+      <if>
+        <equals arg1="${osfamily-unix}" arg2="true"/>
+        <then>
+          <chmod dir="${nuxeo.home}/bin" perm="ug+x" includes="*.sh,*ctl" />
+        </then>
+      </if>
+    </sequential>
+  </macrodef>
+  
+  <target name="unzip-local" if="zip.file" unless="no.prepare-launcher">
+    <echo level="info" message="Using local archive ${zip.file}" />
+    <delete failonerror="false" dir="${nuxeo.home}" />
+    <unzip dest="${nuxeo.home}/" src="${zip.file}">
+      <cutdirsmapper dirs="1" />
+    </unzip>
+  </target>
+
+  <target name="prepare-selenium" description="prepare Selenium files for tests">
+    <copy tofile="${out.dir}/selenium-server.jar">
+      <artifact:resolveFile key="org.seleniumhq.selenium:selenium-server-standalone::jar" />
+    </copy>
+    <echo level="info">Replace local folder in user-extensions.js</echo>
+    <path id="data.dir.path">
+      <pathelement location="data" />
+    </path>
+    <pathconvert refid="data.dir.path" property="data.dir.path.for.currentos" />
+    <copy file="${out.dir}/user-extensions.js.sample" tofile="${out.dir}/user-extensions.js" overwrite="true" />
+    <echo level="info">Set into user-extensions-browser.js project path ${data.dir.path.for.currentos}</echo>
+    <user-extensions/>
+    <echo level="info">Replace url in prefs.js</echo>
+    <copy file="${out.dir}/ffprofile/prefs.js.sample" tofile="${out.dir}/ffprofile/prefs.js" overwrite="true" />
+    <replace file="${out.dir}/ffprofile/prefs.js" token="ApplicationServerURL" value="${nuxeoURL}" />
+  </target>
+
+  <macrodef name="user-extensions">
+    <sequential>
+      <replace file="${out.dir}/user-extensions.js"
+               token="/path/to/project-ear/ftest/selenium/data/"
+               value="${data.dir.path.for.currentos}${file.separator}" />
+      <replace file="${out.dir}/user-extensions.js" token="out.dir" value="${out.dir}" />
+      <if>
+        <os family="windows"/>
+        <then>
+          <replace file="${out.dir}/user-extensions.js" token="\" value="\\" />
+        </then>
+      </if>
+    </sequential>
+  </macrodef>
+
+  <target name="prepare-and-start" depends="_init,prepare-environment,start"/>
+
+  <target name="start" depends="_init" if="run.tomcat">
+    <execute-launcher-failsafe command="restart"/>
+  </target>
+
+  <target name="stop-and-cleanup" depends="_init,stop,cleanup-environment"/>
+
+  <target name="stop" depends="_init" if="run.tomcat">
+    <execute-launcher-failsafe command="stop"/>
+  </target>
+
+  <target name="wizard-on" depends="_init" description="DEPRECATED: call set-conf instead.">
+    <echo append="true" file="${nuxeo.conf}">nuxeo.wizard.done=false${line.separator}</echo>
+  </target>
+  <target name="wizard-off" depends="_init" description="DEPRECATED: call set-conf instead.">
+    <echo append="true" file="${nuxeo.conf}">nuxeo.wizard.done=true${line.separator}</echo>
+  </target>
+
+  <target name="check-set-wizard" if="nuxeo.wizard.done" depends="_init" unless="no.prepare-launcher">
+    <echo level="info" message="Setting nuxeo.wizard.done=${nuxeo.wizard.done}" />
+    <set-conf name="nuxeo.wizard.done" value="${nuxeo.wizard.done}" />
+  </target>
+
+  <target name="set-java-home"
+          if="env.NX_JAVA_HOME"
+          depends="_init"
+          description="Set JAVA_HOME in ${nuxeo.conf} with env.NX_JAVA_HOME value, if defined." unless="no.prepare-launcher">
+    <set-conf name="JAVA_HOME" value="${env.NX_JAVA_HOME}" />
+    <echo level="info" message="Using JAVA_HOME=${env.NX_JAVA_HOME}" />
+  </target>
+
+  <target name="fix-max-waits" depends="_init" description="Increase default time to wait for server to stop" unless="no.prepare-launcher">
+    <set-conf name="launcher.start.max.wait" value="300" />
+    <set-conf name="launcher.stop.max.wait" value="300" />
+  </target>
+
+  <target name="set-nuxeoconf-db" depends="_init" if="nuxeo.dbsetup.donuxeoconf" unless="no.prepare-launcher">
+    <nx:profile name="pgsql">
+      <set-conf name="nuxeo.template" value="postgresql"/>
+    </nx:profile>
+    <nx:profile name="mssql">
+      <set-conf name="nuxeo.template" value="mssql"/>
+    </nx:profile>
+    <nx:profile name="oracle10g">
+      <set-conf name="nuxeo.template" value="oracle"/>
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <set-conf name="nuxeo.template" value="oracle11g"/>
+    </nx:profile>
+    <nx:profile name="mysql">
+      <set-conf name="nuxeo.template" value="mysql"/>
+    </nx:profile>
+    <set-conf name="nuxeo.db.host" value="${nuxeo.db.host}"/>
+    <set-conf name="nuxeo.db.port" value="${nuxeo.db.port}"/>
+    <set-conf name="nuxeo.db.name" value="${nuxeo.db.name}"/>
+    <set-conf name="nuxeo.db.user" value="${nuxeo.db.user}"/>
+    <set-conf name="nuxeo.db.password" value="${nuxeo.db.pass}"/>
+  </target>
+
+  <target name="nuxeo-conf"
+          depends="_init,set-java-home,check-set-wizard,set-nuxeoconf-db,setup-mail-server"
+          description="Configure ${nuxeo.conf} depending on environment values." unless="no.prepare-launcher">
+    <!-- activate logs for Selenium tests -->
+    <set-conf name="org.nuxeo.systemlog.token" value="dolog"/>
+    <!-- activate tester name -->
+    <set-conf name="org.nuxeo.ecm.tester.name" value="Nuxeo-Selenium-Tester"/>
+  </target>
+
+  <target name="set-conf" depends="_init" description="Add property to ${nuxeo.conf} with ${name}=${value}">
+    <set-conf name="${name}" value="${value}"/>
+  </target>
+
+  <macrodef name="set-conf">
+    <attribute name="name"/>
+    <attribute name="value"/>
+    <sequential>
+      <echo append="true" file="${nuxeo.conf}">@{name}=@{value}${line.separator}</echo>
+    </sequential>
+  </macrodef>
+
+  <target name="activate-wizard-preset"
+          depends="_init"
+          if="wizard.preset"
+          description="Activate the configured wizard preset.">
+    <if>
+      <equals arg1="${wizard.preset}" arg2="nuxeo-dam" />
+      <then>
+        <echo append="true" file="${nuxeo.data}/installAfterRestart.log" message="nuxeo-dam">
+        </echo>
+      </then>
+      <elseif>
+        <equals arg1="${wizard.preset}" arg2="nuxeo-sc" />
+        <then>
+          <echo append="true" file="${nuxeo.data}/installAfterRestart.log" message="nuxeo-sc">
+          </echo>
+        </then>
+      </elseif>
+    </if>
+    <echo file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties"
+          message="preset=${wizard.preset}" />
+  </target>
+
+  <macrodef name="execute-launcher">
+    <attribute name="command"/>
+    <attribute name="command-opt" default=""/>
+    <attribute name="nuxeoctl.option.clid" default=""/>
+    <sequential>
+      <echo level="info" message="Execute launcher command @{command}" />
+      <exec executable="${nuxeo.home}/bin/${nuxeoctl}" spawn="false" failonerror="true" resultproperty="retcode">
+        <arg value="--gui=false"/>
+        <arg value="@{command}" />
+        <arg value="@{command-opt}"/>
+        <arg value="@{nuxeoctl.option.clid}" />
+        <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
+      </exec>
+      <condition property="launcher-command.failed" value="${retcode}">
+        <not>
+          <equals arg1="${retcode}" arg2="0" />
+        </not>
+      </condition>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="execute-launcher-failsafe">
+    <attribute name="command"/>
+    <sequential>
+      <execute-launcher command="@{command}"/> 
+      <if>
+        <not>
+          <equals arg1="${retcode}" arg2="0" />
+        </not>
+        <then>
+          <execute-launcher command="stop"/>
+          <if>
+            <not>
+              <equals arg1="${retcode}" arg2="0" />
+            </not>
+            <then>
+              <kill-tomcat/>
+            </then>
+          </if>
+        </then>
+      </if>
+    </sequential>
+  </macrodef>
+
+  <target name="mp-install" depends="_init" if="mp.install" unless="no.prepare-launcher" description="Install comma-separated Marketplace packages">
+    <for list="${mp.install}" param="package" delimiter="," trim="true">
+      <sequential>
+        <echo append="true" file="${nuxeo.data}/installAfterRestart.log" message="@{package}"/>
+      </sequential>
+    </for>
+    <if>
+      <available file="${nuxeo.data}/installAfterRestart.log" />
+      <then>
+        <execute-launcher command="mp-install"/>
+      </then>
+    </if>
+  </target>
+
+  <target name="pack-war" depends="_init,prepare-environment,pre-pack-war,body-pack-war,post-pack-war"/>
+
+  <target name="pre-pack-war">
+    <condition property="war.exists">
+      <available file="${out.dir}/nuxeo.war"/>
+    </condition>
+  </target>
+
+  <target name="body-pack-war" unless="war.exists">
+    <delete file="${out.dir}/pack.zip"/>
+    <delete dir="${out.dir}/nuxeo"/>
+    <execute-launcher command="pack" command-opt="${out.dir}/pack.zip"/>
+    <unzip dest="${out.dir}/nuxeo" src="${out.dir}/pack.zip">
+      <patternset>
+        <include name="webapps/nuxeo/**"/>
+      </patternset>
+      <cutdirsmapper dirs="2"/>
+    </unzip>
+    <unzip dest="${out.dir}/nuxeo/WEB-INF/lib" src="${out.dir}/pack.zip">
+      <patternset>
+        <include name="lib/**"/>
+        <include name="endorsed/**"/>
+      </patternset>
+      <cutdirsmapper dirs="1"/>
+    </unzip>
+    <delete file="${out.dir}/pack.zip"/>
+    <zip destfile="${out.dir}/nuxeo.war">
+      <fileset dir="${out.dir}/nuxeo"/>
+    </zip>
+    <artifact:attach file="${out.dir}/nuxeo.war" 
+                     type="war"/>
+  </target>
+
+  <target name="post-pack-war"/>
+
+  <macrodef name="kill-tomcat">
+    <sequential>
+      <exec executable="${env.JAVA_HOME}/bin/jps">
+        <arg value="-l" />
+        <redirector outputproperty="tomcat.pid">
+          <outputfilterchain>
+            <prefixlines prefix=" " />
+            <linecontains>
+              <contains value="org.apache.catalina.startup.Bootstrap" />
+            </linecontains>
+            <replacestring from=" org.apache.catalina.startup.Bootstrap" />
+            <striplinebreaks />
+            <trim />
+          </outputfilterchain>
+        </redirector>
+      </exec>
+      <for list="${tomcat.pid}" delimiter=" " param="pid">
+        <sequential>
+          <echo message="Terminating pid @{pid}" />
+          <exec executable="kill" osfamily="unix">
+            <arg value="-9" />
+            <arg value="@{pid}" />
+          </exec>
+          <exec executable="taskkill" osfamily="windows">
+            <arg value="/f" />
+            <arg value="/t" />
+            <arg value="/pid" />
+            <arg value="@{pid}" />
+          </exec>
+        </sequential>
+      </for>
+    </sequential>
+  </macrodef>
+
+  <target name="kill-tomcat" depends="_init" if="kill.tomcat">
+    <kill-tomcat/>
+  </target>
+
+    <macrodef name="selenium-run-suite">
+      <attribute name="javaopts"/>
+      <attribute name="suite"/>
+      <attribute name="browser"/>
+      <attribute name="browser-args" />
+      <attribute name="out"/>
+      <attribute name="startURL"/>
+      <sequential>
+        <echo level="info">Suite: @{suite} (@{browser} @{browser-args} @{startURL} -> @{out}/selenium-debug-@{suite}.log)</echo>
+        <exec executable="java" output="@{out}/selenium-@{suite}.log" resultproperty="exitCode" failonerror="false">
+          <arg line="@{javaopts}"/>
+          <arg line="-jar @{out}/selenium-server.jar" />
+          <arg line="-log @{out}/selenium-debug-@{suite}.log" />
+          <arg line="-port 14440" />
+          <arg line="-timeout 7200" />
+          <arg line="-userExtensions @{out}/user-extensions.js" />
+          <arg line="-htmlSuite @{browser} @{startURL}" />
+          <arg line="tests/@{suite}.html" />
+          <arg line="@{out}/results/result-@{suite}.html" />
+          <arg line="@{browser-args}" />
+        </exec>
+        <math result="tmperr" operation="+" operand1="${errors}" operand2="${exitCode}" datatype="int" />
+        <var name="errors" value="${tmperr}" />
+        <if>
+          <not>
+            <equals arg1="${exitCode}" arg2="0" />
+          </not>
+          <then>
+            <var name="errmsg" value="${errmsg} @{suite}," />
+          </then>
+        </if>
+      </sequential>
+    </macrodef>
+    
+    <target name="run-selenium" depends="_init,prepare-selenium">
+      <if>
+        <or>
+          <equals arg1="${browser}" arg2="chrome" />
+          <equals arg1="${browser}" arg2="firefox-3.6" />
+        </or>
+        <then>
+          <property name="selbrowser" value="*chrome" />
+          <property name="selbrowser.args" value="-firefoxProfileTemplate ${out.dir}/ffprofile" />
+          <condition property="seljavaopts" value="-DfirefoxDefaultPath=${webdriver.firefox.bin}" else="">
+            <isset property="webdriver.firefox.bin"/>
+          </condition>
+        </then>
+        <elseif>
+          <equals arg1="${browser}" arg2="googlechrome" />
+          <then>
+            <property name="selbrowser" value="*googlechrome" />
+            <property name="selbrowser.args" value="" />
+            <condition property="seljavaopts" value="-DfirefoxDefaultPath=${webdriver.chrome.bin}" else="">
+              <isset property="webdriver.chrome.bin"/>
+            </condition>
+          </then>
+        </elseif>
+        <else>
+          <property name="selbrowser" value="'*${browser}'" />
+          <property name="selbrowser.args" value="" />
+          <property name="seljavaopts" value="" />
+        </else>
+      </if>
+
+      <mkdir dir="${out.dir}/results" />
+
+      <var name="errors" value="0" />
+      <var name="errmsg" value="Suites in error: " />
+      <for list="${suites}" param="suite">
+        <sequential>
+          <selenium-run-suite javaopts="${seljavaopts}"
+                              suite="@{suite}" 
+                              browser="${selbrowser}"
+                              browser-args="${selbrowser.args}"
+                              out="${out.dir}"
+                              startURL="${nuxeoURL}"/>
+        </sequential>
+      </for>
+
+      <propertyregex property="errormessage"
+                     override="true"
+                     input="${errmsg}"
+                     regexp="(.*),"
+                     select="\1"
+                     defaultValue="${errmsg}" />
+
+      <fail status="${errors}" message="${errormessage}">
+        <condition>
+          <not>
+            <equals arg1="${errors}" arg2="0" />
+          </not>
+        </condition>
+      </fail>
+    </target>
+
+  </project>

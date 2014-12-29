@@ -1,0 +1,29 @@
+<project>
+
+  <!-- 
+   mvn -Dlauncher=cargo -Dcontainer=tomcat7x -DbuildFile=itests.xml
+   mvn -Dlauncher=nuxeoctl -DbuildFile=itests.xml
+    -->
+
+  <tiles>
+    <tile>org.nuxeo.build:nuxeo-ftest-nuxeoctl-tile:1.7.17-SNAPSHOT</tile>
+    <tile>org.nuxeo.build:nuxeo-ftest-cargo-tile:1.7.17-SNAPSHOT</tile>
+  </tiles>
+
+  <properties>
+    <buildFile>itests.xml</buildFile>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.nuxeo.build</groupId>
+        <artifactId>ant-assembly-maven-plugin</artifactId>
+        <configuration>
+          <buildFile>${buildFile}</buildFile>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

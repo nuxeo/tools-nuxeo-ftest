@@ -1,0 +1,37 @@
+<project>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.tomcat.maven</groupId>
+        <artifactId>tomcat7-maven-plugin</artifactId>
+        <version>2.1</version>
+        <executions>
+          <execution>
+            <id>start</id>
+            <goals>
+              <goal>exec-war-only</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <warRunDependencies>
+                <warRunDependency>
+                  <dependency>
+                    <groupId>org.nuxeo.build</groupId>
+                    <artifactId>test1</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>web</classifier>
+                    <type>war</type>
+                  </dependency>
+                  <contextPath>/nuxeo</contextPath>
+                </warRunDependency>
+              </warRunDependencies>
+              <enableNaming>true</enableNaming>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

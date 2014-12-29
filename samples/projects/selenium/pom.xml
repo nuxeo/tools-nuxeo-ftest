@@ -1,0 +1,64 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.nuxeo.ecm.distribution</groupId>
+    <artifactId>nuxeo-distribution</artifactId>
+    <version>@nuxeo.version@</version>
+  </parent>
+
+  <groupId>sandbox.ftest</groupId>
+  <artifactId>ftest-sample-selenium</artifactId>
+  <version>0.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Utility POM for running Selenium tests</name>
+  <description>This POM uses an assembly for running functional tests.</description>
+
+  <properties>
+    <buildFile>itests.xml</buildFile>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.repaint.maven</groupId>
+        <artifactId>tiles-maven-plugin</artifactId>
+        <configuration>
+          <tiles>
+            <tile>org.nuxeo.build:nuxeo-ftest-launcher-tile:[1.7,)</tile>
+            <tile>org.nuxeo.build:nuxeo-ftest-selenium-tile:[1.7,)</tile>
+          </tiles>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+<!-- TODO profiles ??? -->
+
+  <profiles>
+    <profile>
+      <id>tomcat</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+    </profile>
+    <profile>
+      <id>jboss</id>
+    </profile>
+    <profile>
+      <id>pgsql</id>
+    </profile>
+    <profile>
+      <id>mssql</id>
+    </profile>
+    <profile>
+      <id>oracle10g</id>
+    </profile>
+    <profile>
+      <id>oracle11g</id>
+    </profile>
+    <profile>
+      <id>mysql</id>
+    </profile>
+  </profiles>
+</project>

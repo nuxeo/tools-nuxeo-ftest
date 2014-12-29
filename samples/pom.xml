@@ -1,0 +1,88 @@
+<project>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.nuxeo.build</groupId>
+    <artifactId>nuxeo-ftest-parent</artifactId>
+    <version>2.0-SNAPSHOT</version>
+    <relativePath>..</relativePath>
+  </parent>
+
+  <artifactId>nuxeo-ftest-samples</artifactId>
+  <packaging>pom</packaging>
+
+  <properties>
+    <nuxeo.version>7.1-SNAPSHOT</nuxeo.version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <configuration>
+          <projectsDirectory>projects</projectsDirectory>
+          <cloneProjectsTo>${project.build.directory}</cloneProjectsTo>
+          <profiles>
+            <profile>it-repo</profile>
+          </profiles>
+         <localRepositoryPath>target/local-repo</localRepositoryPath>
+          <settingsFile>settings.xml</settingsFile>
+          <addTestClassPath>true</addTestClassPath>
+          <properties>
+            <webdriver.firefox.bin>/tank/nuxeo/Applications/Firefox.app/Contents/MacOS/firefox-bin</webdriver.firefox.bin>
+          </properties>
+          <filterProperties>
+            <nuxeo.version>${nuxeo.version}</nuxeo.version>
+          </filterProperties>
+          <goals>
+            <goal>verify</goal>
+          </goals>
+          <debug>true</debug>
+        </configuration>
+        <executions>
+          <execution>
+            <id>nuxeoctl</id>
+            <phase>test</phase>
+            <configuration>
+              <properties>
+                <launcher>nuxeoctl</launcher>
+              </properties>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>cargo-wildfly</id>
+            <phase>test</phase>
+            <configuration>
+              <properties>
+                <launcher>cargo</launcher>
+                <container>wildfly8x</container>
+              </properties>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>cargo-tomcat7x</id>
+            <phase>test</phase>
+            <configuration>
+              <properties>
+                <launcher>cargo</launcher>
+                <container>tomcat7x</container>
+              </properties>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

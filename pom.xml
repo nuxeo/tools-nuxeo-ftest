@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.nuxeo</groupId>
-  <artifactId>nuxeo-ftest</artifactId>
+  <groupId>org.nuxeo.build</groupId>
+  <artifactId>nuxeo-ftest-parent</artifactId>
   <name>Nuxeo functional tests</name>
   <description>Nuxeo resources for functional tests</description>
-  <version>1.7.17-SNAPSHOT</version>
-  <packaging>zip</packaging>
+  <version>2.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
   <issueManagement>
     <system>jira</system>
@@ -23,6 +23,7 @@
     <name>Nuxeo SAS</name>
     <url>http://www.nuxeo.com/en</url>
   </organization>
+
   <licenses>
     <license>
       <name>GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1</name>
@@ -95,6 +96,65 @@
     </snapshotRepository>
   </distributionManagement>
 
+  <modules>
+    <module>tiles</module>
+    <module>resources</module>
+    <module>samples</module>
+  </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.nuxeo.build</groupId>
+        <artifactId>nuxeo-ftest-tiles</artifactId>
+        <version>${project.version}</version>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.build</groupId>
+        <artifactId>nuxeo-ftest-cargo-tile</artifactId>
+        <version>${project.version}</version>
+        <type>tile</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.build</groupId>
+        <artifactId>nuxeo-ftest-nuxeoctl-tile</artifactId>
+        <version>${project.version}</version>
+        <type>tile</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.build</groupId>
+        <artifactId>nuxeo-ftest-exec-tomcat-tile</artifactId>
+        <version>${project.version}</version>
+        <type>tile</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.build</groupId>
+        <artifactId>nuxeo-ftest-tile</artifactId>
+        <version>${project.version}</version>
+        <type>tile</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.build</groupId>
+        <artifactId>nuxeo-ftest-webdriver-tile</artifactId>
+        <version>${project.version}</version>
+        <type>tile</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.build</groupId>
+        <artifactId>nuxeo-ftest-script</artifactId>
+        <version>${project.version}</version>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.build</groupId>
+        <artifactId>nuxeo-ftest-script</artifactId>
+        <version>${project.version}</version>
+        <type>zip</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  
   <profiles>
     <!-- For use by Nuxeo internal QA -->
     <profile>
@@ -158,19 +218,37 @@
         </snapshotRepository>
       </distributionManagement>
     </profile>
+
   </profiles>
 
   <build>
-    <plugins>
-      <plugin>
-        <groupId>org.nuxeo.build</groupId>
-        <artifactId>ant-assembly-maven-plugin</artifactId>
-        <version>2.0.3-SNAPSHOT</version>
-        <extensions>true</extensions>
-        <configuration>
-          <buildFile>${basedir}/src/main/assemble/assembly.xml</buildFile>
-        </configuration>
-      </plugin>
-    </plugins>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>io.repaint.maven</groupId>
+          <artifactId>tiles-maven-plugin</artifactId>
+          <extensions>true</extensions>
+          <version>1.8</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-invoker-plugin</artifactId>
+          <version>1.8</version>
+          <configuration>
+            <skipInvocation>${skipTests}</skipInvocation>
+            <streamLogs>true</streamLogs>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.nuxeo.build</groupId>
+          <artifactId>ant-assembly-maven-plugin</artifactId>
+          <version>2.0.3-SNAPSHOT</version>
+          <extensions>true</extensions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
   </build>
+
 </project>

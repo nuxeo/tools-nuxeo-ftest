@@ -12,8 +12,12 @@
   </target>
 
   <target name="build" depends="init">
-    <zip destfile="${outdir}/${maven.project.artifactId}-${maven.project.version}.zip"
-         basedir="src/main/resources/" />
+    <zip destfile="${outdir}/${maven.project.artifactId}-${maven.project.version}.zip">
+      <fileset dir="${basedir}/selenium"/>
+      <fileset dir="${basedir}">
+        <include name="nuxeo-ftest.xml"/>
+      </fileset>
+    </zip>
     <artifact:attach file="${outdir}/${maven.project.artifactId}-${maven.project.version}.zip"
                      type="zip" />
   </target>
