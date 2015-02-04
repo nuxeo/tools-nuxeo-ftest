@@ -1141,7 +1141,7 @@
           <include name="**/*.jar" />
         </fileset>
       </classpath>
-      CREATE USER ${nuxeo.db.user} IDENTIFIED BY ${nuxeo.db.pass};
+      CREATE USER ${nuxeo.db.user} IDENTIFIED BY ${nuxeo.db.pass} QUOTA UNLIMITED ON users;
       GRANT EXECUTE ON SYS.DBMS_CRYPTO TO ${nuxeo.db.user};
       GRANT SELECT ON SYS.V_$$SESSION TO ${nuxeo.db.user};
       GRANT SELECT ON SYS.GV_$$SESSION TO ${nuxeo.db.user};
