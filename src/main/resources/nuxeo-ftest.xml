@@ -28,6 +28,7 @@
          They need to be available in a local/private repository -->
   <property name="oracle10g.driver.version" value="10.2.0.5" />
   <property name="oracle11g.driver.version" value="11.2.0.2" />
+  <property name="oracle12c.driver.version" value="12.1.0.1" />
 
   <target name="_initdb" unless="_initdb.done">
     <property name="_initdb.done" value="true" />
@@ -55,6 +56,9 @@
     </nx:profile>
     <nx:profile name="oracle11g">
       <property name="maven.dbprofile" value="ORACLE11G" />
+    </nx:profile>
+    <nx:profile name="oracle12c">
+      <property name="maven.dbprofile" value="ORACLE12C" />
     </nx:profile>
     <nx:profile name="mysql">
       <property name="maven.dbprofile" value="MYSQL" />
@@ -942,6 +946,11 @@
         <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
       </copy>
     </nx:profile>
+    <nx:profile name="oracle12c">
+      <copy todir="${nuxeo.home}/lib/">
+        <artifact:resolveFile key="com.oracle:ojdbc7:${oracle12c.driver.version}:jar" />
+      </copy>
+    </nx:profile>
   </target>
 
   <target name="prepare-jboss" depends="_init" if="is.jboss">
@@ -958,6 +967,11 @@
     <nx:profile name="oracle11g">
       <copy todir="${nuxeo.home}/common/lib">
         <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
+      </copy>
+    </nx:profile>
+    <nx:profile name="oracle12c">
+      <copy todir="${nuxeo.home}/common/lib">
+        <artifact:resolveFile key="com.oracle:ojdbc7:${oracle12c.driver.version}:jar" />
       </copy>
     </nx:profile>
   </target>
@@ -999,6 +1013,11 @@
     <nx:profile name="oracle11g">
       <copy todir="${nuxeo.home}/common/lib">
         <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
+      </copy>
+    </nx:profile>
+    <nx:profile name="oracle12c">
+      <copy todir="${nuxeo.home}/common/lib">
+        <artifact:resolveFile key="com.oracle:ojdbc7:${oracle12c.driver.version}:jar" />
       </copy>
     </nx:profile>
   </target>
@@ -1213,6 +1232,11 @@
         <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
       </copy>
     </nx:profile>
+    <nx:profile name="oracle12c">
+      <copy todir="${jdbc.dir}">
+        <artifact:resolveFile key="com.oracle:ojdbc7:${oracle12c.driver.version}:jar" />
+      </copy>
+    </nx:profile>
   </target>
 
   <target name="setup-mysql-driver" depends="_init">
@@ -1239,6 +1263,10 @@
       <echo level="info">Prepare Oracle 11g...</echo>
       <antcall target="oracle-dbcreate" />
     </nx:profile>
+    <nx:profile name="oracle12c">
+      <echo level="info">Prepare Oracle 12c...</echo>
+      <antcall target="oracle-dbcreate" />
+    </nx:profile>
     <nx:profile name="mysql">
       <echo level="info">Prepare MySQL...</echo>
       <antcall target="mysql-dbcreate" />
@@ -1257,6 +1285,9 @@
       <antcall target="oracle-dbdrop" />
     </nx:profile>
     <nx:profile name="oracle11g">
+      <antcall target="oracle-dbdrop" />
+    </nx:profile>
+    <nx:profile name="oracle12c">
       <antcall target="oracle-dbdrop" />
     </nx:profile>
     <nx:profile name="mysql">
@@ -1530,6 +1561,12 @@
       </antcall>
     </nx:profile>
     <nx:profile name="oracle11g">
+      <antcall target="set-conf">
+        <param name="name" value="nuxeo.templates" />
+        <param name="value" value="oracle" />
+      </antcall>
+    </nx:profile>
+    <nx:profile name="oracle12c">
       <antcall target="set-conf">
         <param name="name" value="nuxeo.templates" />
         <param name="value" value="oracle" />
