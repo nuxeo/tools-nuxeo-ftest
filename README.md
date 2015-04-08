@@ -1,6 +1,6 @@
 # Nuxeo resources for functional tests
 
-This Maven project produces a zip file containing resources for ease
+This Maven project produces a ZIP file containing resources for ease
 running functional tests. Currently, it manages HTML Selenium test
 suites, Java WebDriver test suites and FunkLoad test and benchmark.
 
@@ -45,7 +45,7 @@ Selenium tests are run using a custom firefox profile, as well as
 custom extensions.
 
 The file at ffprofile/prefs.js.sample adds settings on the browser to
-set the default url, allow upload of files holds the base url,...  It
+set the default URL, allow upload of files holds the base URL,...  It
 also holds the current language (en). When using Selenium IDE, make
 sure English is your default language.
 
@@ -183,15 +183,10 @@ The Nuxeo server type (Tomcat or JBoss) depends on Maven profiles:
   * activate-wizard-preset: activate the wizard preset defined in the `wizard.preset` property.
   * mp-install: add comma-separated instructions defined in the `mp.install` property.
 
-## About Nuxeo
+## QA results
 
-Nuxeo provides a modular, extensible Java-based [open source software platform for enterprise content management] [1] and packaged
-applications for [document management] [2], [digital asset management] [3] and [case management] [4]. Designed by developers for developers,
-the Nuxeo platform offers a modern architecture, a powerful plug-in model and extensive packaging capabilities for building content applications.
+[![Build Status](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=tools_nuxeo-ftest-master)](https://qa.nuxeo.org/jenkins/job/tools_nuxeo-ftest-master/)
 
-[1]: http://www.nuxeo.com/en/products/ep
-[2]: http://www.nuxeo.com/en/products/document-management
-[3]: http://www.nuxeo.com/en/products/dam
-[4]: http://www.nuxeo.com/en/products/case-management
+# About Nuxeo
 
-More information on: <http://www.nuxeo.com/>
+Nuxeo dramatically improves how content-based applications are built, managed and deployed, making customers more agile, innovative and successful. Nuxeo provides a next generation, enterprise ready platform for building traditional and cutting-edge content oriented applications. Combining a powerful application development environment with SaaS-based tools and a modular architecture, the Nuxeo Platform and Products provide clear business value to some of the most recognizable brands including Verizon, Electronic Arts, Netflix, Sharp, FICO, the U.S. Navy, and Boeing. Nuxeo is headquartered in New York and Paris. More information is available at www.nuxeo.com.
