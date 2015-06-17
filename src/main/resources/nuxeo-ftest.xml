@@ -30,6 +30,8 @@
   <property name="oracle11g.driver.version" value="11.2.0.2" />
   <property name="oracle12c.driver.version" value="12.1.0.1" />
 
+  <property name="vcsprops" value="${out.dir}/nuxeo-test-vcs.properties" />
+
   <target name="_initdb" unless="_initdb.done">
     <property name="_initdb.done" value="true" />
     <property environment="env" />
@@ -1293,6 +1295,68 @@
     <nx:profile name="mysql">
       <antcall target="mysql-dbdrop" />
     </nx:profile>
+  </target>
+
+  <target name="vcs-tests-setup" depends="_initdb">
+    <nx:profile name="default">
+      <echo file="${vcsprops}" append="false" />
+    </nx:profile>
+    <nx:profile name="pgsql">
+      <echo file="${vcsprops}" append="false">
+        nuxeo.test.vcs.db=PostgreSQL
+        nuxeo.test.vcs.server=${nuxeo.db.host}
+        nuxeo.test.vcs.port=${nuxeo.db.port}
+        nuxeo.test.vcs.database=${nuxeo.db.name}
+        nuxeo.test.vcs.user=${nuxeo.db.user}
+        nuxeo.test.vcs.password=${nuxeo.db.pass}
+      </echo>
+    </nx:profile>
+    <nx:profile name="mssql">
+      <echo file="${vcsprops}" append="false">
+        nuxeo.test.vcs.db=SQLServer
+        nuxeo.test.vcs.server=${nuxeo.db.host}
+        nuxeo.test.vcs.port=${nuxeo.db.port}
+        nuxeo.test.vcs.database=${nuxeo.db.name}
+        nuxeo.test.vcs.user=${nuxeo.db.user}
+        nuxeo.test.vcs.password=${nuxeo.db.pass}
+      </echo>
+    </nx:profile>
+    <nx:profile name="oracle10g">
+      <echo file="${vcsprops}" append="false">
+        nuxeo.test.vcs.db=Oracle
+        nuxeo.test.vcs.url=jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.db.name}
+        nuxeo.test.vcs.user=${nuxeo.db.user}
+        nuxeo.test.vcs.password=${nuxeo.db.pass}
+      </echo>
+    </nx:profile>
+    <nx:profile name="oracle11g">
+      <echo file="${vcsprops}" append="false">
+        nuxeo.test.vcs.db=Oracle
+        nuxeo.test.vcs.url=jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.db.name}
+        nuxeo.test.vcs.user=${nuxeo.db.user}
+        nuxeo.test.vcs.password=${nuxeo.db.pass}
+      </echo>
+    </nx:profile>
+    <nx:profile name="oracle12c">
+      <echo file="${vcsprops}" append="false">
+        nuxeo.test.vcs.db=Oracle
+        nuxeo.test.vcs.url=jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.db.name}
+        nuxeo.test.vcs.user=${nuxeo.db.user}
+        nuxeo.test.vcs.password=${nuxeo.db.pass}
+      </echo>
+    </nx:profile>
+    <nx:profile name="mysql">
+      <echo file="${vcsprops}" append="false">
+        nuxeo.test.vcs.db=MySQL
+        nuxeo.test.vcs.url=jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.db.name}
+        nuxeo.test.vcs.user=${nuxeo.db.user}
+        nuxeo.test.vcs.password=${nuxeo.db.pass}
+      </echo>
+    </nx:profile>
+  </target>
+
+  <target name="vcs-tests-teardown">
+    <delete file="${vcsprops}" failonerror="false" />
   </target>
 
   <target name="setup-mail-server"
