@@ -1613,6 +1613,12 @@
       <param name="name" value="org.nuxeo.ecm.tester.name" />
       <param name="value" value="Nuxeo-Selenium-Tester" />
     </antcall>
+     <nx:profile name="mongodb">
+      <antcall target="set-conf">
+        <param name="name" value="nuxeo.templates" />
+        <param name="value" value="default,mongodb" />
+      </antcall>
+    </nx:profile>
   </target>
 
   <target name="set-conf" depends="_init" description="Add property to ${nuxeo.conf} with ${name}=${value}">
