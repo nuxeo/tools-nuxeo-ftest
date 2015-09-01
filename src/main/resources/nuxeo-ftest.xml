@@ -523,16 +523,15 @@
       <param name="name" value="nuxeo.vcs.max-pool-size" />
       <param name="value" value="50" />
     </antcall>
-    <echo level="info">Get importer version ${maven.project.version}</echo>
+    <echo level="info">Add importer, drive and login-token addons</echo>
     <copy todir="${nuxeo.nxserver}/plugins/">
-      <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-core:${maven.project.version}:jar" />
-      <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-jaxrs:${maven.project.version}:jar" />
-      <artifact:resolveFile key="org.nuxeo.ecm:nuxeo-drive-core:${maven.project.version}:jar" />
-      <artifact:resolveFile key="org.nuxeo.ecm:nuxeo-drive-jsf:${maven.project.version}:jar" />
-      <artifact:resolveFile key="org.nuxeo.ecm:nuxeo-drive-operations:${maven.project.version}:jar" />
-      <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-platform-login-token:${maven.project.version}:jar" />
+      <artifact:file key="org.nuxeo.ecm.platform:nuxeo-importer-core" />
+      <artifact:file key="org.nuxeo.ecm.platform:nuxeo-importer-jaxrs" />
+      <artifact:file key="org.nuxeo.ecm:nuxeo-drive-core" />
+      <artifact:file key="org.nuxeo.ecm:nuxeo-drive-jsf" />
+      <artifact:file key="org.nuxeo.ecm:nuxeo-drive-operations" />
+      <artifact:file key="org.nuxeo.ecm.platform:nuxeo-platform-login-token" />
     </copy>
-
   </target>
 
   <target name="build-funkload-report" depends="_init" if="osfamily-unix">
@@ -1211,13 +1210,13 @@
 
   <target name="setup-pgsql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
-      <artifact:resolveFile key="postgresql:postgresql::jar" />
+      <artifact:resolveFile key="postgresql:postgresql" />
     </copy>
   </target>
 
   <target name="setup-mssql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
-      <artifact:resolveFile key="net.sourceforge.jtds:jtds::jar" />
+      <artifact:resolveFile key="net.sourceforge.jtds:jtds" />
     </copy>
   </target>
 
@@ -1241,7 +1240,7 @@
 
   <target name="setup-mysql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
-      <artifact:resolveFile key="mysql:mysql-connector-java::jar" />
+      <artifact:resolveFile key="mysql:mysql-connector-java" />
     </copy>
   </target>
 
@@ -1375,7 +1374,7 @@
     <echo level="info" message="Downloading ${groupId}:${artifactId}::zip:${classifier}" />
     <delete failonerror="false" dir="${nuxeo.home}" />
     <unzip dest="${nuxeo.home}/">
-      <artifact:resolveFile key="${groupId}:${artifactId}::zip:${classifier}" />
+      <artifact:file key="${groupId}:${artifactId}::zip:${classifier}" />
       <cutdirsmapper dirs="1" />
     </unzip>
   </target>
@@ -1390,7 +1389,7 @@
 
   <target name="prepare-selenium" description="prepare Selenium files for tests">
     <copy tofile="${out.dir}/selenium-server.jar">
-      <artifact:resolveFile key="org.seleniumhq.selenium:selenium-server-standalone::jar" />
+      <artifact:resolveFile key="org.seleniumhq.selenium:selenium-server-standalone" />
     </copy>
     <echo level="info">Replace local folder in user-extensions.js</echo>
     <path id="data.dir.path">
