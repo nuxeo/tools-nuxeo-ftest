@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.nuxeo</groupId>
@@ -12,6 +13,18 @@
     <system>jira</system>
     <url>http://jira.nuxeo.org/browse/NXBT</url>
   </issueManagement>
+  <ciManagement>
+    <system>Jenkins</system>
+    <url>https://qa.nuxeo.org/jenkins/</url>
+    <notifiers>
+      <notifier>
+        <type>mail</type>
+        <configuration>
+          <address>ecm-qa@lists.nuxeo.com</address>
+        </configuration>
+      </notifier>
+    </notifiers>
+  </ciManagement>
 
   <scm>
     <connection>scm:git:git://github.com/nuxeo/tools-nuxeo-ftest.git</connection>
@@ -19,14 +32,15 @@
     <url>https://github.com/nuxeo/tools-nuxeo-ftest</url>
   </scm>
 
+  <url>http://www.nuxeo.com/en/products</url>
   <organization>
-    <name>Nuxeo SAS</name>
-    <url>http://www.nuxeo.com/en</url>
+    <name>Nuxeo SA</name>
+    <url>http://www.nuxeo.com</url>
   </organization>
   <licenses>
     <license>
       <name>GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1</name>
-      <url>http://www.gnu.org/copyleft/lesser.txt</url>
+      <url>http://www.gnu.org/licenses/lgpl-2.1.html</url>
     </license>
   </licenses>
 
