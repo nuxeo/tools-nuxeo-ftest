@@ -266,6 +266,10 @@ Selenium.prototype.doSelect2Type = function(cssSelector,value) {
 Selenium.prototype.doSingleSelect2Type = function(cssSelector,value) {
   var linkCssLocator = cssSelector + " a.select2-choice";
   this.doClickAt(linkCssLocator);
+
+  var inputSelector = "//*[@id='select2-drop']/div/input";
+  this.doTypeKeys(inputSelector, value);
+  this.doTypeKeys(inputSelector, value);
 }
 
 Selenium.prototype.doMultipleSelect2Type = function(cssSelector,value) {
