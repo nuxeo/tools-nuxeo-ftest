@@ -281,7 +281,7 @@ Selenium.prototype.doMultipleSelect2Type = function(cssSelector,value) {
 Selenium.prototype.doWaitForSelect2 = function(timeout) {
   return Selenium.decorateFunctionWithTimeout(function() {
     if (selenium.browserbot.findElementOrNull('css=.select2-result-selectable') == null) {
-       LOG.debug("doWaitForSelect wait");
+       LOG.info("doWaitForSelect wait");
           return false;
     }
     LOG.info("doWaitForSelect found");
