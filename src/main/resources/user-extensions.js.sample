@@ -353,3 +353,6 @@ Selenium.prototype.doOpen = function(url, ignoreResponseCode) {
  }
  return this.doOriginalOpen(url, ignoreResponseCode);
 };
+
+Selenium.prototype.doWatchAjaxTab = Selenium.prototype.doWatchA4jRequests;
+Selenium.prototype.doWaitForAjaxTab = Selenium.prototype.doWaitForA4jRequest;
