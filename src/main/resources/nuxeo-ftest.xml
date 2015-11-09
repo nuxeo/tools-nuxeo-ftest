@@ -523,14 +523,10 @@
       <param name="name" value="nuxeo.vcs.max-pool-size" />
       <param name="value" value="50" />
     </antcall>
-    <echo level="info">Add importer, drive and login-token addons</echo>
-    <copy todir="${nuxeo.nxserver}/plugins/">
+    <echo level="info">Add importer</echo>
+    <copy todir="${nuxeo.nxserver}/bundles/">
       <artifact:file key="org.nuxeo.ecm.platform:nuxeo-importer-core" />
       <artifact:file key="org.nuxeo.ecm.platform:nuxeo-importer-jaxrs" />
-      <artifact:file key="org.nuxeo.ecm:nuxeo-drive-core" />
-      <artifact:file key="org.nuxeo.ecm:nuxeo-drive-jsf" />
-      <artifact:file key="org.nuxeo.ecm:nuxeo-drive-operations" />
-      <artifact:file key="org.nuxeo.ecm.platform:nuxeo-platform-login-token" />
     </copy>
   </target>
 
