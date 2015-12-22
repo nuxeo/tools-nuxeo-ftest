@@ -1420,7 +1420,7 @@
         <echo level="info" message="Execute pending actions before start" />
         <exec executable="${nuxeo.home}/bin/nuxeoctl" spawn="false" failonerror="true">
           <arg value="mp-install" />
-          <arg value="${nuxeoctl.option.clid}" />
+          <arg value="${nuxeoctl.option.clid}" if:set="nuxeoctl.option.clid" unless:blank="${nuxeoctl.option.clid}" />
           <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
         </exec>
       </then>
@@ -1429,7 +1429,7 @@
     <exec executable="${nuxeo.home}/bin/nuxeoctl" spawn="false" failonerror="false" resultproperty="retcode">
       <arg value="start" />
       <arg value="--force" />
-      <arg value="${nuxeoctl.option.clid}" />
+      <arg value="${nuxeoctl.option.clid}" if:set="nuxeoctl.option.clid" unless:blank="${nuxeoctl.option.clid}" />
       <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
     <condition property="startup.failed" value="${retcode}">
@@ -1457,7 +1457,7 @@
         <echo level="info" message="Execute pending actions before start" />
         <exec executable="${nuxeo.home}/bin/nuxeoctl.bat" spawn="false" failonerror="true">
           <arg value="--gui=false" />
-          <arg value="${nuxeoctl.option.clid}" />
+          <arg value="${nuxeoctl.option.clid}" if:set="nuxeoctl.option.clid" unless:blank="${nuxeoctl.option.clid}" />
           <arg value="mp-install" />
           <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
         </exec>
@@ -1467,7 +1467,7 @@
       <arg value="--gui=false" />
       <arg value="start" />
       <arg value="--force" />
-      <arg value="${nuxeoctl.option.clid}" />
+      <arg value="${nuxeoctl.option.clid}" if:set="nuxeoctl.option.clid" unless:blank="${nuxeoctl.option.clid}" />
       <env key="LAUNCHER_DEBUG" value="${launcher.debug}" />
     </exec>
     <condition property="startup.failed" value="${retcode}">
