@@ -278,6 +278,12 @@ Selenium.prototype.doMultipleSelect2Type = function(cssSelector,value) {
   this.doTypeKeys(inputCssSelector, value);
 }
 
+Selenium.prototype.doForceSelectPermissionUsername = function(value) {
+  var testWindow = selenium.browserbot.getCurrentWindow();
+  var document = testWindow.document;
+  document.getElementsByTagName('nuxeo-user-suggestion')[0].value = value;
+}
+
 Selenium.prototype.doWaitForSelect2 = function(timeout) {
   return Selenium.decorateFunctionWithTimeout(function() {
     if (selenium.browserbot.findElementOrNull('css=.select2-result-selectable') == null) {
