@@ -63,8 +63,18 @@
     <nx:profile name="mysql">
       <property name="maven.dbprofile" value="MYSQL" />
     </nx:profile>
-    <!-- if NX_DB_SOMETHING is not defined,
-         try to fallback on NX_${maven.dbprofile}_DB_SOMETHING -->
+    <if>
+      <or>
+        <isset property="maven.profile.oracle10g" />
+        <isset property="maven.profile.oracle11g" />
+        <isset property="maven.profile.oracle12c" />
+      </or>
+      <then>
+        <property name="maven.profile.oracle" value="true" />
+      </then>
+    </if>
+
+    <!-- if NX_DB_SOMETHING is not defined, try to fallback on NX_${maven.dbprofile}_DB_SOMETHING -->
     <for list="HOST,PORT,NAME,USER,PASS,ADMINNAME,ADMINUSER,ADMINPASS" param="dbvar">
       <sequential>
         <if>
@@ -117,14 +127,28 @@
     <if>
       <isset property="maven.dbprofile" />
       <then>
+        <!-- fail the build when a db profile is selected but db parameters are missing -->
+        <var name="error.msg"
+             value="${maven.dbprofile} is selected but some database parameters are missing:${line.separator}" />
+        <for list="nuxeo.db.host,env.NX_DB_HOST,nuxeo.db.port,env.NX_DB_PORT" param="dbparam">
+          <sequential>
+            <if>
+              <not>
+                <isset property="@{dbparam}" />
+              </not>
+              <then>
+                <var name="error.msg" value="${error.msg}@{dbparam} is not set${line.separator}" />
+                <property name="dbparam.fail" value="true" />
+              </then>
+            </if>
+          </sequential>
+        </for>
+        <fail message="${error.msg}" if="dbparam.fail" />
         <!-- give a warning when a db profile is selected but db administration parameters are missing -->
         <var name="error.msg"
              value="Profile ${maven.dbprofile} is selected but database administration parameters are missing:${line.separator}" />
-        <for list="nuxeo.dbsetup.adminname,env.NX_DB_ADMINNAME,env.NX_${maven.dbprofile}_DB_ADMINNAME,
-                   nuxeo.dbsetup.adminuser,env.NX_DB_ADMINUSER,env.NX_${maven.dbprofile}_DB_ADMINUSER,
-                   nuxeo.dbsetup.adminpass,env.NX_DB_ADMINPASS,env.NX_${maven.dbprofile}_DB_ADMINPASS"
-             param="dbparam"
-             trim="true">
+        <for list="nuxeo.dbsetup.adminname,env.NX_DB_ADMINNAME,nuxeo.dbsetup.adminuser,env.NX_DB_ADMINUSER,nuxeo.dbsetup.adminpass,env.NX_DB_ADMINPASS"
+             param="dbparam">
           <sequential>
             <if>
               <not>
@@ -145,12 +169,6 @@
         </if>
       </then>
     </if>
-    <condition property="nuxeo.dbsetup.dodbconf" value="true">
-      <or>
-        <isset property="maven.dbprofile" />
-        <isset property="maven.profile.mongodb" />
-      </or>
-    </condition>
 
     <condition property="nuxeo.mongodb.server" value="${env.NX_MONGODB_SERVER}" else="localhost:27017">
       <isset property="env.NX_MONGODB_SERVER" />
@@ -203,14 +221,12 @@
     <condition property="is.tomcat">
       <or>
         <isset property="maven.profile.tomcat" />
-        <and>
-          <not>
+        <not>
+          <or>
             <isset property="is.jboss" />
-          </not>
-          <not>
             <isset property="is.ear" />
-          </not>
-        </and>
+          </or>
+        </not>
       </or>
     </condition>
     <!-- Set nuxeo.home to NUXEO_HOME env property if defined,
@@ -1025,7 +1041,7 @@
     <antcall target="mp-install" />
   </target>
 
-  <target name="pgsql-dbdrop" depends="_init,setup-pgsql-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="pgsql-dbdrop" depends="_init,setup-pgsql-driver" if="maven.profile.pgsql">
     <parallel threadCount="1" timeout="120000" failonany="true">
       <sequential>
         <sql driver="org.postgresql.Driver"
@@ -1046,7 +1062,7 @@
     </parallel>
   </target>
 
-  <target name="pgsql-dbcreate" depends="_init,setup-pgsql-driver,pgsql-dbdrop" if="nuxeo.dbsetup.dodbconf">
+  <target name="pgsql-dbcreate" depends="_init,setup-pgsql-driver,pgsql-dbdrop" if="maven.profile.pgsql">
     <sql driver="org.postgresql.Driver"
          url="jdbc:postgresql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
@@ -1064,7 +1080,7 @@
     </sql>
   </target>
 
-  <target name="mssql-dbdrop" depends="_init,setup-mssql-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="mssql-dbdrop" depends="_init,setup-mssql-driver" if="maven.profile.mssql">
     <parallel threadCount="1" timeout="120000" failonany="true">
       <sequential>
         <sql driver="net.sourceforge.jtds.jdbc.Driver"
@@ -1087,7 +1103,7 @@
     </parallel>
   </target>
 
-  <target name="mssql-dbcreate" depends="_init,setup-mssql-driver,mssql-dbdrop" if="nuxeo.dbsetup.dodbconf">
+  <target name="mssql-dbcreate" depends="_init,setup-mssql-driver,mssql-dbdrop" if="maven.profile.mssql">
     <sql driver="net.sourceforge.jtds.jdbc.Driver"
          url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
@@ -1110,7 +1126,7 @@
     </sql>
   </target>
 
-  <target name="oracle-dbdrop" depends="_init,setup-oracle-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="oracle-dbdrop" depends="_init,setup-oracle-driver" if="maven.profile.oracle">
     <parallel threadCount="1" timeout="120000" failonany="true">
       <sequential>
         <sql driver="oracle.jdbc.OracleDriver"
@@ -1142,7 +1158,7 @@
     </parallel>
   </target>
 
-  <target name="oracle-dbcreate" depends="_init,setup-oracle-driver,oracle-dbdrop" if="nuxeo.dbsetup.dodbconf">
+  <target name="oracle-dbcreate" depends="_init,setup-oracle-driver,oracle-dbdrop" if="maven.profile.oracle">
     <sql driver="oracle.jdbc.OracleDriver"
          url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser} as sysdba"
@@ -1163,7 +1179,7 @@
     </sql>
   </target>
 
-  <target name="mysql-dbdrop" depends="_init,setup-mysql-driver" if="nuxeo.dbsetup.dodbconf">
+  <target name="mysql-dbdrop" depends="_init,setup-mysql-driver" if="maven.profile.mysql">
     <parallel threadCount="1" timeout="120000" failonany="true">
       <sequential>
         <sql driver="com.mysql.jdbc.Driver"
@@ -1185,7 +1201,7 @@
     </parallel>
   </target>
 
-  <target name="mysql-dbcreate" depends="_init,setup-mysql-driver,mysql-dbdrop" if="nuxeo.dbsetup.dodbconf">
+  <target name="mysql-dbcreate" depends="_init,setup-mysql-driver,mysql-dbdrop" if="maven.profile.mysql">
     <sql driver="com.mysql.jdbc.Driver"
          url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
@@ -1206,30 +1222,17 @@
 
   <target name="mongodb-dbdrop" depends="_init,setup-mongodb-driver" if="maven.profile.mongodb">
     <if>
-      <or>
-        <matches string="${nuxeo.mongodb.server}" pattern="^127\..*" />
-        <equals arg1="${nuxeo.mongodb.server}" arg2="localhost" />
-        <equals arg1="${nuxeo.mongodb.server}" arg2="localhost:27017" />
-        <equals arg1="${nuxeo.mongodb.server}" arg2="172.17.0.1" />
-        <equals arg1="${nuxeo.mongodb.server}" arg2="172.17.0.1:27017" />
-      </or>
+      <equals arg1="${nuxeo.mongodb.server}" arg2="localhost:27017" />
       <then>
-        <echo level="info">Dropping database named '${nuxeo.mongodb.dbname}' on '${nuxeo.mongodb.server}'</echo>
         <exec executable="mongo">
-          <arg line="${nuxeo.mongodb.server}/${nuxeo.mongodb.dbname} --eval 'db.dropDatabase().ok'" />
+          <arg line="${nuxeo.mongodb.dbname} --eval 'db.default.remove({})'" />
         </exec>
       </then>
-      <else>
-        <echo level="info">NOT dropping database named '${nuxeo.mongodb.dbname}' on non-local/docker '${nuxeo.mongodb.server}'</echo>
-      </else>
     </if>
   </target>
 
   <target name="mongodb-dbcreate" depends="_init,setup-mongodb-driver,mongodb-dbdrop" if="maven.profile.mongodb">
-    <echo level="info">Checking database named '${nuxeo.mongodb.dbname}' on '${nuxeo.mongodb.server}'</echo>
-    <exec executable="mongo">
-      <arg line="${nuxeo.mongodb.server}/${nuxeo.mongodb.dbname} --eval 'db.default.find({}).count() + &quot; existing documents&quot;'" />
-    </exec>
+    <!-- NO OP -->
   </target>
 
   <target name="setup-pgsql-driver" depends="_init">
@@ -1275,7 +1278,7 @@
     <!-- </copy> -->
   </target>
 
-  <target name="prepare-db" depends="_init,cleanup-db" if="nuxeo.dbsetup.dodbconf">
+  <target name="prepare-db" depends="_init,cleanup-db" if="maven.profile.customdb">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
       <echo level="info">Prepare PostgreSQL...</echo>
@@ -1307,7 +1310,7 @@
     </nx:profile>
   </target>
 
-  <target name="cleanup-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
+  <target name="cleanup-db" depends="_init" if="maven.profile.customdb">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
       <antcall target="pgsql-dbdrop" />
