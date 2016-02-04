@@ -284,6 +284,18 @@ Selenium.prototype.doForceSelectPermissionUsername = function(value) {
   document.getElementsByTagName('nuxeo-user-suggestion')[0].value = value;
 }
 
+Selenium.prototype.doForceRemoveUserFromGroup = function(username) {
+  var testWindow = selenium.browserbot.getCurrentWindow();
+  var document = testWindow.document;
+  var value = document.getElementById('viewGroupView:editGroup:nxl_group:nxw_group_members_select2').value;
+  var users = value.split(',');
+  var index = users.indexOf(username);
+  if (index > -1) {
+    users.splice(users, 1);
+  }
+  document.getElementById('viewGroupView:editGroup:nxl_group:nxw_group_members_select2').value = users.join(',');
+}
+
 Selenium.prototype.doWaitForSelect2 = function(timeout) {
   return Selenium.decorateFunctionWithTimeout(function() {
     if (selenium.browserbot.findElementOrNull('css=.select2-result-selectable') == null) {
