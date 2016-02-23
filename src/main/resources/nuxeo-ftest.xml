@@ -71,6 +71,7 @@
       </or>
       <then>
         <property name="maven.profile.oracle" value="true" />
+        <nx:profile activate="oracle" />
       </then>
     </if>
 
@@ -92,11 +93,11 @@
       </sequential>
     </for>
     <!-- set nuxeo.db.host to NX_DB_HOST env property if defined -->
-    <condition property="nuxeo.db.host" value="${env.NX_DB_HOST}">
+    <condition property="nuxeo.db.host" value="${env.NX_DB_HOST}" else="${nuxeo.db.host.default}">
       <isset property="env.NX_DB_HOST" />
     </condition>
     <!-- set nuxeo.db.port to NX_DB_PORT env property if defined -->
-    <condition property="nuxeo.db.port" value="${env.NX_DB_PORT}">
+    <condition property="nuxeo.db.port" value="${env.NX_DB_PORT}" else="${nuxeo.db.port.default}">
       <isset property="env.NX_DB_PORT" />
     </condition>
     <!-- set nuxeo.db.name to NX_DB_NAME env property if defined -->
@@ -127,28 +128,14 @@
     <if>
       <isset property="maven.dbprofile" />
       <then>
-        <!-- fail the build when a db profile is selected but db parameters are missing -->
-        <var name="error.msg"
-             value="${maven.dbprofile} is selected but some database parameters are missing:${line.separator}" />
-        <for list="nuxeo.db.host,env.NX_DB_HOST,nuxeo.db.port,env.NX_DB_PORT" param="dbparam">
-          <sequential>
-            <if>
-              <not>
-                <isset property="@{dbparam}" />
-              </not>
-              <then>
-                <var name="error.msg" value="${error.msg}@{dbparam} is not set${line.separator}" />
-                <property name="dbparam.fail" value="true" />
-              </then>
-            </if>
-          </sequential>
-        </for>
-        <fail message="${error.msg}" if="dbparam.fail" />
         <!-- give a warning when a db profile is selected but db administration parameters are missing -->
         <var name="error.msg"
              value="Profile ${maven.dbprofile} is selected but database administration parameters are missing:${line.separator}" />
-        <for list="nuxeo.dbsetup.adminname,env.NX_DB_ADMINNAME,nuxeo.dbsetup.adminuser,env.NX_DB_ADMINUSER,nuxeo.dbsetup.adminpass,env.NX_DB_ADMINPASS"
-             param="dbparam">
+        <for list="nuxeo.dbsetup.adminname,env.NX_DB_ADMINNAME,env.NX_${maven.dbprofile}_DB_ADMINNAME,
+                   nuxeo.dbsetup.adminuser,env.NX_DB_ADMINUSER,env.NX_${maven.dbprofile}_DB_ADMINUSER,
+                   nuxeo.dbsetup.adminpass,env.NX_DB_ADMINPASS,env.NX_${maven.dbprofile}_DB_ADMINPASS"
+             param="dbparam"
+             trim="true">
           <sequential>
             <if>
               <not>
@@ -170,7 +157,7 @@
       </then>
     </if>
 
-    <condition property="nuxeo.mongodb.server" value="${env.NX_MONGODB_SERVER}" else="localhost:27017">
+    <condition property="nuxeo.mongodb.server" value="${env.NX_MONGODB_SERVER}" else="${nuxeo.mongodb.server.default}">
       <isset property="env.NX_MONGODB_SERVER" />
     </condition>
     <condition property="nuxeo.mongodb.dbname" value="${env.NX_MONGODB_DBNAME}" else="nxdbname${rndid}">
@@ -180,31 +167,9 @@
 
   <target name="_init" unless="_init.done" depends="_initdb">
     <property name="_init.done" value="true" />
-    <if>
-      <or>
-        <and>
-          <isset property="maven.test.skip" />
-          <not>
-            <isfalse value="${maven.test.skip}" />
-          </not>
-        </and>
-        <and>
-          <isset property="skipTests" />
-          <not>
-            <isfalse value="${skipTests}" />
-          </not>
-        </and>
-        <and>
-          <isset property="skipITs" />
-          <not>
-            <isfalse value="${skipITs}" />
-          </not>
-        </and>
-      </or>
-      <then>
-        <nx:exit message="Tests are skipped." status="0" />
-      </then>
-    </if>
+    <nx:exit message="Tests are skipped (maven.test.skip=true)." status="0" if="${maven.test.skip}" />
+    <nx:exit message="Tests are skipped (skipTests=true)." status="0" if="${skipTests}" />
+    <nx:exit message="Tests are skipped (skipITs=true)." status="0" if="${skipITs}" />
 
     <condition property="osfamily-unix">
       <os family="unix" />
@@ -1278,7 +1243,7 @@
     <!-- </copy> -->
   </target>
 
-  <target name="prepare-db" depends="_init,cleanup-db" if="maven.profile.customdb">
+  <target name="prepare-db" depends="_init" if="maven.profile.customdb">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
       <echo level="info">Prepare PostgreSQL...</echo>
