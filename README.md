@@ -75,15 +75,23 @@ upload files when running tests.
   See [the Introduction to the Build Lifecycle](http://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html#Lifecycle_Reference)
   for more details.
 
+### Skip pre- and post- integration phases
+
   You can avoid executing the whole lifecycle by directly calling a phase on the wanted plugin.
   For instance, if you only want to execute the tests (avoid pre-integration and post-integration phase
-  which are starting and stopping Nuxeo), run:
+  which are starting and stopping Nuxeo), then verify the results.
 
-    mvn org.nuxeo.build:nuxeo-distribution-tools:integration-test -Dtarget=run-selenium
+#### Selenium tests
 
-  and for verifying the results:
+    mvn org.nuxeo.build:ant-assembly-maven-plugin:integration-test [-Dtarget=run-selenium] [...]
+    mvn org.nuxeo.build:ant-assembly-maven-plugin:verify [...]
 
-    mvn nuxeo-distribution-tools:verify [...]
+  The two phases can be called within the same line.
+
+#### WebDriver tests
+
+    mvn org.apache.maven.plugins:maven-failsafe-plugin:integration-test [-Dlog4j.configuration=src/main/resources/log4j.xml] [-Dnuxeo.log.dir=target] [...]
+    mvn org.apache.maven.plugins:maven-failsafe-plugin:verify [...]
 
   The two phases can be called within the same line.
 
@@ -93,9 +101,9 @@ upload files when running tests.
 
   The following system parameters are read:
 
-  * NUXEO_HOME: if set, takes precedence over nuxeo.home and default values
-  * NUXEO_CONF: if set, takes precedence over nuxeo.conf and default values
-  * NX\_JAVA\_HOME: if set, the server will use this as Java home instead of JAVA_HOME
+  * `NUXEO_HOME`: if set, takes precedence over nuxeo.home and default values
+  * `NUXEO_CONF`: if set, takes precedence over nuxeo.conf and default values
+  * `NX_JAVA_HOME`: if set, the server will use this as Java home instead of `JAVA_HOME`
 
 ### Maven parameters
 
@@ -106,16 +114,16 @@ upload files when running tests.
   The following Java parameters may be given from the command line (with `-DsomeParam=someValue`)
   or from your customized itest.xml file (preferred method; with `<property name="someParam" value="someValue" />`):
 
-  * nuxeoURL: default value is `http://localhost:8080/nuxeo/`.
-  * suites: comma separated Selenium HTML suites' names (without the extension ".html") which must stored in a "tests" directory.
-  * browser: default value is "chrome".
-  * out.dir: default value is `${maven.project.build.directory}`.
-  * nuxeo.home: if NUXEO_HOME environment property is not set, default value depends on Maven profile, then values `${out.dir}/tomcat`.
-  * nuxeo.conf: if NUXEO_CONF environment property is not set, default value is `${nuxeo.home}/bin/nuxeo.conf`.
-  * wizard.preset: the wizard preset to activate on the distribution. The value can be `nuxeo-cap` (deprecated, does nothing), `nuxeo-dam`, `nuxeo-cmf` or `nuxeo-sc`; there is no default value (property is not set).
-  * mp.install: a comma-separated list of instructions for the Marketplace install process. For instance `file:/path/to/some/marketplace-package-1.0-SNAPSHOT.zip`.
-  * zip.file: the zipped server to use for testing instead of downloading a new one.
-  * env.NUXEO_HOME: the server to use for testing instead of downloading a new one. Note that its nuxeo.conf file might be changed when running tests.
+  * `nuxeoURL`: default value is `http://localhost:8080/nuxeo/`.
+  * `suites`: comma separated Selenium HTML suites' names (without the extension ".html") which must stored in a "tests" directory.
+  * `browser`: default value is "chrome".
+  * `out.dir`: default value is `${maven.project.build.directory}`.
+  * `nuxeo.home`: if `NUXEO_HOME` environment property is not set, default value depends on Maven profile, then values `${out.dir}/tomcat`.
+  * `nuxeo.conf`: if `NUXEO_CONF` environment property is not set, default value is `${nuxeo.home}/bin/nuxeo.conf`.
+  * `wizard.preset`: the wizard preset to activate on the distribution. The value can be `nuxeo-cap` (deprecated, does nothing), `nuxeo-dam`, `nuxeo-cmf` or `nuxeo-sc`; there is no default value (property is not set).
+  * `mp.install`: a comma-separated list of instructions for the Marketplace install process. For instance `file:/path/to/some/marketplace-package-1.0-SNAPSHOT.zip`.
+  * `zip.file`: the zipped server to use for testing instead of downloading a new one.
+  * `env.NUXEO_HOME`: the server to use for testing instead of downloading a new one. Note that its nuxeo.conf file might be changed when running tests.
 
 #### Nuxeo server
 
@@ -141,47 +149,56 @@ The Nuxeo server type (Tomcat or JBoss) depends on Maven profiles:
 
   The following environment variables are used:
 
-  * NX\_DB\_HOST : database host
-  * NX\_DB\_PORT : database port
-  * NX\_DB\_ADMINNAME : name of the administrative/default database
-  * NX\_DB\_ADMINUSER : database superuser
-  * NX\_DB\_ADMINPASS : superuser password
-  * NX\_DB\_NAME : name of the database used by nuxeo
-  * NX\_DB\_USER : username used by nuxeo to connect to the database
-  * NX\_DB\_PASS : password used by nuxeo to connect to the database
+  * `NX_DB_HOST`: database host
+  * `NX_DB_PORT`: database port
+  * `NX_DB_ADMINNAME`: name of the administrative/default database
+  * `NX_DB_ADMINUSER`: database superuser
+  * `NX_DB_ADMINPASS`: superuser password
+  * `NX_DB_NAME`: name of the database used by nuxeo
+  * `NX_DB_USER`: username used by nuxeo to connect to the database
+  * `NX_DB_PASS`: password used by nuxeo to connect to the database
 
   If the administrative parameters are missing, the nuxeo.conf will be modified with the correct values,
   but the build process will not try to create the database nor the user.
 
-  For Oracle, the NX\_DB\_ADMINNAME and NX\_DB\_NAME must be identical (the instance SID).
+  For Oracle, the `NX_DB_ADMINNAME` and `NX_DB_NAME` must be identical (the instance SID).
 
-  If the NX\_DB\_NAME, NX\_DB\_USER or NX\_DB\_PASS are not specified, they will be generated randomly.
+  If the `NX_DB_NAME`, `NX_DB_USER` or `NX_DB_PASS` are not specified, they will be generated randomly.
   Caveat: if you execute db-create and db-drop in different passes, the generated values will be different.
+
+### NoSQL Database parameters
+
+  Valid choices are: mongodb (MongoDB)
+
+  The following environment variables are used:
+
+  * `NX_MONGODB_SERVER`: MongoDB server URI. Mapped with `nuxeo.mongodb.server` Nuxeo configuration property and defaults to `localhost:27017`
+  * `NX_MONGODB_DBNAME`: MongoDB database Name. Mapped with `nuxeo.mongodb.dbname` Nuxeo configuration property and defaults to `nxdbname${rndid}` (`rndid` is a random ID)
 
 ## Creating your own Ant targets or overriding existing ones
 
-  As shown in the samples, your customized itests.xml will unzip and import nuxeo-ftest.xml:
+  As shown in the samples, your customized `itests.xml` will unzip and import `nuxeo-ftest.xml`:
 
     <unzip dest="${out.dir}/" overwrite="false">
       <artifact:resolveFile key="org.nuxeo:nuxeo-ftest::zip" />
     </unzip>
     <import file="${out.dir}/nuxeo-ftest.xml" />
 
-  Then, you can freely add your own targets, reuse existing targets from nuxeo-ftest.xml or override them.
+  Then, you can freely add your own targets, reuse existing targets from `nuxeo-ftest.xml` or override them.
 
 ### Targets overview
 
-  * download: download and unzip ${groupId}:${artifactId}::zip:${classifier} from Maven
-  * unzip-local: alternative to "download" target. Use a local ZIP archive instead.
-  * prepare-environment, prepare-db, prepare-jboss, prepare-tomcat, prepare-selenium: various targets for preparing the testing environment.
-  * run-selenium: macro target for preparing the environment, starting the server, running the tests, stopping the server.
+  * `download`: download and unzip `${groupId}:${artifactId}::zip:${classifier}` from Maven
+  * `unzip-local`: alternative to the `download` target. Use a local ZIP archive instead.
+  * `prepare-environment`, `prepare-db`, `prepare-jboss`, `prepare-tomcat`, `prepare-selenium`: various targets for preparing the testing environment.
+  * `run-selenium`: macro target for preparing the environment, starting the server, running the tests, stopping the server.
   Will exit with an error value if a testing suite failed.
-  * set-conf: convenience target for adding a property to nuxeo.conf
-  * wizard-on, wizard-off: deprecated targets for setting on/off the wizard; prefer use of "set-conf".
-  * start, stop: start or stop the server.
-  * cleanup-db: can be used after the tests to remove the user and database that were created for the test.
-  * activate-wizard-preset: activate the wizard preset defined in the `wizard.preset` property.
-  * mp-install: add comma-separated instructions defined in the `mp.install` property.
+  * `set-conf`: convenience target for adding a property to nuxeo.conf
+  * `wizard-on`, `wizard-off`: deprecated targets for setting on/off the wizard; prefer use of `set-conf`.
+  * `start`, `stop`: start or stop the server.
+  * `cleanup-db`: can be used after the tests to remove the user and database that were created for the test.
+  * `activate-wizard-preset`: activate the wizard preset defined in the `wizard.preset` property.
+  * `mp-install`: add comma-separated instructions defined in the `mp.install` property.
 
 ## QA results
 
