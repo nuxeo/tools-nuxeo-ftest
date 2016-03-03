@@ -605,13 +605,14 @@
     <antcall target="funkload-ctl-daemons">
       <param name="action" value="start" />
     </antcall>
+    <antcall target="funkload-ctl-daemons">
+      <param name="action" value="test" />
+    </antcall>
     <nx:profile name="monitor">
       <antcall target="monitor">
         <param name="action" value="start" />
       </antcall>
     </nx:profile>
-
-    <sleep seconds="5" />
 
     <!-- TESTS START -->
     <for list="${funkload-tests}" param="funkload-test" trim="true">
