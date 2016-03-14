@@ -156,7 +156,7 @@
         </if>
       </then>
     </if>
-    <condition property="maven.profile.customdb" value="true">
+    <condition property="nuxeo.dbsetup.dodbconf" value="true">
       <or>
         <isset property="maven.dbprofile" />
         <isset property="maven.profile.mongodb" />
@@ -1250,7 +1250,7 @@
     <!-- </copy> -->
   </target>
 
-  <target name="prepare-db" depends="_init" if="maven.profile.customdb">
+  <target name="prepare-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
       <echo level="info">Prepare PostgreSQL...</echo>
@@ -1282,7 +1282,7 @@
     </nx:profile>
   </target>
 
-  <target name="cleanup-db" depends="_init" if="maven.profile.customdb">
+  <target name="cleanup-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
       <antcall target="pgsql-dbdrop" />
