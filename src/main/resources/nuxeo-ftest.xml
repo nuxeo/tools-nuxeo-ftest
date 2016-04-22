@@ -1214,7 +1214,7 @@
 
   <target name="setup-pgsql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
-      <artifact:resolveFile key="postgresql:postgresql" />
+      <artifact:resolveFile key="org.postgresql:postgresql" />
     </copy>
   </target>
 
