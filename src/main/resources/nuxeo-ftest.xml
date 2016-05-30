@@ -1060,8 +1060,8 @@
   <target name="mssql-dbdrop" depends="_init,setup-mssql-driver" if="maven.profile.mssql">
     <parallel threadCount="1" timeout="120000" failonany="true">
       <sequential>
-        <sql driver="net.sourceforge.jtds.jdbc.Driver"
-             url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+        <sql driver="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+             url="jdbc:sqlserver://${nuxeo.db.host}:${nuxeo.db.port};database=${nuxeo.dbsetup.adminname}"
              userid="${nuxeo.dbsetup.adminuser}"
              password="${nuxeo.dbsetup.adminpass}"
              autocommit="true">
@@ -1081,8 +1081,8 @@
   </target>
 
   <target name="mssql-dbcreate" depends="_init,setup-mssql-driver,mssql-dbdrop" if="maven.profile.mssql">
-    <sql driver="net.sourceforge.jtds.jdbc.Driver"
-         url="jdbc:jtds:sqlserver://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+    <sql driver="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+         url="jdbc:sqlserver://${nuxeo.db.host}:${nuxeo.db.port};database=${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
          password="${nuxeo.dbsetup.adminpass}"
          autocommit="true">
@@ -1220,7 +1220,7 @@
 
   <target name="setup-mssql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
-      <artifact:resolveFile key="net.sourceforge.jtds:jtds" />
+      <artifact:resolveFile key="com.microsoft.sqlserver:sqljdbc" />
     </copy>
   </target>
 
