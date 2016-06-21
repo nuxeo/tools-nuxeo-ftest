@@ -1158,16 +1158,27 @@
              url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
              userid="${nuxeo.dbsetup.adminuser}"
              password="${nuxeo.dbsetup.adminpass}"
-             autocommit="true">
+             autocommit="true"
+             delimiter="//">
           <classpath>
             <pathelement path="${classpath}" />
             <fileset dir="${jdbc.dir}">
               <include name="**/*.jar" />
             </fileset>
           </classpath>
-          GRANT USAGE on *.* TO ${nuxeo.db.user}@'%';
-          DROP USER ${nuxeo.db.user};
-          DROP DATABASE IF EXISTS ${nuxeo.db.name}
+            DROP PROCEDURE IF EXISTS drop_nuxeo_user//
+            CREATE PROCEDURE drop_nuxeo_user(IN nxuser VARCHAR(255))
+            BEGIN
+              DECLARE num INT;
+              SELECT COUNT(*) INTO num FROM mysql.user WHERE user=nxuser AND host='%';
+              IF num &lt;&gt; 0 THEN
+                SET @D=CONCAT("DROP USER ", nxuser);
+                PREPARE stmt FROM @D;
+                EXECUTE stmt;
+              END IF;
+            END;//
+            CALL drop_nuxeo_user('${nuxeo.db.user}')//
+            DROP DATABASE IF EXISTS ${nuxeo.db.name}//
         </sql>
       </sequential>
     </parallel>
