@@ -68,6 +68,9 @@
     <nx:profile name="mysql">
       <property name="maven.dbprofile" value="MYSQL" />
     </nx:profile>
+    <nx:profile name="mariadb">
+      <property name="maven.dbprofile" value="MARIADB" />
+    </nx:profile>
     <if>
       <or>
         <isset property="maven.profile.oracle10g" />
@@ -77,6 +80,15 @@
       <then>
         <property name="maven.profile.oracle" value="true" />
         <nx:profile activate="oracle" />
+      </then>
+    </if>
+    <if>
+      <or>
+        <isset property="maven.profile.mysql" />
+        <isset property="maven.profile.mariadb" />
+      </or>
+      <then>
+        <property name="maven.profile-type.mysql" value="true" />
       </then>
     </if>
 
@@ -1156,7 +1168,7 @@
     </sql>
   </target>
 
-  <target name="mysql-dbdrop" depends="_init,setup-mysql-driver" if="maven.profile.mysql">
+  <target name="mysql-dbdrop" depends="_init,setup-mysql-driver" if="maven.profile-type.mysql">
     <parallel threadCount="1" timeout="120000" failonany="true">
       <sequential>
         <sql driver="com.mysql.jdbc.Driver"
@@ -1189,7 +1201,7 @@
     </parallel>
   </target>
 
-  <target name="mysql-dbcreate" depends="_init,setup-mysql-driver,mysql-dbdrop" if="maven.profile.mysql">
+  <target name="mysql-dbcreate" depends="_init,setup-mysql-driver,mysql-dbdrop" if="maven.profile-type.mysql">
     <sql driver="com.mysql.jdbc.Driver"
          url="jdbc:mysql://${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser}"
@@ -1292,6 +1304,10 @@
       <echo level="info">Prepare MySQL...</echo>
       <antcall target="mysql-dbcreate" />
     </nx:profile>
+    <nx:profile name="mariadb">
+      <echo level="info">Prepare MariaDB...</echo>
+      <antcall target="mysql-dbcreate" />
+    </nx:profile>
     <nx:profile name="mongodb">
       <echo level="info">Prepare MongoDB...</echo>
       <antcall target="mongodb-dbcreate" />
@@ -1316,6 +1332,9 @@
       <antcall target="oracle-dbdrop" />
     </nx:profile>
     <nx:profile name="mysql">
+      <antcall target="mysql-dbdrop" />
+    </nx:profile>
+    <nx:profile name="mariadb">
       <antcall target="mysql-dbdrop" />
     </nx:profile>
     <nx:profile name="mongodb">
@@ -1601,6 +1620,12 @@
       </antcall>
     </nx:profile>
     <nx:profile name="mysql">
+      <antcall target="set-conf">
+        <param name="name" value="nuxeo.templates" />
+        <param name="value" value="mysql" />
+      </antcall>
+    </nx:profile>
+    <nx:profile name="mariadb">
       <antcall target="set-conf">
         <param name="name" value="nuxeo.templates" />
         <param name="value" value="mysql" />
