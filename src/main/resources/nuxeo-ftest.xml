@@ -1221,6 +1221,7 @@
   </target>
 
   <target name="mongodb-dbdrop" depends="_init,setup-mongodb-driver" if="maven.profile.mongodb">
+    <echo level="info">Dropping database named '${nuxeo.mongodb.dbname}' on '${nuxeo.mongodb.server}'</echo>
     <if>
       <equals arg1="${nuxeo.mongodb.server}" arg2="localhost:27017" />
       <then>
