@@ -1223,10 +1223,13 @@
   <target name="mongodb-dbdrop" depends="_init,setup-mongodb-driver" if="maven.profile.mongodb">
     <echo level="info">Dropping database named '${nuxeo.mongodb.dbname}' on '${nuxeo.mongodb.server}'</echo>
     <if>
-      <equals arg1="${nuxeo.mongodb.server}" arg2="localhost:27017" />
+      <or>
+        <matches pattern="^127\..*" string="${nuxeo.mongodb.server}"/>
+        <equals arg1="${nuxeo.mongodb.server}" arg2="172.17.0.1:27017" />
+      </or>
       <then>
         <exec executable="mongo">
-          <arg line="${nuxeo.mongodb.dbname} --eval 'db.default.remove({})'" />
+          <arg line="${nuxeo.mongodb.server}/${nuxeo.mongodb.dbname} --eval 'db.default.remove({})'" />
         </exec>
       </then>
     </if>
