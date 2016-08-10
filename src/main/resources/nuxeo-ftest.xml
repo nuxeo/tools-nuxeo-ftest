@@ -1224,7 +1224,7 @@
     <echo level="info">Dropping database named '${nuxeo.mongodb.dbname}' on '${nuxeo.mongodb.server}'</echo>
     <if>
       <or>
-        <matches pattern="^127\..*" string="${nuxeo.mongodb.server}:27017"/>
+        <matches pattern="^127\..*" string="${nuxeo.mongodb.server}"/>
         <equals arg1="${nuxeo.mongodb.server}" arg2="172.17.0.1:27017" />
       </or>
       <then>
