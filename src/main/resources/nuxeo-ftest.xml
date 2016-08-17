@@ -947,6 +947,25 @@
     </nx:profile>
   </target>
 
+  <target name="prepare-tomcat-logs-trace-storage" depends="_init" if="is.tomcat">
+    <echo level="info">Prepare Tomcat storage TRACE logs...</echo>
+    <replace file="${nuxeo.home}/lib/log4j.xml">
+      <replacetoken><![CDATA[  <category name="org.nuxeo">
+]]></replacetoken>
+      <replacevalue><![CDATA[  <category name="org.nuxeo.ecm.core.storage.sql.jdbc">
+    <priority value="TRACE" />
+  </category>
+  <category name="org.nuxeo.ecm.core.storage.mongodb.MongoDBRepository">
+    <priority value="TRACE" />
+  </category>
+  <category name="org.nuxeo.ecm.core.storage.mem.MemRepository">
+    <priority value="TRACE" />
+  </category>
+  <category name="org.nuxeo">
+]]></replacevalue>
+    </replace>
+  </target>
+
   <target name="prepare-jboss" depends="_init" if="is.jboss">
     <echo level="info">Prepare JBoss...</echo>
     <property name="classifier" value="nuxeo-cap" />
