@@ -926,9 +926,7 @@
 
   <target name="prepare-tomcat" depends="_init" if="is.tomcat">
     <echo level="info">Prepare Tomcat...</echo>
-    <property name="classifier" value="nuxeo-cap" />
-    <property name="groupId" value="org.nuxeo.ecm.distribution" />
-    <property name="artifactId" value="nuxeo-distribution-tomcat" />
+    <property name="server.gav" value="org.nuxeo.ecm.distribution:nuxeo-distribution-tomcat::zip" />
     <antcall target="prepare-server" />
     <nx:profile name="oracle10g">
       <copy todir="${nuxeo.home}/lib/">
@@ -1437,10 +1435,10 @@
   <target name="cleanup-environment" depends="_init,cleanup-db" />
 
   <target name="download" unless="no.download">
-    <echo level="info" message="Downloading ${groupId}:${artifactId}::zip:${classifier}" />
+    <echo level="info" message="Downloading ${server.gav}" />
     <delete failonerror="false" dir="${nuxeo.home}" />
     <unzip dest="${nuxeo.home}/">
-      <artifact:file key="${groupId}:${artifactId}::zip:${classifier}" />
+      <artifact:file key="${server.gav}" />
       <cutdirsmapper dirs="1" />
     </unzip>
   </target>
