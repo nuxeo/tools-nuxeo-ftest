@@ -14,12 +14,6 @@
   <property name="jdbc.dir" value="${out.dir}/jdbc-libs" />
   <property name="suites" value="null" />
 
-  <!-- for EAR testing -->
-  <property name="ear-jboss-groupId" value="org.jboss" />
-  <property name="ear-jboss-artifactId" value="jboss-as" />
-  <property name="ear-jboss-version" value="5.1.0.GA" />
-  <property name="ear-jboss-classifier" value="light" />
-
   <!-- FunkLoad support -->
   <propertyregex property="nuxeoURLNoEndingSlash"
                  input="${nuxeoURL}"
@@ -200,37 +194,9 @@
     <condition property="osfamily-windows">
       <os family="windows" />
     </condition>
-    <condition property="is.jboss">
-      <isset property="maven.profile.jboss" />
-    </condition>
-    <condition property="is.ear">
-      <isset property="maven.profile.jbossear" />
-    </condition>
-    <condition property="is.tomcat">
-      <or>
-        <isset property="maven.profile.tomcat" />
-        <not>
-          <or>
-            <isset property="is.jboss" />
-            <isset property="is.ear" />
-          </or>
-        </not>
-      </or>
-    </condition>
+    <property name="is.tomcat" value="true" />
     <!-- Set nuxeo.home to NUXEO_HOME env property if defined,
-    else set to ${out.dir}/jboss if jboss Maven profile is active,
     else set to ${out.dir}/tomcat -->
-    <condition property="nuxeo.home" value="${out.dir}/jboss">
-      <and>
-        <or>
-          <isset property="is.jboss" />
-          <isset property="is.ear" />
-        </or>
-        <not>
-          <isset property="env.NUXEO_HOME" />
-        </not>
-      </and>
-    </condition>
     <condition property="nuxeo.home" value="${env.NUXEO_HOME}" else="${out.dir}/tomcat">
       <isset property="env.NUXEO_HOME" />
     </condition>
@@ -245,19 +211,10 @@
     <condition property="nuxeo.conf" value="${env.NUXEO_CONF}" else="${nuxeo.home}/bin/nuxeo.conf">
       <isset property="env.NUXEO_CONF" />
     </condition>
-    <!-- set nxserver dir for tomcat or jboss dir -->
-    <condition property="nuxeo.nxserver" value="${nuxeo.home}/server/default/deploy" else="${nuxeo.home}/nxserver">
-      <isset property="is.jboss" />
-    </condition>
-    <!-- set data dir for tomcat or jboss dir -->
-    <condition property="nuxeo.data"
-               value="${nuxeo.home}/server/default/data/NXRuntime/data"
-               else="${nuxeo.home}/nxserver/data">
-      <or>
-        <isset property="is.jboss" />
-        <isset property="is.ear" />
-      </or>
-    </condition>
+    <!-- set nxserver dir -->
+    <property name="nuxeo.nxserver" value="${nuxeo.home}/nxserver" />
+    <!-- set data dir -->
+    <property name="nuxeo.data" value="${nuxeo.home}/nxserver/data" />
 
     <!-- metrics -->
     <condition property="metrics.tomcat.enabled" value="true" else="false">
@@ -969,75 +926,6 @@
     </replace>
   </target>
 
-  <target name="prepare-jboss" depends="_init" if="is.jboss">
-    <echo level="info">Prepare JBoss...</echo>
-    <property name="classifier" value="nuxeo-cap" />
-    <property name="groupId" value="org.nuxeo.ecm.distribution" />
-    <property name="artifactId" value="nuxeo-distribution-jboss" />
-    <antcall target="prepare-server" />
-    <nx:profile name="oracle10g">
-      <copy todir="${nuxeo.home}/common/lib">
-        <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
-      </copy>
-    </nx:profile>
-    <nx:profile name="oracle11g">
-      <copy todir="${nuxeo.home}/common/lib">
-        <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
-      </copy>
-    </nx:profile>
-    <nx:profile name="oracle12c">
-      <copy todir="${nuxeo.home}/common/lib">
-        <artifact:resolveFile key="com.oracle:ojdbc7:${oracle12c.driver.version}:jar" />
-      </copy>
-    </nx:profile>
-  </target>
-
-  <target name="prepare-ear" depends="_init" if="is.ear">
-    <echo level="info">Prepare JBoss EAR...</echo>
-    <property name="classifier" value="nuxeo-cap" />
-    <property name="groupId" value="org.nuxeo.ecm.distribution" />
-    <property name="artifactId" value="nuxeo-distribution-jboss" />
-    <!-- download and unzip JBOSS -->
-    <echo level="info"
-          message="Downloading ${ear-jboss-groupId}:${ear-jboss-artifactId}:${ear-jboss-version}:zip:${ear-jboss-classifier}" />
-    <delete failonerror="false" dir="${nuxeo.home}" />
-    <unzip dest="${nuxeo.home}/">
-      <artifact:resolveFile key="${ear-jboss-groupId}:${ear-jboss-artifactId}:${ear-jboss-version}:zip:${ear-jboss-classifier}" />
-      <cutdirsmapper dirs="1" />
-    </unzip>
-    <!-- download and unzip EAR -->
-    <echo level="info" message="Downloading ${groupId}:${artifactId}::zip:${classifier}-ear" />
-    <unzip dest="${nuxeo.home}/" overwrite="true">
-      <artifact:resolveFile key="${groupId}:${artifactId}::zip:${classifier}-ear" />
-      <cutdirsmapper dirs="1" />
-    </unzip>
-    <!-- configure -->
-    <antcall target="nuxeo-conf" />
-    <antcall target="fix-max-waits" />
-    <antcall target="set-conf">
-      <param name="name" value="nuxeo.wizard.done" />
-      <param name="value" value="true" />
-    </antcall>
-    <antcall target="activate-wizard-preset" />
-    <antcall target="mp-install" />
-    <!-- add JDBC lib -->
-    <nx:profile name="oracle10g">
-      <copy todir="${nuxeo.home}/common/lib">
-        <artifact:resolveFile key="com.oracle:ojdbc14:${oracle10g.driver.version}:jar" />
-      </copy>
-    </nx:profile>
-    <nx:profile name="oracle11g">
-      <copy todir="${nuxeo.home}/common/lib">
-        <artifact:resolveFile key="com.oracle:ojdbc6:${oracle11g.driver.version}:jar" />
-      </copy>
-    </nx:profile>
-    <nx:profile name="oracle12c">
-      <copy todir="${nuxeo.home}/common/lib">
-        <artifact:resolveFile key="com.oracle:ojdbc7:${oracle12c.driver.version}:jar" />
-      </copy>
-    </nx:profile>
-  </target>
-
   <target name="prepare-server">
     <antcall target="download" />
     <antcall target="unzip-local" />
@@ -1433,7 +1321,7 @@
   </target>
 
   <target name="prepare-environment"
-          depends="_init,prepare-db,prepare-tomcat,prepare-jboss,prepare-ear,prepare-monitor"
+          depends="_init,prepare-db,prepare-tomcat,prepare-monitor"
           description="prepare all ressources for test">
   </target>
 
