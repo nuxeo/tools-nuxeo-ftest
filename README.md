@@ -68,7 +68,7 @@ upload files when running tests.
 
   Run the following Maven command to launch the testing suites:
 
-    mvn verify [-f path/to/pom.xml] [-DsomeParam=someValue] -P[tomcat|jboss]
+    mvn verify [-f path/to/pom.xml] [-DsomeParam=someValue]
 
   Maven verify phase automatically calls the previous phases (validate, compile,
   test, package, pre-integration-test, integration-test and post-integration-test).
@@ -105,10 +105,6 @@ upload files when running tests.
   * `NUXEO_CONF`: if set, takes precedence over nuxeo.conf and default values
   * `NX_JAVA_HOME`: if set, the server will use this as Java home instead of `JAVA_HOME`
 
-### Maven parameters
-
-  Two Maven profiles are taken in account when setting nuxeo.home: "tomcat" or "jboss".
-
 ### Java parameters
 
   The following Java parameters may be given from the command line (with `-DsomeParam=someValue`)
@@ -130,16 +126,10 @@ upload files when running tests.
 The Nuxeo server against which the tests are ran can be:
 
   * downloaded (default): if `zip.file` and `env.NUXEO_HOME` are not set,
-    the artifact `${groupId}:${artifactId}::zip:${classifier}` will be downloaded.
-    The default values are `org.nuxeo.ecm.distribution:nuxeo-distribution-tomcat:nuxeo-cap` (for Tomcat)
-    and `org.nuxeo.ecm.distribution:nuxeo-distribution-jboss:nuxeo-dm` (for JBoss).
+    the artifact `${server.gav}` will be downloaded.
+    The default values is `org.nuxeo.ecm.distribution:nuxeo-distribution-tomcat::zip` (for Tomcat).
   * unzipped from a local archive: using `zip.file` if set.
   * a local repository: using `env.NUXEO_HOME` if set.
-
-The Nuxeo server type (Tomcat or JBoss) depends on Maven profiles:
-
-  * JBoss if `jboss` Maven profile is activated,
-  * Tomcat (default) else, or if `tomcat` Maven profile is activated.
 
 ### Database parameters
 
@@ -190,7 +180,7 @@ The Nuxeo server type (Tomcat or JBoss) depends on Maven profiles:
 
   * `download`: download and unzip `${groupId}:${artifactId}::zip:${classifier}` from Maven
   * `unzip-local`: alternative to the `download` target. Use a local ZIP archive instead.
-  * `prepare-environment`, `prepare-db`, `prepare-jboss`, `prepare-tomcat`, `prepare-selenium`: various targets for preparing the testing environment.
+  * `prepare-environment`, `prepare-db`, `prepare-tomcat`, `prepare-selenium`: various targets for preparing the testing environment.
   * `run-selenium`: macro target for preparing the environment, starting the server, running the tests, stopping the server.
   Will exit with an error value if a testing suite failed.
   * `set-conf`: convenience target for adding a property to nuxeo.conf
