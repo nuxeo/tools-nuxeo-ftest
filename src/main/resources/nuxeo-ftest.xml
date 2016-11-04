@@ -888,7 +888,7 @@
 
   <target name="prepare-tomcat" depends="_init" if="is.tomcat">
     <echo level="info">Prepare Tomcat...</echo>
-    <property name="server.gav" value="org.nuxeo.ecm.distribution:nuxeo-distribution-tomcat::zip" />
+    <property name="server.gav" value="org.nuxeo.ecm.distribution:nuxeo-server-tomcat::zip" />
     <antcall target="prepare-server" />
     <nx:profile name="oracle10g">
       <copy todir="${nuxeo.home}/lib/">

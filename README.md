@@ -127,7 +127,7 @@ The Nuxeo server against which the tests are ran can be:
 
   * downloaded (default): if `zip.file` and `env.NUXEO_HOME` are not set,
     the artifact `${server.gav}` will be downloaded.
-    The default values is `org.nuxeo.ecm.distribution:nuxeo-distribution-tomcat::zip` (for Tomcat).
+    The default values is `org.nuxeo.ecm.distribution:nuxeo-server-tomcat::zip` (for Tomcat).
   * unzipped from a local archive: using `zip.file` if set.
   * a local repository: using `env.NUXEO_HOME` if set.
 
