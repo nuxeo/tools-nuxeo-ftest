@@ -1126,22 +1126,31 @@
   </target>
 
   <target name="mongodb-dbdrop" depends="_init,setup-mongodb-driver" if="maven.profile.mongodb">
-    <echo level="info">Dropping database named '${nuxeo.mongodb.dbname}' on '${nuxeo.mongodb.server}'</echo>
     <if>
       <or>
-        <matches pattern="^127\..*" string="${nuxeo.mongodb.server}"/>
+        <matches string="${nuxeo.mongodb.server}" pattern="^127\..*" />
+        <equals arg1="${nuxeo.mongodb.server}" arg2="localhost" />
+        <equals arg1="${nuxeo.mongodb.server}" arg2="localhost:27017" />
+        <equals arg1="${nuxeo.mongodb.server}" arg2="172.17.0.1" />
         <equals arg1="${nuxeo.mongodb.server}" arg2="172.17.0.1:27017" />
       </or>
       <then>
+        <echo level="info">Dropping database named '${nuxeo.mongodb.dbname}' on '${nuxeo.mongodb.server}'</echo>
         <exec executable="mongo">
-          <arg line="${nuxeo.mongodb.server}/${nuxeo.mongodb.dbname} --eval 'db.default.remove({})'" />
+          <arg line="${nuxeo.mongodb.server}/${nuxeo.mongodb.dbname} --eval 'db.dropDatabase().ok'" />
         </exec>
       </then>
+      <else>
+        <echo level="info">NOT dropping database named '${nuxeo.mongodb.dbname}' on non-local/docker '${nuxeo.mongodb.server}'</echo>
+      </else>
     </if>
   </target>
 
   <target name="mongodb-dbcreate" depends="_init,setup-mongodb-driver,mongodb-dbdrop" if="maven.profile.mongodb">
-    <!-- NO OP -->
+    <echo level="info">Checking database named '${nuxeo.mongodb.dbname}' on '${nuxeo.mongodb.server}'</echo>
+    <exec executable="mongo">
+      <arg line="${nuxeo.mongodb.server}/${nuxeo.mongodb.dbname} --eval 'db.default.find({}).count() + &quot; existing documents&quot;'" />
+    </exec>
   </target>
 
   <target name="setup-pgsql-driver" depends="_init">
