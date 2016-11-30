@@ -113,52 +113,51 @@
     <condition property="nuxeo.dbsetup.adminpass" value="${env.NX_DB_ADMINPASS}">
       <isset property="env.NX_DB_ADMINPASS" />
     </condition>
-    <!-- set nuxeo.dbsetup.donuxeoconf to true if we have all the parameters
-     required by nuxeo -->
-    <condition property="nuxeo.dbsetup.donuxeoconf" value="true">
-      <and>
-        <isset property="nuxeo.db.host" />
-        <isset property="nuxeo.db.port" />
-        <isset property="nuxeo.db.name" />
-        <isset property="nuxeo.db.user" />
-        <isset property="nuxeo.db.pass" />
-      </and>
-    </condition>
-    <!-- set nuxeo.dbsetup.dodbconf to true if we have all the parameters
-     required by nuxeo and admin access to the database -->
-    <condition property="nuxeo.dbsetup.dodbconf" value="true">
-      <and>
-        <isset property="nuxeo.dbsetup.donuxeoconf" />
-        <isset property="nuxeo.dbsetup.adminname" />
-        <isset property="nuxeo.dbsetup.adminuser" />
-        <isset property="nuxeo.dbsetup.adminpass" />
-      </and>
-    </condition>
-    <!-- fail the build when a db profile is selected but db parameters
-     are missing -->
-    <fail message="${maven.dbprofile} is selected but database parameters are missing">
-      <condition>
-        <and>
-          <isset property="maven.dbprofile" />
-          <not>
-            <isset property="nuxeo.dbsetup.donuxeoconf" />
-          </not>
-        </and>
-      </condition>
-    </fail>
-    <!-- give a warning when a db profile is selected but db administration
-     parameters are missing -->
+    <!-- check required parameters -->
     <if>
-      <and>
-        <isset property="maven.dbprofile" />
-        <not>
-          <isset property="nuxeo.dbsetup.dodbconf" />
-        </not>
-      </and>
+      <isset property="maven.dbprofile" />
       <then>
-        <echo level="warning">Profile ${maven.dbprofile} is selected but database administration parameters are missing</echo>
+        <!-- give a warning when a db profile is selected but db administration parameters are missing -->
+        <var name="error.msg"
+             value="Profile ${maven.dbprofile} is selected but database administration parameters are missing:${line.separator}" />
+        <for list="nuxeo.dbsetup.adminname,env.NX_DB_ADMINNAME,env.NX_${maven.dbprofile}_DB_ADMINNAME,
+                   nuxeo.dbsetup.adminuser,env.NX_DB_ADMINUSER,env.NX_${maven.dbprofile}_DB_ADMINUSER,
+                   nuxeo.dbsetup.adminpass,env.NX_DB_ADMINPASS,env.NX_${maven.dbprofile}_DB_ADMINPASS"
+             param="dbparam"
+             trim="true">
+          <sequential>
+            <if>
+              <not>
+                <isset property="@{dbparam}" />
+              </not>
+              <then>
+                <var name="error.msg" value="${error.msg}@{dbparam} is not set${line.separator}" />
+                <property name="dbadminparam.fail" value="true" />
+              </then>
+            </if>
+          </sequential>
+        </for>
+        <if>
+          <isset property="dbadminparam.fail" />
+          <then>
+            <echo level="warning" message="${error.msg}" />
+          </then>
+        </if>
       </then>
     </if>
+    <condition property="nuxeo.dbsetup.dodbconf" value="true">
+      <or>
+        <isset property="maven.dbprofile" />
+        <isset property="maven.profile.mongodb" />
+      </or>
+    </condition>
+
+    <condition property="nuxeo.mongodb.server" value="${env.NX_MONGODB_SERVER}" else="localhost:27017">
+      <isset property="env.NX_MONGODB_SERVER" />
+    </condition>
+    <condition property="nuxeo.mongodb.dbname" value="${env.NX_MONGODB_DBNAME}" else="nxdbname${rndid}">
+      <isset property="env.NX_MONGODB_DBNAME" />
+    </condition>
   </target>
 
   <target name="_init" unless="_init.done" depends="_initdb">
@@ -1205,6 +1204,34 @@
     </sql>
   </target>
 
+  <target name="mongodb-dbdrop" depends="_init,setup-mongodb-driver" if="maven.profile.mongodb">
+    <if>
+      <or>
+        <matches string="${nuxeo.mongodb.server}" pattern="^127\..*" />
+        <equals arg1="${nuxeo.mongodb.server}" arg2="localhost" />
+        <equals arg1="${nuxeo.mongodb.server}" arg2="localhost:27017" />
+        <equals arg1="${nuxeo.mongodb.server}" arg2="172.17.0.1" />
+        <equals arg1="${nuxeo.mongodb.server}" arg2="172.17.0.1:27017" />
+      </or>
+      <then>
+        <echo level="info">Dropping database named '${nuxeo.mongodb.dbname}' on '${nuxeo.mongodb.server}'</echo>
+        <exec executable="mongo">
+          <arg line="${nuxeo.mongodb.server}/${nuxeo.mongodb.dbname} --eval 'db.dropDatabase().ok'" />
+        </exec>
+      </then>
+      <else>
+        <echo level="info">NOT dropping database named '${nuxeo.mongodb.dbname}' on non-local/docker '${nuxeo.mongodb.server}'</echo>
+      </else>
+    </if>
+  </target>
+
+  <target name="mongodb-dbcreate" depends="_init,setup-mongodb-driver,mongodb-dbdrop" if="maven.profile.mongodb">
+    <echo level="info">Checking database named '${nuxeo.mongodb.dbname}' on '${nuxeo.mongodb.server}'</echo>
+    <exec executable="mongo">
+      <arg line="${nuxeo.mongodb.server}/${nuxeo.mongodb.dbname} --eval 'db.default.find({}).count() + &quot; existing documents&quot;'" />
+    </exec>
+  </target>
+
   <target name="setup-pgsql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
       <artifact:resolveFile key="postgresql:postgresql" />
@@ -1241,6 +1268,13 @@
     </copy>
   </target>
 
+  <target name="setup-mongodb-driver" depends="_init">
+    <!-- NO OP -->
+    <!-- <copy todir="${jdbc.dir}"> -->
+    <!-- <artifact:resolveFile key="org.mongodb:mongo-java-driver" /> -->
+    <!-- </copy> -->
+  </target>
+
   <target name="prepare-db" depends="_init,cleanup-db" if="nuxeo.dbsetup.dodbconf">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
@@ -1267,6 +1301,10 @@
       <echo level="info">Prepare MySQL...</echo>
       <antcall target="mysql-dbcreate" />
     </nx:profile>
+    <nx:profile name="mongodb">
+      <echo level="info">Prepare MongoDB...</echo>
+      <antcall target="mongodb-dbcreate" />
+    </nx:profile>
   </target>
 
   <target name="cleanup-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
@@ -1288,6 +1326,9 @@
     </nx:profile>
     <nx:profile name="mysql">
       <antcall target="mysql-dbdrop" />
+    </nx:profile>
+    <nx:profile name="mongodb">
+      <antcall target="mongodb-dbdrop" />
     </nx:profile>
   </target>
 
@@ -1537,7 +1578,7 @@
     </antcall>
   </target>
 
-  <target name="set-nuxeoconf-db" depends="_init" if="nuxeo.dbsetup.donuxeoconf">
+  <target name="set-nuxeoconf-db" depends="_init" if="maven.dbprofile">
     <nx:profile name="pgsql">
       <antcall target="set-conf">
         <param name="name" value="nuxeo.templates" />
@@ -1613,6 +1654,19 @@
       <antcall target="set-conf">
         <param name="name" value="nuxeo.templates" />
         <param name="value" value="default,mongodb" />
+      </antcall>
+      <if>
+        <isset property="nuxeo.mongodb.server" />
+        <then>
+          <antcall target="set-conf">
+            <param name="name" value="nuxeo.mongodb.server" />
+            <param name="value" value="${nuxeo.mongodb.server}" />
+          </antcall>
+        </then>
+      </if>
+      <antcall target="set-conf">
+        <param name="name" value="nuxeo.mongodb.dbname" />
+        <param name="value" value="${nuxeo.mongodb.dbname}" />
       </antcall>
     </nx:profile>
   </target>

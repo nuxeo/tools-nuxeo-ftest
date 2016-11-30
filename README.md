@@ -158,6 +158,15 @@ The Nuxeo server type (Tomcat or JBoss) depends on Maven profiles:
   If the NX\_DB\_NAME, NX\_DB\_USER or NX\_DB\_PASS are not specified, they will be generated randomly.
   Caveat: if you execute db-create and db-drop in different passes, the generated values will be different.
 
+### NoSQL Database parameters
+
+  Valid choices are: mongodb (MongoDB)
+
+  The following environment variables are used:
+
+  * `NX_MONGODB_SERVER`: MongoDB server URI. Mapped with `nuxeo.mongodb.server` Nuxeo configuration property and defaults to `localhost:27017`
+  * `NX_MONGODB_DBNAME`: MongoDB database Name. Mapped with `nuxeo.mongodb.dbname` Nuxeo configuration property and defaults to `nxdbname${rndid}` (`rndid` is a random ID)
+
 ## Creating your own Ant targets or overriding existing ones
 
   As shown in the samples, your customized itests.xml will unzip and import nuxeo-ftest.xml:
