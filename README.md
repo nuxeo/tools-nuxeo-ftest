@@ -135,7 +135,7 @@ The Nuxeo server against which the tests are ran can be:
 
   You can ask the framework to prepare a database to connect to and modify the nuxeo.conf to point to it.
   The choice of the database engine is done by activating the corresponding profile.
-  Valid choices are: pgsql (PostgreSQL), mssql (MsSQL), oracle10g (Oracle 10g), oracle11g (Oracle 11g), mysql (MySQL)
+  Valid choices are: pgsql (PostgreSQL), mssql (MsSQL), oracle10g (Oracle 10g), oracle11g (Oracle 11g), mysql (MySQL), mariadb (MariaDB)
 
   The following environment variables are used:
 

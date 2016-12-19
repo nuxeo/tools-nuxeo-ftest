@@ -1546,7 +1546,7 @@
     <nx:profile name="mariadb">
       <antcall target="set-conf">
         <param name="name" value="nuxeo.templates" />
-        <param name="value" value="mysql" />
+        <param name="value" value="mariadb" />
       </antcall>
     </nx:profile>
     <antcall target="set-conf">
