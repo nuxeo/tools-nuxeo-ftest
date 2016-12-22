@@ -1231,7 +1231,7 @@
       <sequential>
         <exec executable="curl">
           <arg line="-X POST --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} --header 'Content-Type: application/json' "/>
-          <arg line="-d '{&quot;forest-name&quot;:&quot;${nuxeo.marklogic.dbname}-@{suffix}&quot;,&quot;host&quot;:&quot;e32e9752c82e&quot;,&quot;enabled&quot;:true}' " />
+          <arg line="-d '{&quot;forest-name&quot;:&quot;${nuxeo.marklogic.dbname}-@{suffix}&quot;,&quot;host&quot;:&quot;1bd9a04e9c12.eu-west-1.compute.internal&quot;,&quot;enabled&quot;:true}' " />
           <arg line="http://${nuxeo.marklogic.host}:8002/manage/v2/forests" />
         </exec>
       </sequential>
@@ -1276,7 +1276,7 @@
         <basename property="filename" file="@{file}"/>
         <exec executable="curl">
           <!-- TODO : hardcoded port for default REST App Server -->
-          <arg line="-X PUT --anyauth -u ${nuxeo.marklogic.user}:${nuxeo.marklogic.password} -d \@@{file} --header 'Content-Type: application/xml' "/>
+          <arg line="-X PUT --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} -d \@@{file} --header 'Content-Type: application/xml' "/>
           <arg line="http://${nuxeo.marklogic.host}:8000/v1/documents?database=${nuxeo.marklogic.dbname}-modules&amp;uri=/ext/nuxeo/${filename}" />
         </exec>
       </sequential>
