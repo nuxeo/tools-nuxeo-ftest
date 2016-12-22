@@ -1273,10 +1273,11 @@
         <fileset dir="${out.dir}" includes="*.xqy"/>
       </path>
       <sequential>
+        <local name="filename" />
         <basename property="filename" file="@{file}"/>
         <exec executable="curl">
           <!-- TODO : hardcoded port for default REST App Server -->
-          <arg line="-X PUT --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} -d \@@{file} --header 'Content-Type: application/xml' "/>
+          <arg line="-X PUT --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} -d @'@{file}' --header 'Content-Type: application/xml' "/>
           <arg line="http://${nuxeo.marklogic.host}:8000/v1/documents?database=${nuxeo.marklogic.dbname}-modules&amp;uri=/ext/nuxeo/${filename}" />
         </exec>
       </sequential>
