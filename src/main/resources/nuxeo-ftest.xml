@@ -190,8 +190,8 @@
     <condition property="nuxeo.marklogic.port" value="${env.NX_NOSQLDB_PORT}" else="${nuxeo.marklogic.port.default}">
       <isset property="env.NX_NOSQLDB_PORT" />
     </condition>
-    <condition property="nuxeo.marklogic.dbname" value="${env.NX_NOSQLDB_DBNAME}" else="nxdbname${rndid}">
-      <isset property="env.NX_NOSQLDB_DBNAME" />
+    <condition property="nuxeo.marklogic.dbname" value="${env.NX_NOSQLDB_NAME}" else="nxdbname${rndid}">
+      <isset property="env.NX_NOSQLDB_NAME" />
     </condition>
     <condition property="nuxeo.marklogic.user" value="${env.NX_NOSQLDB_USER}" else="nxdbuser${rndid}">
       <isset property="env.NX_NOSQLDB_USER" />
