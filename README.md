@@ -192,7 +192,7 @@ The Nuxeo server against which the tests are ran can be:
 
 ## QA results
 
-[![Build Status](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=tools_nuxeo-ftest-master)](https://qa.nuxeo.org/jenkins/job/tools_nuxeo-ftest-master/)
+[![Build Status](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=Misc/tools_nuxeo-ftest-master)](https://qa.nuxeo.org/jenkins/job/Misc/job/tools_nuxeo-ftest-master/)
 
 # About Nuxeo
 
