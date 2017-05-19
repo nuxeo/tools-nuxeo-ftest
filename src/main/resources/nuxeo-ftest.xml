@@ -926,7 +926,10 @@
 
   <target name="prepare-tomcat" depends="_init" if="is.tomcat">
     <echo level="info">Prepare Tomcat...</echo>
-    <property name="server.gav" value="org.nuxeo.ecm.distribution:nuxeo-distribution-tomcat::zip" />
+    <property name="classifier" value="nuxeo-cap" />
+    <property name="groupId" value="org.nuxeo.ecm.distribution" />
+    <property name="artifactId" value="nuxeo-distribution-tomcat" />
+    <property name="server.gav" value="${groupId}:${artifactId}::zip:${classifier}" />
     <antcall target="prepare-server" />
     <nx:profile name="oracle10g">
       <copy todir="${nuxeo.home}/lib/">
