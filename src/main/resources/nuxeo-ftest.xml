@@ -815,24 +815,6 @@
                 </not>
               </condition>
             </fail>
-            <!-- initialize drive -->
-            <antcallback target="fl-run-tests" return="errors,errmsg">
-              <param name="suite" value="test_drive.py" />
-              <param name="tests" value="testInit" />
-            </antcallback>
-            <propertyregex property="errormessage"
-                           override="true"
-                           input="${errmsg}"
-                           regexp="(.*),"
-                           select="\1"
-                           defaultValue="${errmsg}" />
-            <fail status="${errors}" message="${errormessage}">
-              <condition>
-                <not>
-                  <equals arg1="${errors}" arg2="0" />
-                </not>
-              </condition>
-            </fail>
           </then>
           <elseif>
             <equals arg1="@{bench-name}" arg2="load" />
@@ -878,18 +860,6 @@
                 <param name="bench-name" value="@{bench-name}" />
               </antcall>
               <copy file="${nuxeo.conf}.bak" tofile="${nuxeo.conf}" overwrite="true" />
-            </then>
-          </elseif>
-          <elseif>
-            <equals arg1="@{bench-name}" arg2="drive" />
-            <then>
-              <echo level="info">BENCH DRIVE --------------------</echo>
-              <antcall target="run-funkload-bench">
-                <param name="fl-suite" value="test_drive.py" />
-                <param name="fl-test" value="Drive.testDrive" />
-                <param name="fl-result" value="${out.dir}/log/drive-bench.xml" />
-                <param name="bench-name" value="@{bench-name}" />
-              </antcall>
             </then>
           </elseif>
           <else>
