@@ -271,6 +271,9 @@
     <condition property="metrics.graphite.period" value="${env.NX_METRICS_GRAPHITE_PERIOD}" else="10">
       <isset property="env.NX_METRICS_GRAPHITE_PERIOD" />
     </condition>
+    <condition property="metrics.graphite.period" value="${env.NX_METRICS_GRAPHITE_FILTER}" else="nuxeo.cache.user-entry-cache,nuxeo.cache.group-entry-cache,nuxeo.directories.userDirectory,nuxeo.directories.groupDirectory">
+      <isset property="env.NX_METRICS_GRAPHITE_FILTER" />
+    </condition>
     <condition property="metrics.csv.enabled" value="true" else="false">
       <isset property="env.NX_METRICS_CSV" />
     </condition>
@@ -489,6 +492,10 @@
       <antcall target="set-conf">
         <param name="name" value="metrics.graphite.period" />
         <param name="value" value="${metrics.graphite.period}" />
+      </antcall>
+      <antcall target="set-conf">
+        <param name="name" value="metrics.graphite.filter" />
+        <param name="value" value="${metrics.graphite.filter}" />
       </antcall>
       <antcall target="set-conf">
         <param name="name" value="metrics.csv.enabled" />
