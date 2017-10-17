@@ -1151,6 +1151,7 @@
           BEGIN
             SELECT COUNT(*) INTO num FROM dba_users WHERE username = UPPER('${nuxeo.db.user}');
             IF num &lt;&gt; 0 THEN
+              EXECUTE IMMEDIATE 'ALTER SESSION SET "_oracle_script"=true';
               EXECUTE IMMEDIATE 'DROP USER ${nuxeo.db.user} CASCADE';
             END IF;
           EXCEPTION
@@ -1174,6 +1175,7 @@
           <include name="**/*.jar" />
         </fileset>
       </classpath>
+      ALTER SESSION SET "_oracle_script"=true;
       CREATE USER ${nuxeo.db.user} IDENTIFIED BY ${nuxeo.db.pass} QUOTA UNLIMITED ON users;
       GRANT EXECUTE ON SYS.DBMS_CRYPTO TO ${nuxeo.db.user};
       GRANT SELECT ON SYS.V_$$SESSION TO ${nuxeo.db.user};
