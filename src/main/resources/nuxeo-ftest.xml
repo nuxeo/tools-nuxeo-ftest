@@ -1130,7 +1130,113 @@
     </sql>
   </target>
 
-  <target name="oracle-dbdrop" depends="_init,setup-oracle-driver" if="maven.profile.oracle">
+  <target name="oracle10g-dbdrop" depends="_init,setup-oracle-driver" if="maven.profile.oracle">
+    <parallel threadCount="1" timeout="120000" failonany="true">
+      <sequential>
+        <sql driver="oracle.jdbc.OracleDriver"
+             url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser} as sysdba"
+             password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true"
+             delimiter="--next--">
+          <classpath>
+            <pathelement path="${classpath}" />
+            <fileset dir="${jdbc.dir}">
+              <include name="**/*.jar" />
+            </fileset>
+          </classpath>
+          DECLARE
+            num number:=0;
+            drop_stmt VARCHAR2(200);
+          BEGIN
+            SELECT COUNT(*) INTO num FROM dba_users WHERE username = UPPER('${nuxeo.db.user}');
+            IF num &lt;&gt; 0 THEN
+              EXECUTE IMMEDIATE 'DROP USER ${nuxeo.db.user} CASCADE';
+            END IF;
+          EXCEPTION
+            WHEN OTHERS THEN
+              raise_application_error(-20001,'An error was encountered - '||SQLCODE||' -ERROR- '||SQLERRM);
+          END;
+        </sql>
+      </sequential>
+    </parallel>
+  </target>
+
+  <target name="oracle10g-dbcreate" depends="_init,setup-oracle-driver,oracle10g-dbdrop" if="maven.profile.oracle">
+    <sql driver="oracle.jdbc.OracleDriver"
+         url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+         userid="${nuxeo.dbsetup.adminuser} as sysdba"
+         password="${nuxeo.dbsetup.adminpass}"
+         autocommit="true">
+      <classpath>
+        <pathelement path="${classpath}" />
+        <fileset dir="${jdbc.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
+      CREATE USER ${nuxeo.db.user} IDENTIFIED BY ${nuxeo.db.pass} QUOTA UNLIMITED ON users;
+      GRANT EXECUTE ON SYS.DBMS_CRYPTO TO ${nuxeo.db.user};
+      GRANT SELECT ON SYS.V_$$SESSION TO ${nuxeo.db.user};
+      GRANT SELECT ON SYS.GV_$$SESSION TO ${nuxeo.db.user};
+      GRANT CONNECT TO ${nuxeo.db.user};
+      GRANT RESOURCE TO ${nuxeo.db.user};
+    </sql>
+  </target>
+
+  <target name="oracle11g-dbdrop" depends="_init,setup-oracle-driver" if="maven.profile.oracle">
+    <parallel threadCount="1" timeout="120000" failonany="true">
+      <sequential>
+        <sql driver="oracle.jdbc.OracleDriver"
+             url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+             userid="${nuxeo.dbsetup.adminuser} as sysdba"
+             password="${nuxeo.dbsetup.adminpass}"
+             autocommit="true"
+             delimiter="--next--">
+          <classpath>
+            <pathelement path="${classpath}" />
+            <fileset dir="${jdbc.dir}">
+              <include name="**/*.jar" />
+            </fileset>
+          </classpath>
+          DECLARE
+            num number:=0;
+            drop_stmt VARCHAR2(200);
+          BEGIN
+            SELECT COUNT(*) INTO num FROM dba_users WHERE username = UPPER('${nuxeo.db.user}');
+            IF num &lt;&gt; 0 THEN
+              EXECUTE IMMEDIATE 'DROP USER ${nuxeo.db.user} CASCADE';
+            END IF;
+          EXCEPTION
+            WHEN OTHERS THEN
+              raise_application_error(-20001,'An error was encountered - '||SQLCODE||' -ERROR- '||SQLERRM);
+          END;
+        </sql>
+      </sequential>
+    </parallel>
+  </target>
+
+  <target name="oracle11g-dbcreate" depends="_init,setup-oracle-driver,oracle11g-dbdrop" if="maven.profile.oracle">
+    <sql driver="oracle.jdbc.OracleDriver"
+         url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
+         userid="${nuxeo.dbsetup.adminuser} as sysdba"
+         password="${nuxeo.dbsetup.adminpass}"
+         autocommit="true">
+      <classpath>
+        <pathelement path="${classpath}" />
+        <fileset dir="${jdbc.dir}">
+          <include name="**/*.jar" />
+        </fileset>
+      </classpath>
+      CREATE USER ${nuxeo.db.user} IDENTIFIED BY ${nuxeo.db.pass} QUOTA UNLIMITED ON users;
+      GRANT EXECUTE ON SYS.DBMS_CRYPTO TO ${nuxeo.db.user};
+      GRANT SELECT ON SYS.V_$$SESSION TO ${nuxeo.db.user};
+      GRANT SELECT ON SYS.GV_$$SESSION TO ${nuxeo.db.user};
+      GRANT CONNECT TO ${nuxeo.db.user};
+      GRANT RESOURCE TO ${nuxeo.db.user};
+    </sql>
+  </target>
+
+  <target name="oracle12c-dbdrop" depends="_init,setup-oracle-driver" if="maven.profile.oracle">
     <parallel threadCount="1" timeout="120000" failonany="true">
       <sequential>
         <sql driver="oracle.jdbc.OracleDriver"
@@ -1163,7 +1269,7 @@
     </parallel>
   </target>
 
-  <target name="oracle-dbcreate" depends="_init,setup-oracle-driver,oracle-dbdrop" if="maven.profile.oracle">
+  <target name="oracle12c-dbcreate" depends="_init,setup-oracle-driver,oracle12c-dbdrop" if="maven.profile.oracle">
     <sql driver="oracle.jdbc.OracleDriver"
          url="jdbc:oracle:thin:@//${nuxeo.db.host}:${nuxeo.db.port}/${nuxeo.dbsetup.adminname}"
          userid="${nuxeo.dbsetup.adminuser} as sysdba"
@@ -1320,15 +1426,15 @@
     </nx:profile>
     <nx:profile name="oracle10g">
       <echo level="info">Prepare Oracle 10g...</echo>
-      <antcall target="oracle-dbcreate" />
+      <antcall target="oracle10g-dbcreate" />
     </nx:profile>
     <nx:profile name="oracle11g">
       <echo level="info">Prepare Oracle 11g...</echo>
-      <antcall target="oracle-dbcreate" />
+      <antcall target="oracle11g-dbcreate" />
     </nx:profile>
     <nx:profile name="oracle12c">
       <echo level="info">Prepare Oracle 12c...</echo>
-      <antcall target="oracle-dbcreate" />
+      <antcall target="oracle12c-dbcreate" />
     </nx:profile>
     <nx:profile name="mysql">
       <echo level="info">Prepare MySQL...</echo>
@@ -1353,13 +1459,13 @@
       <antcall target="mssql-dbdrop" />
     </nx:profile>
     <nx:profile name="oracle10g">
-      <antcall target="oracle-dbdrop" />
+      <antcall target="oracle10g-dbdrop" />
     </nx:profile>
     <nx:profile name="oracle11g">
-      <antcall target="oracle-dbdrop" />
+      <antcall target="oracle11g-dbdrop" />
     </nx:profile>
     <nx:profile name="oracle12c">
-      <antcall target="oracle-dbdrop" />
+      <antcall target="oracle12c-dbdrop" />
     </nx:profile>
     <nx:profile name="mysql">
       <antcall target="mysql-dbdrop" />
