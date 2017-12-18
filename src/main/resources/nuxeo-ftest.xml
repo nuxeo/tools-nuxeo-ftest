@@ -1859,6 +1859,20 @@
         </then>
       </if>
     </nx:profile>
+    <nx:profile name="kafka">
+      <antcall target="set-conf">
+        <param name="name" value="kafka.enabled" />
+        <param name="value" value="true" />
+      </antcall>
+      <antcall target="set-conf">
+        <param name="name" value="kafka.zkServers" />
+        <param name="value" value="${kafka.zkServers}" />
+      </antcall>
+      <antcall target="set-conf">
+        <param name="name" value="kafka.bootstrap.servers" />
+        <param name="value" value="${kafka.bootstrap.servers}" />
+      </antcall>
+    </nx:profile>
   </target>
 
   <target name="set-conf" depends="_init" description="Add property to ${nuxeo.conf} with ${name}=${value}">
