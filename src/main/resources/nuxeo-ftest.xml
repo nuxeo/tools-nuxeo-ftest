@@ -1865,6 +1865,10 @@
         <param name="value" value="true" />
       </antcall>
       <antcall target="set-conf">
+        <param name="name" value="nuxeo.stream.work.enabled" />
+        <param name="value" value="true" />
+      </antcall>
+      <antcall target="set-conf">
         <param name="name" value="kafka.zkServers" />
         <param name="value" value="${kafka.zkServers}" />
       </antcall>
