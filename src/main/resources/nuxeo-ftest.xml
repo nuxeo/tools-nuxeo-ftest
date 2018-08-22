@@ -1220,7 +1220,7 @@
               END IF;
             END;//
             CALL drop_nuxeo_user('${nuxeo.db.user}')//
-            DROP DATABASE IF EXISTS "${nuxeo.db.name}"//
+            DROP DATABASE IF EXISTS `${nuxeo.db.name}`//
         </sql>
       </sequential>
     </parallel>
@@ -1238,8 +1238,8 @@
           <include name="**/*.jar" />
         </fileset>
       </classpath>
-      CREATE DATABASE "${nuxeo.db.name}" CHARACTER SET UTF8;
-      GRANT ALL ON "${nuxeo.db.name}".* TO '${nuxeo.db.user}'@'%' IDENTIFIED BY '${nuxeo.db.pass}';
+      CREATE DATABASE `${nuxeo.db.name}` CHARACTER SET UTF8;
+      GRANT ALL ON `${nuxeo.db.name}`.* TO '${nuxeo.db.user}'@'%' IDENTIFIED BY '${nuxeo.db.pass}';
       GRANT SELECT ON mysql.proc TO '${nuxeo.db.user}'@'%';
       FLUSH PRIVILEGES;
     </sql>
