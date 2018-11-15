@@ -916,7 +916,7 @@
     </nx:profile>
   </target>
 
-  <target name="cleanup-tomcat">
+  <target name="cleanup-tomcat" depends="_init" if="is.tomcat" unless="env.NUXEO_HOME" >
     <delete dir="${nuxeo.home}" failonerror="false" includeemptydirs="true">
       <exclude name="**/*.log" />
       <exclude name="**/distribution.properties" />
