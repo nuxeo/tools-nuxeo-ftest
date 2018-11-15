@@ -916,6 +916,13 @@
     </nx:profile>
   </target>
 
+  <target name="cleanup-tomcat">
+    <delete dir="${nuxeo.home}" failonerror="false" includeemptydirs="true">
+      <exclude name="**/*.log" />
+      <exclude name="**/distribution.properties" />
+    </delete>
+  </target>
+
   <target name="prepare-tomcat-logs-trace-storage" depends="_init" if="is.tomcat">
     <echo level="info">Prepare Tomcat storage TRACE logs...</echo>
     <replace file="${nuxeo.home}/lib/log4j.xml">
@@ -1553,7 +1560,7 @@
           description="prepare all ressources for test">
   </target>
 
-  <target name="cleanup-environment" depends="_init,cleanup-db" />
+  <target name="cleanup-environment" depends="_init,cleanup-db,cleanup-tomcat" />
 
   <target name="download" unless="no.download">
     <echo level="info" message="Downloading ${server.gav}" />
