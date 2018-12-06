@@ -1377,7 +1377,7 @@
 
   <target name="setup-mssql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
-      <artifact:resolveFile key="com.microsoft.sqlserver:sqljdbc" />
+      <artifact:resolveFile key="com.microsoft.sqlserver:mssql-jdbc:7.0.0.jre8:jar" />
     </copy>
   </target>
 
