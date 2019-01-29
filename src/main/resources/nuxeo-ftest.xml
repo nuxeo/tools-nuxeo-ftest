@@ -1256,7 +1256,7 @@
         </fileset>
       </classpath>
       ALTER SESSION SET "_oracle_script"=true;
-      CREATE USER ${nuxeo.db.user} IDENTIFIED BY ${nuxeo.db.pass} QUOTA UNLIMITED ON users;
+      CREATE USER ${nuxeo.db.user} IDENTIFIED BY "${nuxeo.db.pass}" QUOTA UNLIMITED ON users;
       GRANT EXECUTE ON SYS.DBMS_CRYPTO TO ${nuxeo.db.user};
       GRANT SELECT ON SYS.V_$$SESSION TO ${nuxeo.db.user};
       GRANT SELECT ON SYS.GV_$$SESSION TO ${nuxeo.db.user};
