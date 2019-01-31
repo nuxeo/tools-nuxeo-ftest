@@ -176,7 +176,6 @@
       <or>
         <isset property="maven.dbprofile" />
         <isset property="maven.profile.mongodb" />
-        <isset property="maven.profile.marklogic" />
       </or>
     </condition>
 
@@ -187,23 +186,6 @@
       <isset property="env.NX_MONGODB_DBNAME" />
     </condition>
 
-    <!-- TODO NXP-21092 : use generic variable for NoSQL DB -->
-    <condition property="nuxeo.marklogic.host" value="${env.NX_NOSQLDB_HOST}" else="${nuxeo.marklogic.host.default}">
-      <isset property="env.NX_NOSQLDB_HOST" />
-    </condition>
-    <!-- TODO NXBT-1473 : get random port as ML requires a different port to connect to different content/modules databases -->
-    <condition property="nuxeo.marklogic.port" value="${env.NX_NOSQLDB_PORT}" else="${nuxeo.marklogic.port.default}">
-      <isset property="env.NX_NOSQLDB_PORT" />
-    </condition>
-    <condition property="nuxeo.marklogic.dbname" value="${env.NX_NOSQLDB_NAME}" else="nxdbname${rndid}">
-      <isset property="env.NX_NOSQLDB_NAME" />
-    </condition>
-    <condition property="nuxeo.marklogic.user" value="${env.NX_NOSQLDB_USER}" else="nxdbuser${rndid}">
-      <isset property="env.NX_NOSQLDB_USER" />
-    </condition>
-    <condition property="nuxeo.marklogic.pass" value="${env.NX_NOSQLDB_PASS}" else="nxdbpass${rndid}">
-      <isset property="env.NX_NOSQLDB_PASS" />
-    </condition>
     <!-- set nuxeo.nosqldbsetup.adminname to NX_NOSQLDB_ADMINNAME env property if defined -->
     <condition property="nuxeo.nosqldbsetup.adminport" value="${env.NX_NOSQLDB_ADMINPORT}">
       <isset property="env.NX_NOSQLDB_ADMINPORT" />
@@ -947,9 +929,6 @@
   <category name="org.nuxeo.ecm.core.storage.mem.MemRepository">
     <priority value="TRACE" />
   </category>
-  <category name="org.nuxeo.ecm.core.storage.marklogic.MarkLogicRepository">
-    <priority value="TRACE" />
-  </category>
   <category name="org.nuxeo">
 ]]></replacevalue>
     </replace>
@@ -1346,95 +1325,6 @@
     </exec>
   </target>
 
-  <target name="marklogic-dbdrop" depends="_init,setup-marklogic-driver" if="maven.profile.marklogic">
-    <echo level="info">Dropping database named '${nuxeo.marklogic.dbname}' on '${nuxeo.marklogic.host}'</echo>
-    <!-- Delete the XDBC App Server from ML -->
-    <exec executable="curl" failonerror="false">
-      <arg line="-X DELETE --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} --header 'Content-Type: application/json' "/>
-      <arg line="http://${nuxeo.marklogic.host}:${nuxeo.nosqldbsetup.adminport}/manage/v2/servers/${nuxeo.marklogic.dbname}-xdbc?group-id=Default" />
-    </exec>
-    <!-- TODO NXBT-1473 : change that ML provide a way to check if server running -->
-    <!-- We need to wait server to restart after an App Server deletion -->
-    <sleep seconds="5"/>
-    <!-- Delete the content database from ML -->
-    <exec executable="curl" failonerror="false">
-      <arg line="-X DELETE --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} --header 'Content-Type:application/json' " />
-      <arg line="http://${nuxeo.marklogic.host}:${nuxeo.nosqldbsetup.adminport}/manage/v2/databases/${nuxeo.marklogic.dbname}" />
-    </exec>
-    <!-- Delete the modules database from ML -->
-    <exec executable="curl" failonerror="false">
-      <arg line="-X DELETE --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} --header 'Content-Type:application/json' "/>
-      <arg line="http://${nuxeo.marklogic.host}:${nuxeo.nosqldbsetup.adminport}/manage/v2/databases/${nuxeo.marklogic.dbname}-modules" />
-    </exec>
-    <!-- Delete the forests of databases from ML -->
-    <for list="1,2,3,4,modules" delimiter="," param="suffix">
-      <sequential>
-        <exec executable="curl" failonerror="false">
-          <arg line="-X DELETE --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} --header 'Content-Type: application/json' "/>
-          <arg line="http://${nuxeo.marklogic.host}:${nuxeo.nosqldbsetup.adminport}/manage/v2/forests/${nuxeo.marklogic.dbname}-@{suffix}?level=full" />
-        </exec>
-      </sequential>
-    </for>
-  </target>
-
-  <target name="marklogic-dbcreate" depends="_init,setup-marklogic-driver,marklogic-dbdrop" if="maven.profile.marklogic">
-    <echo level="info">Creating database named '${nuxeo.marklogic.dbname}' on '${nuxeo.marklogic.host}'</echo>
-    <!-- First create forests for databases (content and modules) -->
-    <!-- TODO NXBT-1473 : make dynamic host name -->
-    <for list="1,2,3,4,modules" delimiter="," param="suffix">
-      <sequential>
-        <exec executable="curl">
-          <arg line="-X POST --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} --header 'Content-Type: application/json' "/>
-          <arg line="-d '{&quot;forest-name&quot;:&quot;${nuxeo.marklogic.dbname}-@{suffix}&quot;,&quot;host&quot;:&quot;1bd9a04e9c12.eu-west-1.compute.internal&quot;,&quot;enabled&quot;:true}' " />
-          <arg line="http://${nuxeo.marklogic.host}:${nuxeo.nosqldbsetup.adminport}/manage/v2/forests" />
-        </exec>
-      </sequential>
-    </for>
-    <!-- Second create databases (content and modules) -->
-    <!-- Create the modules database in ML -->
-    <exec executable="curl">
-      <arg line="-X POST --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} --header 'Content-Type: application/json' "/>
-      <arg line="-d '{&quot;database-name&quot;:&quot;${nuxeo.marklogic.dbname}-modules&quot;,&quot;forest&quot;:[&quot;${nuxeo.marklogic.dbname}-modules&quot;]}' " />
-      <arg line="http://${nuxeo.marklogic.host}:${nuxeo.nosqldbsetup.adminport}/manage/v2/databases" />
-    </exec>
-    <!-- Create the content database in ML -->
-    <exec executable="curl">
-      <arg line="-X POST --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} --header 'Content-Type: application/json' "/>
-      <!-- TODO NXBT-1473 : Retrieve range-element-index from artifact, test-storage-repo-contrib.xml file -->
-      <arg line="-d '{&quot;database-name&quot;:&quot;${nuxeo.marklogic.dbname}&quot;,&quot;forest&quot;:[&quot;${nuxeo.marklogic.dbname}-1&quot;,&quot;${nuxeo.marklogic.dbname}-2&quot;,&quot;${nuxeo.marklogic.dbname}-3&quot;,&quot;${nuxeo.marklogic.dbname}-4&quot;],&quot;range-element-index&quot;:[{&quot;scalar-type&quot;:&quot;string&quot;,&quot;namespace-uri&quot;:&quot;&quot;,&quot;localname&quot;:[&quot;ecm__id&quot;,&quot;ecm__parentId&quot;,&quot;ecm__ancestorIds__item&quot;,&quot;ecm__versionSeriesId&quot;,&quot;ecm__proxyTargetId&quot;,&quot;ecm__proxyVersionSeriesId&quot;,&quot;ecm__racl&quot;,&quot;ecm__name&quot;,&quot;ecm__primaryType&quot;,&quot;ecm__lifeCycleState&quot;,&quot;dc__title&quot;,&quot;rend__renditionName&quot;,&quot;collectionMember__collectionIds__item&quot;],&quot;collation&quot;:&quot;http://marklogic.com/collation/&quot;,&quot;range-value-positions&quot;:false,&quot;invalid-values&quot;:&quot;ignore&quot;},{&quot;scalar-type&quot;:&quot;long&quot;,&quot;namespace-uri&quot;:&quot;&quot;,&quot;localname&quot;:[&quot;version-id&quot;,&quot;length&quot;],&quot;collation&quot;:&quot;http://marklogic.com/collation/&quot;,&quot;range-value-positions&quot;:false,&quot;invalid-values&quot;:&quot;ignore&quot;},{&quot;scalar-type&quot;:&quot;dateTime&quot;,&quot;namespace-uri&quot;:&quot;&quot;,&quot;localname&quot;:[&quot;created&quot;,&quot;replaced&quot;,&quot;begin&quot;,&quot;end&quot;,&quot;dc__created&quot;,&quot;dc__modified&quot;,&quot;rend__modificationDate&quot;,&quot;rend__sourceModificationDate&quot;],&quot;collation&quot;:&quot;http://marklogic.com/collation/&quot;,&quot;range-value-positions&quot;:false,&quot;invalid-values&quot;:&quot;ignore&quot;},{&quot;scalar-type&quot;:&quot;string&quot;,&quot;namespace-uri&quot;:&quot;&quot;,&quot;localname&quot;:[&quot;dc__description&quot;,&quot;dc__coverage&quot;,&quot;ecm__lockOwner&quot;,&quot;ecm__versionLabel&quot;,&quot;firstname&quot;,&quot;lastname&quot;,&quot;tst__title&quot;,&quot;nt__name&quot;,&quot;dc__nature&quot;,&quot;nxdoc__documentationId&quot;],&quot;collation&quot;:&quot;http://marklogic.com/collation/&quot;,&quot;range-value-positions&quot;:false,&quot;invalid-values&quot;:&quot;ignore&quot;},{&quot;scalar-type&quot;:&quot;long&quot;,&quot;namespace-uri&quot;:&quot;&quot;,&quot;localname&quot;:[&quot;ecm__pos&quot;],&quot;collation&quot;:&quot;http://marklogic.com/collation/&quot;,&quot;range-value-positions&quot;:false,&quot;invalid-values&quot;:&quot;ignore&quot;},{&quot;scalar-type&quot;:&quot;dateTime&quot;,&quot;namespace-uri&quot;:&quot;&quot;,&quot;localname&quot;:[&quot;ecm__lockCreated&quot;,&quot;dc__issued&quot;],&quot;collation&quot;:&quot;http://marklogic.com/collation/&quot;,&quot;range-value-positions&quot;:false,&quot;invalid-values&quot;:&quot;ignore&quot;}]}'" />
-      <arg line="http://${nuxeo.marklogic.host}:${nuxeo.nosqldbsetup.adminport}/manage/v2/databases" />
-    </exec>
-    <!-- Third create the XDBC App Server in ML -->
-    <!-- TODO NXBT-1473 : Use a sequence of port to allow several Nuxeo instances to connect to ML in the same time -->
-    <exec executable="curl">
-      <arg line="-X POST --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} --header 'Content-Type: application/json' "/>
-      <arg line="-d '{&quot;server-name&quot;:&quot;${nuxeo.marklogic.dbname}-xdbc&quot;,&quot;server-type&quot;:&quot;xdbc&quot;,&quot;group-name&quot;:&quot;Default&quot;,&quot;enabled&quot;:true,&quot;root&quot;:&quot;/&quot;,&quot;port&quot;:${nuxeo.marklogic.port},&quot;modules-database&quot;:&quot;${nuxeo.marklogic.dbname}-modules&quot;,&quot;content-database&quot;:&quot;${nuxeo.marklogic.dbname}&quot;}' " />
-      <arg line="http://${nuxeo.marklogic.host}:${nuxeo.nosqldbsetup.adminport}/manage/v2/servers" />
-    </exec>
-    <!-- Finally insert required modules to modules database -->
-    <unzip dest="${out.dir}/">
-      <artifact:file key="org.nuxeo.ecm.core:nuxeo-core-storage-marklogic" />
-      <patternset>
-        <include name="**/*.xqy"/>
-      </patternset>
-      <cutdirsmapper dirs="4" />
-    </unzip>
-    <for param="file">
-      <path>
-        <fileset dir="${out.dir}" includes="*.xqy"/>
-      </path>
-      <sequential>
-        <local name="filename" />
-        <basename property="filename" file="@{file}"/>
-        <exec executable="curl">
-          <!-- TODO NXBT-1473 : hardcoded port for default REST App Server -->
-          <arg line="-X PUT --anyauth -u ${nuxeo.nosqldbsetup.adminuser}:${nuxeo.nosqldbsetup.adminpass} --data-binary @'@{file}' --header 'Content-Type: application/xml' "/>
-          <arg line="http://${nuxeo.marklogic.host}:8000/v1/documents?database=${nuxeo.marklogic.dbname}-modules&amp;uri=/ext/nuxeo/${filename}" />
-        </exec>
-      </sequential>
-    </for>
-  </target>
-
   <target name="setup-pgsql-driver" depends="_init">
     <copy todir="${jdbc.dir}">
       <artifact:resolveFile key="org.postgresql:postgresql" />
@@ -1483,9 +1373,6 @@
     <!-- </copy> -->
   </target>
 
-  <target name="setup-marklogic-driver" depends="_init">
-  </target>
-
   <target name="prepare-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
     <mkdir dir="${jdbc.dir}" />
     <nx:profile name="pgsql">
@@ -1524,10 +1411,6 @@
       <echo level="info">Prepare MongoDB...</echo>
       <antcall target="mongodb-dbcreate" />
     </nx:profile>
-    <nx:profile name="marklogic">
-      <echo level="info">Prepare MarkLogic...</echo>
-      <antcall target="marklogic-dbcreate" />
-    </nx:profile>
   </target>
 
   <target name="cleanup-db" depends="_init" if="nuxeo.dbsetup.dodbconf">
@@ -1558,9 +1441,6 @@
     </nx:profile>
     <nx:profile name="mongodb">
       <antcall target="mongodb-dbdrop" />
-    </nx:profile>
-    <nx:profile name="marklogic">
-      <antcall target="marklogic-dbdrop" />
     </nx:profile>
   </target>
 
@@ -1912,43 +1792,6 @@
         <param name="name" value="nuxeo.mongodb.dbname" />
         <param name="value" value="${nuxeo.mongodb.dbname}" />
       </antcall>
-    </nx:profile>
-    <nx:profile name="marklogic">
-      <if>
-        <isset property="nuxeo.marklogic.host" />
-        <then>
-          <antcall target="set-conf">
-            <param name="name" value="nuxeo.marklogic.host" />
-            <param name="value" value="${nuxeo.marklogic.host}" />
-          </antcall>
-        </then>
-      </if>
-      <if>
-        <isset property="nuxeo.marklogic.port" />
-        <then>
-          <antcall target="set-conf">
-            <param name="name" value="nuxeo.marklogic.port" />
-            <param name="value" value="${nuxeo.marklogic.port}" />
-          </antcall>
-        </then>
-      </if>
-      <antcall target="set-conf">
-        <param name="name" value="nuxeo.marklogic.dbname" />
-        <param name="value" value="${nuxeo.marklogic.dbname}" />
-      </antcall>
-      <if>
-        <isset property="nuxeo.marklogic.user" />
-        <then>
-          <antcall target="set-conf">
-            <param name="name" value="nuxeo.marklogic.user" />
-            <param name="value" value="${nuxeo.marklogic.user}" />
-          </antcall>
-          <antcall target="set-conf">
-            <param name="name" value="nuxeo.marklogic.password" />
-            <param name="value" value="${nuxeo.marklogic.password}" />
-          </antcall>
-        </then>
-      </if>
     </nx:profile>
     <nx:profile name="kafka">
       <antcall target="set-conf">
