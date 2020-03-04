@@ -116,7 +116,6 @@ upload files when running tests.
   * `out.dir`: default value is `${maven.project.build.directory}`.
   * `nuxeo.home`: if `NUXEO_HOME` environment property is not set, default value depends on Maven profile, then values `${out.dir}/tomcat`.
   * `nuxeo.conf`: if `NUXEO_CONF` environment property is not set, default value is `${nuxeo.home}/bin/nuxeo.conf`.
-  * `wizard.preset`: the wizard preset to activate on the distribution. The value can be `nuxeo-cap` (deprecated, does nothing), `nuxeo-dam`, `nuxeo-cmf` or `nuxeo-sc`; there is no default value (property is not set).
   * `mp.install`: a comma-separated list of instructions for the Marketplace install process. For instance `file:/path/to/some/marketplace-package-1.0-SNAPSHOT.zip`.
   * `zip.file`: the zipped server to use for testing instead of downloading a new one.
   * `env.NUXEO_HOME`: the server to use for testing instead of downloading a new one. Note that its nuxeo.conf file might be changed when running tests.
@@ -184,10 +183,8 @@ The Nuxeo server against which the tests are ran can be:
   * `run-selenium`: macro target for preparing the environment, starting the server, running the tests, stopping the server.
   Will exit with an error value if a testing suite failed.
   * `set-conf`: convenience target for adding a property to nuxeo.conf
-  * `wizard-on`, `wizard-off`: deprecated targets for setting on/off the wizard; prefer use of `set-conf`.
   * `start`, `stop`: start or stop the server.
   * `cleanup-db`: can be used after the tests to remove the user and database that were created for the test.
-  * `activate-wizard-preset`: activate the wizard preset defined in the `wizard.preset` property.
   * `mp-install`: add comma-separated instructions defined in the `mp.install` property.
 
 ## QA results

@@ -939,7 +939,6 @@
     <antcall target="unzip-local" />
     <antcall target="nuxeo-conf" />
     <antcall target="fix-max-waits" />
-    <antcall target="activate-wizard-preset" />
     <antcall target="mp-install" />
   </target>
 
@@ -1651,21 +1650,6 @@
     </exec>
   </target>
 
-  <target name="wizard-on" depends="_init" description="DEPRECATED: call set-conf instead.">
-    <echo append="true" file="${nuxeo.conf}">nuxeo.wizard.done=false${line.separator}</echo>
-  </target>
-  <target name="wizard-off" depends="_init" description="DEPRECATED: call set-conf instead.">
-    <echo append="true" file="${nuxeo.conf}">nuxeo.wizard.done=true${line.separator}</echo>
-  </target>
-
-  <target name="check-set-wizard" if="nuxeo.wizard.done" depends="_init">
-    <echo level="info" message="Setting nuxeo.wizard.done=${nuxeo.wizard.done}" />
-    <antcall target="set-conf">
-      <param name="name" value="nuxeo.wizard.done" />
-      <param name="value" value="${nuxeo.wizard.done}" />
-    </antcall>
-  </target>
-
   <target name="set-java-home"
           if="env.NX_JAVA_HOME"
           depends="_init"
@@ -1760,7 +1744,7 @@
   </target>
 
   <target name="nuxeo-conf"
-          depends="_init,set-java-home,check-set-wizard,set-nuxeoconf-db,setup-mail-server"
+          depends="_init,set-java-home,set-nuxeoconf-db,setup-mail-server"
           description="Configure ${nuxeo.conf} depending on environment values.">
     <!-- activate logs for Selenium tests -->
     <antcall target="set-conf">
@@ -1822,28 +1806,6 @@
                    match="#?nuxeo.templates=(.*)"
                    replace="nuxeo.templates=\1,${value}"
                    byline="true" />
-  </target>
-
-  <target name="activate-wizard-preset"
-          depends="_init"
-          if="wizard.preset"
-          description="Activate the configured wizard preset.">
-    <if>
-      <equals arg1="${wizard.preset}" arg2="nuxeo-dam" />
-      <then>
-        <echo append="true" file="${nuxeo.data}/installAfterRestart.log" message="nuxeo-dam">
-        </echo>
-      </then>
-      <elseif>
-        <equals arg1="${wizard.preset}" arg2="nuxeo-sc" />
-        <then>
-          <echo append="true" file="${nuxeo.data}/installAfterRestart.log" message="nuxeo-sc">
-          </echo>
-        </then>
-      </elseif>
-    </if>
-    <echo file="${nuxeo.home}/setupWizardDownloads/packages-default-selection.properties"
-          message="preset=${wizard.preset}" />
   </target>
 
   <target name="mp-install" depends="_init" if="mp.install" description="Install comma-separated Marketplace packages">
