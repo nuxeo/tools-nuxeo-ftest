@@ -328,6 +328,12 @@
         </condition>
       </then>
     </if>
+    <if>
+      <isset property="test.clid.path" />
+      <then>
+        <copy file="${test.clid.path}" tofile="${nuxeo.data}/instance.clid" overwrite="true" />
+      </then>
+    </if>
     <condition property="nuxeoctl.option.clid" value="--clid=${test.clid.path}" else="">
       <and>
         <not>
