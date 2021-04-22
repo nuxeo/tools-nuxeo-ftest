@@ -328,12 +328,6 @@
         </condition>
       </then>
     </if>
-    <if>
-      <isset property="test.clid.path" />
-      <then>
-        <copy file="${test.clid.path}" tofile="${nuxeo.data}/instance.clid" overwrite="true" />
-      </then>
-    </if>
     <condition property="nuxeoctl.option.clid" value="--clid=${test.clid.path}" else="">
       <and>
         <not>
@@ -1573,6 +1567,15 @@
   <target name="start" depends="_init,stop,start-unix,start-windows" />
   <target name="start-unix" if="osfamily-unix">
     <if>
+      <and>
+        <isset property="test.clid.path" />
+        <available file="${test.clid.path}" />
+      </and>
+      <then>
+        <copy file="${test.clid.path}" tofile="${nuxeo.data}/instance.clid" overwrite="true" />
+      </then>
+    </if>
+    <if>
       <available file="${nuxeo.data}/installAfterRestart.log" />
       <then>
         <echo level="info" message="Execute pending actions before start" />
@@ -1608,6 +1611,15 @@
     </exec>
   </target>
   <target name="start-windows" if="osfamily-windows">
+    <if>
+      <and>
+        <isset property="test.clid.path" />
+        <available file="${test.clid.path}" />
+      </and>
+      <then>
+        <copy file="${test.clid.path}" tofile="${nuxeo.data}/instance.clid" overwrite="true" />
+      </then>
+    </if>
     <if>
       <available file="${nuxeo.data}/installAfterRestart.log" />
       <then>
